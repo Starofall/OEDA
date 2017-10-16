@@ -1,0 +1,44 @@
+<div class="row">
+  <div class="col-sm-12 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Edit Definition</div>
+          <div class="pull-right">
+            <a class="btn btn-orange btn-sm">Save Changes</a>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row">
+          <labeled-input name="Definition Name" [model]="definition" key="name"></labeled-input>
+          <labeled-input name="Definition Description" [model]="definition" key="description"></labeled-input>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Primary Data Provider</div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <!--<div class="row">-->
+          <!--<labeled-input-select name="Type" [model]="definition.primaryDataProvider" key="type" [colSize]="12"-->
+                                <!--[options]="[{key:'http_request',label:'HTTP Request'},-->
+                                <!--{key:'mqtt_listener',label:'MQTT Listener'},-->
+                                <!--{key:'kafka_consumer',label:'Kafka Consumer'}]"></labeled-input-select>-->
+        <!--</div>-->
+
+        <!--<div class="row" *ngIf="definition.primaryDataProvider.type == 'http_request'">-->
+          <!--<labeled-input name="URL" [model]="definition.primaryDataProvider" key="url" [colSize]="6"></labeled-input>-->
+          <!--<labeled-input-select name="Serializer" [model]="definition.primaryDataProvider" key="serializer" [colSize]="6"-->
+                                <!--[options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>-->
+        <!--</div>-->
+      </div>
+    </div>
+  </div>
+
+</div>

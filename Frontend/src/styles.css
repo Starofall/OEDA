@@ -1,0 +1,38 @@
+a {
+  color: #ee6f5d;
+}
+
+.pagination > .active > a, .pagination > .active > a:focus, .pagination > .active > a:hover, .pagination > .active > span, .pagination > .active > span:focus, .pagination > .active > span:hover {
+  background-color: #ee6f5d;
+  border-color: #ee6f5d;
+}
+
+.btn-orange {
+  background-color: #ee6f5d;
+  border-color: #ee6f5d;
+  color: white;
+}
+
+.btn-orange:hover {
+  background-color: #da6655;
+  border-color: #d86554;
+  color: white;
+}
+
+.table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > th {
+  padding: 20px 20px 10px;
+}
+
+.table > tbody > tr > td, .table > tfoot > tr > td, .table > thead > tr > td {
+  padding: 20px;
+}
+
+/*.top-navbar .nav > li > a:hover, .top-navbar .nav > li > a:focus{*/
+  /*color: #d86554 !important;*/
+/*}*/
+
+
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control{
+  background-color: white;
+  border-color: #f7f7f7;
+}

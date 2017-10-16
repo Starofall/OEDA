@@ -1,0 +1,99 @@
+<div class="row">
+  <div class="col-sm-12 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Edit Target System</div>
+          <div class="pull-right">
+            <a class="btn btn-orange btn-sm">Save Changes</a>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row">
+          <labeled-input name="Target Name" [model]="target" key="name"></labeled-input>
+          <labeled-input name="Target Description" [model]="target" key="description"></labeled-input>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Primary Data Provider</div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row">
+          <labeled-input-select name="Type" [model]="target.primaryDataProvider" key="type" [colSize]="12"
+                                [options]="[{key:'http_request',label:'HTTP Request'},
+                                {key:'mqtt_listener',label:'MQTT Listener'},
+                                {key:'kafka_consumer',label:'Kafka Consumer'}]"></labeled-input-select>
+        </div>
+
+        <div class="row" *ngIf="target.primaryDataProvider.type == 'http_request'">
+          <labeled-input name="URL" [model]="target.primaryDataProvider" key="url" [colSize]="6"></labeled-input>
+          <labeled-input-select name="Serializer" [model]="target.primaryDataProvider" key="serializer" [colSize]="6"
+                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+        </div>
+
+        <div class="row" *ngIf="target.primaryDataProvider.type == 'mqtt_listener'">
+          <labeled-input name="Host" [model]="target.primaryDataProvider" key="host"></labeled-input>
+          <labeled-input name="Port" [model]="target.primaryDataProvider" key="port" inputType="number"
+                         [minNumber]="1" [maxNumber]="65535"></labeled-input>
+          <labeled-input name="Topic" [model]="target.primaryDataProvider" key="topic"></labeled-input>
+          <labeled-input-select name="Serializer" [model]="target.primaryDataProvider" key="serializer" [colSize]="6"
+                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+        </div>
+
+        <div class="row" *ngIf="target.primaryDataProvider.type == 'kafka_consumer'">
+          <labeled-input name="Kafka URI" [model]="target.primaryDataProvider" key="kafka_uri" [colSize]="12"></labeled-input>
+          <labeled-input name="Topic" [model]="target.primaryDataProvider" key="topic"></labeled-input>
+          <labeled-input-select name="Serializer" [model]="target.primaryDataProvider" key="serializer" [colSize]="6"
+                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Change Provider</div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row">
+          <labeled-input-select name="Strategy" [model]="target.changeProvider" key="type" [colSize]="12"
+                                [options]="[{key:'http_request',label:'HTTP Request'},
+                                {key:'mqtt_publisher',label:'MQTT Publish'},
+                                 {key:'kafka_producer',label:'Kafka Producer'}]"></labeled-input-select>
+        </div>
+
+        <div class="row" *ngIf="target.changeProvider.type == 'http_request'">
+          <labeled-input name="URL" [model]="target.changeProvider" key="url" [colSize]="6"></labeled-input>
+          <labeled-input-select name="Serializer" [model]="target.changeProvider" key="serializer" [colSize]="6"
+                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+        </div>
+        <div class="row" *ngIf="target.changeProvider.type == 'mqtt_publisher'">
+          <labeled-input name="Host" [model]="target.changeProvider" key="host"></labeled-input>
+          <labeled-input name="Port" [model]="target.changeProvider" key="port" inputType="number"
+                         [minNumber]="1" [maxNumber]="65535"></labeled-input>
+          <labeled-input name="Topic" [model]="target.changeProvider" key="topic"></labeled-input>
+          <labeled-input-select name="Serializer" [model]="target.changeProvider" key="serializer" [colSize]="6"
+                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+        </div>
+
+        <div class="row" *ngIf="target.changeProvider.type == 'kafka_producer'">
+          <labeled-input name="Kafka URI" [model]="target.changeProvider" key="kafka_uri" [colSize]="12"></labeled-input>
+          <labeled-input name="Topic" [model]="target.changeProvider" key="topic"></labeled-input>
+          <labeled-input-select name="Serializer" [model]="target.changeProvider" key="serializer" [colSize]="6"
+                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

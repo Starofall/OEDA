@@ -1,0 +1,55 @@
+<nav class="navbar navbar-default top-navbar" role="navigation">
+  <div class="navbar-header">
+    <div class="navbar-brand"><strong><i class="icon fa fa-cog"></i>EDA Control</strong></div>
+  </div>
+  <div class="pageDescriptor">
+    <h3>
+      {{header.name}}
+      <small>{{header.description}}</small>
+    </h3>
+  </div>
+
+  <ul class="nav navbar-top-links navbar-right">
+    <li *ngIf="dataService.runningExperiments.length > 0" id="runningExperimentsDropdown" class="dropdown">
+      <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+        <i class="fa fa-tasks fa-fw"></i>{{dataService.runningExperiments.length}} Running <i class="fa fa-caret-down"></i>
+      </a>
+      <ul class="dropdown-menu dropdown-tasks">
+        <li *ngFor="let exp of dataService.runningExperiments">
+          <a href="#">
+            <div>
+              <p>
+                <strong>{{exp.name}}</strong>
+                <span class="pull-right">{{exp.complete | percent}} Complete</span>
+              </p>
+              <progressbar [value]="exp.complete*100"></progressbar>
+            </div>
+          </a>
+          <div class="divider"></div>
+        </li>
+        <li>
+          <a class="text-center" routerLink="/control/experiments">
+            <strong>See All Experiments</strong>
+            <i class="fa fa-angle-right"></i>
+          </a>
+        </li>
+      </ul>
+      <!-- /.dropdown-tasks -->
+    </li>
+    <!-- /.dropdown -->
+    <li id="userDropdown" class="dropdown">
+      <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+        <i class="fa fa-user fa-fw"></i>Max Mustermann <i class="fa fa-caret-down"></i>
+      </a>
+      <ul class="dropdown-menu dropdown-user">
+        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a></li>
+        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a></li>
+        <li class="divider"></li>
+        <li><a href="#"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+        </li>
+      </ul>
+      <!-- /.dropdown-user -->
+    </li>
+    <!-- /.dropdown -->
+  </ul>
+</nav>
