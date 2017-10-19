@@ -1,44 +1,130 @@
-<div class="row">
-  <div class="col-sm-12 col-xs-12">
-    <div class="panel panel-default chartJs">
+<div class="row" *ngIf="definition != null">
+  <div class="col-md-7 col-sm-6 col-xs-12">
+    <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">Edit Definition</div>
-          <div class="pull-right">
-            <a class="btn btn-orange btn-sm">Save Changes</a>
+          <div class="title pull-left">General</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="sub-title">Name</div>
+            <div>
+              <input type="text" class="form-control" [placeholder]="definition.name" >
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="sub-title">Target</div>
+            <div>
+              <input type="text" class="form-control" [placeholder]="definition.target.name">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="sub-title">Creator</div>
+            <div>
+              <input type="text" class="form-control" [placeholder]="definition.creator.name">
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <div class="sub-title">Description</div>
+            <div>
+              <input type="text" class="form-control" [placeholder]="definition.description">
+            </div>
           </div>
         </div>
       </div>
-      <div class="panel-body" style="padding-top: 20px">
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Definition</div>
+        </div>
+      </div>
+      <div class="panel-body">
         <div class="row">
-          <labeled-input name="Definition Name" [model]="definition" key="name"></labeled-input>
-          <labeled-input name="Definition Description" [model]="definition" key="description"></labeled-input>
+          <div class="col-md-6">
+            <div class="sub-title">Execution Strategy</div>
+            <div>
+              <input type="text" class="form-control" placeholder="StepExplorer">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="sub-title">Creator</div>
+            <div>
+              <input type="text" class="form-control" [placeholder]="definition.creator.name">
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <h4>-> here comes the definition.py creation tool <-</h4>
+          </div>
+
         </div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-xs-12">
+
+  <div class="col-md-5 col-sm-6 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">Primary Data Provider</div>
+          <div class="title pull-left">Experiment List</div>
+          <div class="pull-right">
+            <a routerLink="/control/definitions/execute/{{definition.id}}" class="btn btn-orange btn-sm">Run Experiment</a>
+          </div>
         </div>
       </div>
-      <div class="panel-body" style="padding-top: 20px">
-        <!--<div class="row">-->
-          <!--<labeled-input-select name="Type" [model]="definition.primaryDataProvider" key="type" [colSize]="12"-->
-                                <!--[options]="[{key:'http_request',label:'HTTP Request'},-->
-                                <!--{key:'mqtt_listener',label:'MQTT Listener'},-->
-                                <!--{key:'kafka_consumer',label:'Kafka Consumer'}]"></labeled-input-select>-->
-        <!--</div>-->
-
-        <!--<div class="row" *ngIf="definition.primaryDataProvider.type == 'http_request'">-->
-          <!--<labeled-input name="URL" [model]="definition.primaryDataProvider" key="url" [colSize]="6"></labeled-input>-->
-          <!--<labeled-input-select name="Serializer" [model]="definition.primaryDataProvider" key="serializer" [colSize]="6"-->
-                                <!--[options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>-->
-        <!--</div>-->
+      <div class="panel-body">
+        <div class="row">
+          <table style="margin-top: 20px;margin-left: 8px" class="table table-striped"
+                 [mfData]="experiments" #mf="mfDataTable" [mfRowsOnPage]="10">
+            <thead>
+            <tr>
+              <th style="width:1%">
+              </th>
+              <th style="width:1%">
+                <mfDefaultSorter by="status">Status</mfDefaultSorter>
+              </th>
+              <th style="width: 20%">
+                <mfDefaultSorter by="name">Started At</mfDefaultSorter>
+              </th>
+              <th style="width: 20%">
+                <mfDefaultSorter by="description">Finished At</mfDefaultSorter>
+            </tr>
+            </thead>
+            <tbody class="bigTable">
+            <tr *ngFor="let item of mf.data">
+              <td style="padding-right: 0px">
+                <a class="btn btn-xs btn-orange" type="button"
+                   routerLink="/control/experiments/show/{{item.id}}"><i class="fa fa-search"></i></a>
+              </td>
+              <td>
+                <label *ngIf="item.status == 'SUCCESS'" class="label label-success">Success</label>
+                <label *ngIf="item.status == 'RUNNING'" class="label label-info">Running</label>
+                <label *ngIf="item.status == 'FAILURE'" class="label label-danger">Failure</label>
+              </td>
+              <td>{{item.startedAt | date}}</td>
+              <td>{{item.finishedAt | date}}</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+              <td colspan="4">
+                <mfBootstrapPaginator [rowsOnPageSet]="[10,25,100]"></mfBootstrapPaginator>
+              </td>
+            </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-
 </div>

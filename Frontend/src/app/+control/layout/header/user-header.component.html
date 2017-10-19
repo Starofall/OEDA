@@ -10,12 +10,12 @@
   </div>
 
   <ul class="nav navbar-top-links navbar-right">
-    <li *ngIf="dataService.runningExperiments.length > 0" id="runningExperimentsDropdown" class="dropdown">
+    <li *ngIf="runningExperiments.length > 0" id="runningExperimentsDropdown" class="dropdown">
       <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-        <i class="fa fa-tasks fa-fw"></i>{{dataService.runningExperiments.length}} Running <i class="fa fa-caret-down"></i>
+        <i class="fa fa-tasks fa-fw"></i>{{runningExperiments.length}} Running <i class="fa fa-caret-down"></i>
       </a>
       <ul class="dropdown-menu dropdown-tasks">
-        <li *ngFor="let exp of dataService.runningExperiments">
+        <li *ngFor="let exp of runningExperiments">
           <a href="#">
             <div>
               <p>

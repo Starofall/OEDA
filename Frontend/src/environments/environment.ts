@@ -6,5 +6,5 @@
 export const environment = {
   production: false,
   logLevel: 5,
-  backendURL: "none"
+  backendURL: "http://localhost:5000/api"
 };

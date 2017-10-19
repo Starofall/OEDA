@@ -18,6 +18,8 @@ import {UtilModule} from "./modules/util/util.module";
 import {DataTableModule} from "angular2-datatable";
 import {DataService} from "./util/data-service";
 import {UIModule} from "./modules/ui/ui.module";
+import {OEDAApiService} from "./modules/api/oeda-api.service";
+import {RESTService} from "./util/rest-service";
 
 @NgModule({
   imports: [
@@ -47,7 +49,9 @@ import {UIModule} from "./modules/ui/ui.module";
     LoggerService,
     UserRouteGuard,
     LayoutService,
-    DataService
+    DataService,
+    // RESTService,
+    OEDAApiService
     // should always be empty
   ]
 })

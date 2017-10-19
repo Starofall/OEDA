@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="panel-body">
-        <table style="margin-top: 20px" class="table table-striped" [mfData]="data" #mf="mfDataTable"
+        <table style="margin-top: 20px" class="table table-striped" [mfData]="definitions" #mf="mfDataTable"
                [mfRowsOnPage]="10" >
           <thead>
           <tr>
@@ -37,11 +37,11 @@
           <tr *ngFor="let item of mf.data">
             <td style="padding-right: 0px">
               <a class="btn btn-xs btn-orange" type="button"
-                 routerLink="/control/definitions/show/{{item.id}}"><i class="fa fa-search"></i></a>
+                 routerLink="/control/definitions/edit/{{item.id}}"><i class="fa fa-search"></i></a>
             </td>
             <td>{{item.name}}</td>
             <td>{{item.description}}</td>
-            <td><a routerLink="/control/targets/show/{{item.id}}">{{item.target?.name}}</a></td>
+            <td><a routerLink="/control/targets/edit/{{item.id}}">{{item.target?.name}}</a></td>
             <td><a routerLink="/control/user/show/{{item.id}}">{{item.creator?.name}}</a></td>
             <td>{{item.definition|json}}</td>
           </tr>

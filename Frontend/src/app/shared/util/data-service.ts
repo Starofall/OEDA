@@ -15,21 +15,4 @@ export class DataService {
               public log: LoggerService) {
   }
 
-  runningExperiments = [
-    {
-      name: "RTX Test 1",
-      status: "RUNNING",
-      complete: 0.5
-    },
-    {
-      name: "RTX Test 2",
-      status: "RUNNING",
-      complete: 0.2
-    },
-    {
-      name: "RTX Test 3",
-      status: "RUNNING",
-      complete: 0.8
-    }
-  ]
 }

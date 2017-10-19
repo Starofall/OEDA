@@ -1,11 +1,19 @@
-<div class="row">
+<div class="row" *ngIf="target != null">
   <div class="col-sm-12 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
         <div class="card-title">
           <div class="title pull-left">Edit Target System</div>
           <div class="pull-right">
-            <a class="btn btn-orange btn-sm">Save Changes</a>
+            <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-orange"><i
+              class="fa fa-recycle"></i> Revert Changes
+            </div>
+            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChanges()" class="btn btn-sm btn-orange"><i
+              class="fa fa-send"></i> Save Changes
+            </div>
+            <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-orange"><i
+              class="fa fa-close"></i> Data Error
+            </div>
           </div>
         </div>
       </div>
@@ -48,7 +56,8 @@
         </div>
 
         <div class="row" *ngIf="target.primaryDataProvider.type == 'kafka_consumer'">
-          <labeled-input name="Kafka URI" [model]="target.primaryDataProvider" key="kafka_uri" [colSize]="12"></labeled-input>
+          <labeled-input name="Kafka URI" [model]="target.primaryDataProvider" key="kafka_uri"
+                         [colSize]="12"></labeled-input>
           <labeled-input name="Topic" [model]="target.primaryDataProvider" key="topic"></labeled-input>
           <labeled-input-select name="Serializer" [model]="target.primaryDataProvider" key="serializer" [colSize]="6"
                                 [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
@@ -56,7 +65,6 @@
       </div>
     </div>
   </div>
-
   <div class="col-sm-6 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
@@ -87,13 +95,81 @@
         </div>
 
         <div class="row" *ngIf="target.changeProvider.type == 'kafka_producer'">
-          <labeled-input name="Kafka URI" [model]="target.changeProvider" key="kafka_uri" [colSize]="12"></labeled-input>
+          <labeled-input name="Kafka URI" [model]="target.changeProvider" key="kafka_uri"
+                         [colSize]="12"></labeled-input>
           <labeled-input name="Topic" [model]="target.changeProvider" key="topic"></labeled-input>
           <labeled-input-select name="Serializer" [model]="target.changeProvider" key="serializer" [colSize]="6"
                                 [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
         </div>
 
+
+        <!-- add selection for all input and output variables here -->
+
+
       </div>
     </div>
   </div>
+
+
+  <div class="col-sm-6 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Incoming Data Types</div>
+          <div class="pull-right">
+            <div (click)="addIncomingDataType()" class="btn btn-xs btn-orange"><i class="fa fa-plus push-5-r"></i> Add
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row" *ngFor="let input of target.incomingDataTypes; let i = index">
+          <labeled-input name="Name" [model]="input" key="name" [colSize]="3"></labeled-input>
+          <labeled-input name="Description" [model]="input" key="description" [colSize]="3"></labeled-input>
+          <labeled-input-select name="Type" [model]="input" key="type" [colSize]="5"
+                                [options]="[{key:'INTEGER_ORDINAL',label:'Integer / Ordinal'},
+                                {key:'FLOAT_METRIC',label:'Float / Metric'},
+                                {key:'STRING_NOMINAL',label:'String / Nominal'}]"></labeled-input-select>
+          <div class="col-md-1" style="margin-top: 56px;color: #ef705d">
+            <a (click)="removeIncoming(i)">
+              <i class="fa fa-remove"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Changeable Variables</div>
+          <div class="pull-right">
+            <div (click)="addChangeableVariable()" class="btn btn-xs btn-orange"><i class="fa fa-plus push-5-r"></i> Add
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row" *ngFor="let input of target.changeableVariable; let i = index">
+          <labeled-input name="Name" [model]="input" key="name" [colSize]="3"></labeled-input>
+          <labeled-input name="Description" [model]="input" key="description" [colSize]="3"></labeled-input>
+          <labeled-input-select name="Type" [model]="input" key="type" [colSize]="5"
+                                [options]="[{key:'INTEGER_ORDINAL',label:'Integer / Ordinal'},
+                                {key:'FLOAT_METRIC',label:'Float / Metric'},
+                                {key:'STRING_NOMINAL',label:'String / Nominal'}]"></labeled-input-select>
+          <div class="col-md-1" style="margin-top: 56px;color: #ef705d">
+            <a (click)="removeChangeableVariable(i)">
+              <i class="fa fa-remove"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <debug-element [element]="target"></debug-element>
 </div>

@@ -1,1 +1,2 @@
-ng build -prod --no-sourcemap --aot
+# ng build -prod --no-sourcemap --aot --output-hashing none
+ng build --no-sourcemap --output-hashing none

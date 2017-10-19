@@ -10,7 +10,6 @@ import {DashboardComponent} from "./dashboard/dashboard.component";
 import {TargetsComponent} from "./targets/targets.component";
 import {ConfigurationComponent} from "./configuration/configuration.component";
 import {DefinitionsComponent} from "./definitions/definitions.component";
-import {ShowDefinitionsComponent} from "./definitions/show/show-definitions.component";
 import {ExperimentsComponent} from "./experiments/experiments.component";
 import {ShowExperimentsComponent} from "./experiments/show/show-experiments.component";
 import {GraphsModule} from "../shared/modules/graphs/graphs.module";
@@ -34,7 +33,6 @@ import {EditDefinitionsComponent} from "./definitions/edit/edit-definitions.comp
     DashboardComponent,
     DefinitionsComponent,
     TargetsComponent,
-    ShowDefinitionsComponent,
     ExperimentsComponent,
     ShowExperimentsComponent,
     EditTargetsComponent

@@ -7,7 +7,6 @@ import {ConfigurationComponent} from "./configuration/configuration.component";
 import {DefinitionsComponent} from "./definitions/definitions.component";
 import {EditDefinitionsComponent} from "./definitions/edit/edit-definitions.component";
 import {EditTargetsComponent} from "./targets/edit/edit-targets.component";
-import {ShowDefinitionsComponent} from "./definitions/show/show-definitions.component";
 import {ExperimentsComponent} from "./experiments/experiments.component";
 import {ShowExperimentsComponent} from "./experiments/show/show-experiments.component";
 
@@ -31,11 +30,7 @@ export const routes: Routes = [
       },
       {
         path: 'definitions/edit/:id',
-        component: EditDefinitionsComponent,
-      },
-      {
-        path: 'definitions/show/:id',
-        component: ShowDefinitionsComponent,
+        component: EditDefinitionsComponent
       },
       {
         path: 'experiments',
@@ -53,7 +48,10 @@ export const routes: Routes = [
         path: 'targets/edit/:id',
         component: EditTargetsComponent,
       },
-
+      {
+        path: 'targets/create',
+        component: EditTargetsComponent,
+      },
     ]
   }
 ];
