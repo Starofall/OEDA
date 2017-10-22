@@ -26,7 +26,7 @@ targets = {
 }
 
 
-class Target(Resource):
+class TargetController(Resource):
     def get(self, id):
         try:
             return targets[id]
@@ -39,6 +39,6 @@ class Target(Resource):
         return {}, 200
 
 
-class TargetsList(Resource):
+class TargetsListController(Resource):
     def get(self):
         return targets.values()

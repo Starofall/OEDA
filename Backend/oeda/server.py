@@ -3,10 +3,10 @@ from flask import Flask, jsonify
 from flask import Flask, request
 from flask_restful import Resource, Api
 
-from controller.targets import Target, TargetsList
-from controller.configuration import Configuration
-from controller.defintions import DefinitionsList, Definition
-from controller.experiments import ExperimentsList, Experiment
+from controller.targets import TargetController, TargetsListController
+from controller.configuration import ConfigurationController
+from controller.defintions import DefinitionsListController, DefinitionController
+from controller.experiments import ExperimentsListController, ExperimentController
 
 app = Flask(__name__, static_folder="assets")
 
@@ -65,20 +65,20 @@ def stylesJS():
 
 # Defining API Part
 api = Api(app)
-api.add_resource(Configuration, '/api/configuration')
-api.add_resource(DefinitionsList, '/api/definitions')
-api.add_resource(Definition, '/api/definitions/<string:id>')
-api.add_resource(ExperimentsList, '/api/experiments')
-api.add_resource(Experiment, '/api/experiments/<string:id>')
-api.add_resource(TargetsList, '/api/targets')
-api.add_resource(Target, '/api/targets/<string:id>')
+api.add_resource(ConfigurationController, '/api/configuration')
+api.add_resource(DefinitionsListController, '/api/definitions')
+api.add_resource(DefinitionController, '/api/definitions/<string:id>')
+api.add_resource(ExperimentsListController, '/api/experiments')
+api.add_resource(ExperimentController, '/api/experiments/<string:id>')
+api.add_resource(TargetsListController, '/api/targets')
+api.add_resource(TargetController, '/api/targets/<string:id>')
 
 if __name__ == '__main__':
-    #app.run(debug=True)
     from tornado.wsgi import WSGIContainer
     from tornado.httpserver import HTTPServer
     from tornado.ioloop import IOLoop
     from tornado.log import enable_pretty_logging
+
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     enable_pretty_logging()

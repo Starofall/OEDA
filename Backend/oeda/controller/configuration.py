@@ -2,12 +2,21 @@ from flask import Flask, jsonify
 from flask import Flask, request
 from flask_restful import Resource, Api
 
-class Configuration(Resource):
+
+config = {
+
+}
+
+class ConfigurationController(Resource):
 
     def get(self):
-        return targets
+        try:
+            return config
+        except:
+            return {"error": "not found"}, 404
 
-    def put(self):
-        print(request)
-        targets[todo_id] = request.form['data']
-        return {todo_id: targets[todo_id]}
+    def post(self):
+        content = request.get_json()
+        global config
+        config = content
+        return {}, 200

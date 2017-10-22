@@ -112,7 +112,9 @@ export class EditTargetsComponent implements OnInit {
   }
 
   hasErrors(): boolean {
-    return this.target.name == null || this.target.name === ""
+    return (this.target.name == null || this.target.name === "") ||
+      (this.target.primaryDataProvider.type == null || this.target.primaryDataProvider.type === "") ||
+      (this.target.changeProvider.type == null || this.target.changeProvider.type === "")
   }
 
   revertChanges() {

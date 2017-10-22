@@ -5,13 +5,13 @@
         <div class="card-title">
           <div class="title pull-left">Edit Target System</div>
           <div class="pull-right">
-            <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-orange"><i
+            <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-default"><i
               class="fa fa-recycle"></i> Revert Changes
             </div>
             <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChanges()" class="btn btn-sm btn-orange"><i
               class="fa fa-send"></i> Save Changes
             </div>
-            <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-orange"><i
+            <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-danger"><i
               class="fa fa-close"></i> Data Error
             </div>
           </div>
@@ -166,6 +166,10 @@
               <i class="fa fa-remove"></i>
             </a>
           </div>
+
+          <labeled-input name="Minimum Value" inputType="number" [model]="input" key="min"></labeled-input>
+          <labeled-input name="Maximum Value" inputType="number" [model]="input" key="max"></labeled-input>
+          <hr class="col-md-12">
         </div>
       </div>
     </div>

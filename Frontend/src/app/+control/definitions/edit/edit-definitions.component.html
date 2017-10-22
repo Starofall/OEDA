@@ -8,23 +8,13 @@
       </div>
       <div class="panel-body">
         <div class="row">
-          <div class="col-md-4">
-            <div class="sub-title">Name</div>
-            <div>
-              <input type="text" class="form-control" [placeholder]="definition.name" >
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="sub-title">Target</div>
-            <div>
-              <input type="text" class="form-control" [placeholder]="definition.target.name">
-            </div>
-          </div>
+          <labeled-input [colSize]="4" name="Name" [model]="definition" key="name"></labeled-input>
+          <labeled-input-select [colSize]="4"
+            name="Target" [options]="targetSelection" [model]="definition" key="targetId"></labeled-input-select>
           <div class="col-md-4">
             <div class="sub-title">Creator</div>
             <div>
-              <input type="text" class="form-control" [placeholder]="definition.creator.name">
+              <input type="text" class="form-control" [placeholder]="definition.creator.name" disabled>
             </div>
           </div>
         </div>

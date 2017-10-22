@@ -52,6 +52,14 @@ export class OEDAApiService extends RESTService {
     return this.doPOSTPublicRequest("/targets/" + target.id, target)
   }
 
+
+  public loadConfiguration(): Observable<Configuration> {
+    return this.doGETPublicRequest("/configuration")
+  }
+
+  public saveConfiguration(configuration: Configuration): Observable<any> {
+    return this.doPOSTPublicRequest("/configuration", configuration)
+  }
 }
 
 
@@ -77,4 +85,8 @@ export interface Target {
   changeProvider: any,
   incomingDataTypes: any,
   changeableVariable: any
+}
+
+export interface Configuration {
+  database: any
 }

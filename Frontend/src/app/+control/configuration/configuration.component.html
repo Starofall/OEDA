@@ -1,1 +1,25 @@
-<h1>Global System Config</h1>
+<div class="row">
+  <div class="col-sm-12 col-xs-12">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">System Configuration</div>
+          <div class="pull-right">
+            <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-default"><i
+              class="fa fa-recycle"></i> Revert Changes
+            </div>
+            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChanges()" class="btn btn-sm btn-orange"><i
+              class="fa fa-send"></i> Save Changes
+            </div>
+            <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-danger"><i
+              class="fa fa-close"></i> Data Error
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body">
+       <labeled-input name="Database Connection" [model]="configuration" key="database"></labeled-input>
+      </div>
+    </div>
+  </div>
+</div>

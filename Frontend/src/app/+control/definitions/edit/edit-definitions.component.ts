@@ -13,6 +13,8 @@ export class EditDefinitionsComponent implements OnInit {
   constructor(private layout: LayoutService, private api: OEDAApiService, private router: Router, private route: ActivatedRoute) {
   }
 
+  targets = []
+  targetSelection = []
 
   definition = null
 
@@ -48,6 +50,15 @@ export class EditDefinitionsComponent implements OnInit {
         // create default
       }
     })
+
+    this.api.loadAllTargets().subscribe(
+      (data) => {
+        this.targets = data
+        this.targetSelection = data.map(x => {
+          return {"key": x.id, "label": x.name}
+        })
+      }
+    )
   }
 
 

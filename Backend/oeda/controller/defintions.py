@@ -2,8 +2,8 @@ from flask import Flask, jsonify
 from flask import Flask, request
 from flask_restful import Resource, Api
 
-definitions = [
-    {
+definitions = {
+    "123131-12312313-12312312-123123": {
         "id": "123131-12312313-12312312-123123",
         "name": "RTX Test Run #1",
         "description": "Testing cool stuff",
@@ -18,7 +18,7 @@ definitions = [
         "definition": {},
         "createdAt": "2016-01-09T14:48:34-08:00"
     },
-    {
+    "123131-12312313-12312312-3213123": {
         "id": "123131-12312313-12312312-3213123",
         "name": "CrowdNav Optimization",
         "description": "Testing even more cool stuff",
@@ -33,19 +33,24 @@ definitions = [
         "definition": {},
         "createdAt": "2016-01-09T14:48:34-08:00"
     }
-]
+}
 
 
-class Definition(Resource):
+class DefinitionController(Resource):
+
     def get(self, id):
-        return definitions[0]
+        try:
+            return definitions[id]
+        except:
+            return {"error": "not found"}, 404
 
-    def put(self, id):
-        print(request)
-        definitions[id] = request.form['data']
-        return {id: definitions[id]}
+    def post(self, id):
+        content = request.get_json()
+        definitions[id] = content
+        return {}, 200
 
-
-class DefinitionsList(Resource):
+class DefinitionsListController(Resource):
     def get(self):
-        return definitions
+        return definitions.values()
+
+
