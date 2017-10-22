@@ -37,7 +37,7 @@ export class OEDAApiService extends RESTService {
   }
 
   public saveDefinitions(definition: Definition): Observable<any> {
-    return this.doPOSTRequest("/definitions/" + definition.id, definition)
+    return this.doPOSTPublicRequest("/definitions/" + definition.id, definition)
   }
 
   public loadAllTargets(): Observable<Target[]> {

@@ -41,8 +41,8 @@
             </td>
             <td>{{item.name}}</td>
             <td>{{item.description}}</td>
-            <td><a routerLink="/control/targets/edit/{{item.id}}">{{item.target?.name}}</a></td>
-            <td><a routerLink="/control/user/show/{{item.id}}">{{item.creator?.name}}</a></td>
+            <td><a routerLink="/control/targets/edit/{{item.target?.id}}">{{item.target?.name}}</a></td>
+            <td><a routerLink="/control/user/show/{{item.creator?.id}}">{{item.creator?.name}}</a></td>
             <td>{{item.definition|json}}</td>
           </tr>
           </tbody>

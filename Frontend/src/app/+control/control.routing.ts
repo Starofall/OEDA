@@ -17,6 +17,11 @@ export const routes: Routes = [
     // canActivate: [UserRouteGuard],
     children: [
       {
+        path: '',
+        redirectTo: '/control/experiments',
+        pathMatch: 'full'
+      },
+      {
         path: 'configuration',
         component: ConfigurationComponent,
       },

@@ -1,16 +1,28 @@
-<div class="row" *ngIf="definition != null">
-  <div class="col-md-7 col-sm-6 col-xs-12">
+<div class="row" *ngIf="definition != null && targets.length > 0">
+  <div class="col-md-12 col-sm-12 col-xs-12">
     <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
           <div class="title pull-left">General</div>
+          <div class="pull-right">
+            <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-default"><i
+              class="fa fa-recycle"></i> Revert Changes
+            </div>
+            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChanges()" class="btn btn-sm btn-orange"><i
+              class="fa fa-send"></i> Save Changes
+            </div>
+            <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-danger"><i
+              class="fa fa-close"></i> Data Error
+            </div>
+          </div>
         </div>
       </div>
       <div class="panel-body">
         <div class="row">
           <labeled-input [colSize]="4" name="Name" [model]="definition" key="name"></labeled-input>
-          <labeled-input-select [colSize]="4"
-            name="Target" [options]="targetSelection" [model]="definition" key="targetId"></labeled-input-select>
+          <labeled-input-select [colSize]="4" (modelChanged)="updateTargetOnDefinition()"
+                                name="Target" [options]="targetSelection" [model]="uiHelper"
+                                key="targetId"></labeled-input-select>
           <div class="col-md-4">
             <div class="sub-title">Creator</div>
             <div>
@@ -37,24 +49,16 @@
         </div>
       </div>
       <div class="panel-body">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="sub-title">Execution Strategy</div>
-            <div>
-              <input type="text" class="form-control" placeholder="StepExplorer">
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="sub-title">Creator</div>
-            <div>
-              <input type="text" class="form-control" [placeholder]="definition.creator.name">
-            </div>
-          </div>
-        </div>
 
-        <div class="row">
-          <div class="col-md-12">
-            <h4>-> here comes the definition.py creation tool <-</h4>
+        <div *ngIf="definition.target" class="row">
+          <div class="col-md-12" *ngFor="let input of definition.target.changeableVariable">
+            <div class="checkbox3 checkbox-success checkbox-inline checkbox-check checkbox-round  checkbox-light">
+              <input type="checkbox" id="checkbox-{{input.name}}" checked="">
+              <label for="checkbox-{{input.name}}">
+                Test <strong>{{input.name}}</strong>
+              </label>
+            </div>
+            <hr>
           </div>
 
         </div>
@@ -62,13 +66,14 @@
     </div>
   </div>
 
-  <div class="col-md-5 col-sm-6 col-xs-12">
+  <div *ngIf="false" class="col-md-5 col-sm-6 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
         <div class="card-title">
           <div class="title pull-left">Experiment List</div>
           <div class="pull-right">
-            <a routerLink="/control/definitions/execute/{{definition.id}}" class="btn btn-orange btn-sm">Run Experiment</a>
+            <a routerLink="/control/definitions/execute/{{definition.id}}" class="btn btn-orange btn-sm">Run
+              Experiment</a>
           </div>
         </div>
       </div>
@@ -117,4 +122,6 @@
       </div>
     </div>
   </div>
+  <debug-element [element]="definition"></debug-element>
 </div>
+

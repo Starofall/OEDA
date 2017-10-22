@@ -2,6 +2,8 @@ import {Component, Injectable, OnInit} from '@angular/core';
 import {LayoutService} from "../../../shared/modules/helper/layout.service";
 import {OEDAApiService} from "../../../shared/modules/api/oeda-api.service";
 import {ActivatedRoute, Params, Router} from "@angular/router";
+import * as _ from "lodash";
+import {NotificationsService} from "angular2-notifications/dist";
 
 @Component({
   selector: 'edit-control-definitions',
@@ -10,13 +12,20 @@ import {ActivatedRoute, Params, Router} from "@angular/router";
 export class EditDefinitionsComponent implements OnInit {
 
 
-  constructor(private layout: LayoutService, private api: OEDAApiService, private router: Router, private route: ActivatedRoute) {
+  constructor(private layout: LayoutService, private api: OEDAApiService,
+              private router: Router, private route: ActivatedRoute,
+              private notify: NotificationsService) {
+
+  }
+  uiHelper = {
+    targetId: null
   }
 
+  definition = null
+  originalDefinition = null
   targets = []
   targetSelection = []
 
-  definition = null
 
   experiments = [{
     id: "123123-12312312-123132",
@@ -44,6 +53,18 @@ export class EditDefinitionsComponent implements OnInit {
         this.api.loadDefinitionsById(params['id']).subscribe(
           (data) => {
             this.definition = data
+            this.uiHelper.targetId = this.definition.target.id
+            this.originalDefinition = _.cloneDeep(this.definition)
+
+            this.api.loadAllTargets().subscribe(
+              (targets) => {
+                this.targets = targets
+                this.targetSelection = targets.map(x => {
+                  return {"key": x.id, "label": x.name}
+                })
+                this.updateTargetOnDefinition()
+              }
+            )
           }
         )
       } else {
@@ -51,14 +72,41 @@ export class EditDefinitionsComponent implements OnInit {
       }
     })
 
-    this.api.loadAllTargets().subscribe(
-      (data) => {
-        this.targets = data
-        this.targetSelection = data.map(x => {
-          return {"key": x.id, "label": x.name}
-        })
-      }
-    )
+
+  }
+
+  updateTargetOnDefinition() {
+    this.definition.target = this.targets.find(value => value.id === this.uiHelper.targetId)
+  }
+
+
+  hasChanges(): boolean {
+    return JSON.stringify(this.definition) !== JSON.stringify(this.originalDefinition)
+  }
+
+  saveChanges() {
+    if (!this.hasErrors()) {
+      this.api.saveDefinitions(this.definition).subscribe(
+        (success) => {
+          this.originalDefinition = _.cloneDeep(this.definition)
+          this.notify.success("Success", "Definition saved")
+          // move to the editing of this track
+          if (this.router.url.indexOf("/create") !== -1) {
+            this.router.navigate(["control/definitions/edit", this.definition.id])
+          } else {
+            // @todo reload track to see server based changes
+          }
+        }
+      )
+    }
+  }
+
+  hasErrors(): boolean {
+    return false
+  }
+
+  revertChanges() {
+    this.definition = _.cloneDeep(this.originalDefinition)
   }
 
 
