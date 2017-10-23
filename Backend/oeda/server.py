@@ -78,7 +78,8 @@ if __name__ == '__main__':
     from tornado.httpserver import HTTPServer
     from tornado.ioloop import IOLoop
     from tornado.log import enable_pretty_logging
-
+    from flask_cors import CORS
+    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     enable_pretty_logging()
