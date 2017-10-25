@@ -1,3 +1,7 @@
 **/.idea/**
 Build/app/**
 *.pyc
+Backend/oeda/build
+Backend/oeda/OEDA_Backend.egg-info
+*.egg
+*.iml
