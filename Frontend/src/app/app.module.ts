@@ -1,5 +1,7 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
+import {AmChartsModule} from "@amcharts/amcharts3-angular";
+
 
 import {AppComponent} from './app.component';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
@@ -19,6 +21,7 @@ import {SimpleNotificationsModule} from "angular2-notifications";
     RouterModule.forRoot(routes),
     BrowserModule,
     GlobalModule,
+    AmChartsModule,
     SharedModule.forRoot(),
     SimpleNotificationsModule.forRoot()
   ],

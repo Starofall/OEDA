@@ -23,6 +23,18 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/experiments/" + id)
   }
 
+  public loadAllExperimentsResults(): Observable<Experiment[]> {
+    return this.doGETPublicRequest("/experimentsResults")
+  }
+
+  public loadAllResultsOfSingleRTXrun(rtx_run_id: string): Observable<Experiment> {
+    return this.doGETPublicRequest("/experimentResults/" + rtx_run_id)
+  }
+
+  public loadSingleResultOfExperiment(rtx_run_id: string, exp_run_id: string) {
+    return this.doGETPublicRequest("/experimentResults/" + rtx_run_id + "/" + exp_run_id)
+  }
+
   public saveExperiment(experiment: Experiment): Observable<any> {
     return this.doPOSTRequest("/experiments/" + experiment.id, experiment)
   }
