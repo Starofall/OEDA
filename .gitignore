@@ -5,3 +5,5 @@ Backend/oeda/build
 Backend/oeda/OEDA_Backend.egg-info
 *.egg
 *.iml
+Backend/build/**
+Backend/OEDA_Backend.egg-info/**
