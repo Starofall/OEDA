@@ -4,8 +4,6 @@ import {UserRouteGuard} from "../shared/modules/auth/staff-routeguard.service";
 import {DashboardComponent} from "./dashboard/dashboard.component";
 import {TargetsComponent} from "./targets/targets.component";
 import {ConfigurationComponent} from "./configuration/configuration.component";
-import {DefinitionsComponent} from "./definitions/definitions.component";
-import {EditDefinitionsComponent} from "./definitions/edit/edit-definitions.component";
 import {EditTargetsComponent} from "./targets/edit/edit-targets.component";
 import {ExperimentsComponent} from "./experiments/experiments.component";
 import {ShowExperimentsComponent} from "./experiments/show/show-experiments.component";
@@ -28,14 +26,6 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: DashboardComponent,
-      },
-      {
-        path: 'definitions',
-        component: DefinitionsComponent,
-      },
-      {
-        path: 'definitions/edit/:id',
-        component: EditDefinitionsComponent
       },
       {
         path: 'experiments',

@@ -6,6 +6,7 @@ from oeda.databases import db
 
 targets = {
     "12313123-12313-123123": {
+        "id": "12313123-12313-123123",
         "primary_data_provider": {
             "type": "kafka_consumer",
             "topic": "crowd-nav-trips",
@@ -19,33 +20,33 @@ targets = {
             "serializer": "JSON"
         },
         "name": "CrowdNav",
-        # "in_use": False, (this is set to false when creating the document)
+        "status": "READY",  # "READY", "WORKING", "ERROR"
         "description": "Installed CrowdNav System"
     }
 }
 
 
 class TargetController(Resource):
-
     def get(self, id):
 
         # just for testing:
-        id = "12313123-12313-123123"
-        target = db().get_target(id)
-
+        # id = "12313123-12313-123123"
+        # target = db().get_target(id)
         try:
-            return target
+            return targets[id]
         except:
             return {"error": "not found"}, 404
 
     def post(self, id):
-        content = request.get_json()
 
         # just for testing:
-        id = "12313123-12313-123123"
-        content = targets[id]
-        db().save_target(id, content)
+        # id = "12313123-12313-123123"
+        # content = request.get_json()
+        # db().save_target(id, content)
 
+        content = request.get_json()
+        content["status"] = "READY"
+        targets[id] = content
         return {}, 200
 
 

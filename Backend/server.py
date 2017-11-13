@@ -5,7 +5,6 @@ from flask_restful import Resource, Api
 
 from oeda.controller.targets import TargetController, TargetsListController
 from oeda.controller.configuration import ConfigurationController
-from oeda.controller.definitions import DefinitionsListController, DefinitionController
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
 
 app = Flask(__name__, static_folder="assets")
@@ -66,8 +65,6 @@ def stylesJS():
 # Defining API Part
 api = Api(app)
 api.add_resource(ConfigurationController, '/api/configuration')
-api.add_resource(DefinitionsListController, '/api/definitions')
-api.add_resource(DefinitionController, '/api/definitions/<string:id>')
 api.add_resource(ExperimentsListController, '/api/experiments')
 api.add_resource(ExperimentController, '/api/experiments/<string:id>')
 api.add_resource(TargetsListController, '/api/targets')
@@ -84,7 +81,7 @@ if __name__ == '__main__':
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     enable_pretty_logging()
-    setup_database("elasticsearch", "localhost", 9200)
+    # setup_database("elasticsearch", "localhost", 9200)
     IOLoop.instance().start()
 
 

@@ -8,8 +8,8 @@
             <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-default"><i
               class="fa fa-recycle"></i> Revert Changes
             </div>
-            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChanges()" class="btn btn-sm btn-orange"><i
-              class="fa fa-send"></i> Save Changes
+            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChangesAsCopy()" class="btn btn-sm btn-orange"><i
+              class="fa fa-send"></i> Save Changes as Copy
             </div>
             <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-danger"><i
               class="fa fa-close"></i> Data Error
@@ -127,10 +127,10 @@
         <div class="row" *ngFor="let input of target.incomingDataTypes; let i = index">
           <labeled-input name="Name" [model]="input" key="name" [colSize]="3"></labeled-input>
           <labeled-input name="Description" [model]="input" key="description" [colSize]="3"></labeled-input>
-          <labeled-input-select name="Type" [model]="input" key="type" [colSize]="5"
-                                [options]="[{key:'INTEGER_ORDINAL',label:'Integer / Ordinal'},
-                                {key:'FLOAT_METRIC',label:'Float / Metric'},
-                                {key:'STRING_NOMINAL',label:'String / Nominal'}]"></labeled-input-select>
+          <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
+                                [options]="[{key:'ORDINAL',label:'Ordinal'},
+                                {key:'METRIC',label:'Metric'},
+                                {key:'NOMINAL',label:'Nominal'}]"></labeled-input-select>
           <div class="col-md-1" style="margin-top: 56px;color: #ef705d">
             <a (click)="removeIncoming(i)">
               <i class="fa fa-remove"></i>
@@ -157,10 +157,10 @@
         <div class="row" *ngFor="let input of target.changeableVariable; let i = index">
           <labeled-input name="Name" [model]="input" key="name" [colSize]="3"></labeled-input>
           <labeled-input name="Description" [model]="input" key="description" [colSize]="3"></labeled-input>
-          <labeled-input-select name="Type" [model]="input" key="type" [colSize]="5"
-                                [options]="[{key:'INTEGER_ORDINAL',label:'Integer / Ordinal'},
-                                {key:'FLOAT_METRIC',label:'Float / Metric'},
-                                {key:'STRING_NOMINAL',label:'String / Nominal'}]"></labeled-input-select>
+          <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
+                                [options]="[{key:'ORDINAL',label:'Ordinal'},
+                                {key:'METRIC',label:'Metric'},
+                                {key:'NOMINAL',label:'Nominal'}]"></labeled-input-select>
           <div class="col-md-1" style="margin-top: 56px;color: #ef705d">
             <a (click)="removeChangeableVariable(i)">
               <i class="fa fa-remove"></i>

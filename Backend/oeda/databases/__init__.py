@@ -15,7 +15,7 @@ class NonLocal: DB = None
 
 def setup_database(type, host, port):
 
-    with open('oeda/databases/config.json') as json_data_file:
+    with open('./oeda/databases/config.json') as json_data_file:
         try:
             config_data = load(json_data_file)
         except ValueError:

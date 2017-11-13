@@ -11,7 +11,7 @@
       </div>
       <div class="panel-body">
         <table style="margin-top: 20px" class="table table-striped" [mfData]="targets" #mf="mfDataTable"
-               [mfRowsOnPage]="10" >
+               [mfRowsOnPage]="10">
           <thead>
           <tr>
             <th style="width:1%">
@@ -19,7 +19,7 @@
             <th style="width:1%">
               <mfDefaultSorter by="status">Status</mfDefaultSorter>
             </th>
-            <th style="width: 10%">
+            <th style="width: 20%">
               <mfDefaultSorter by="name">Name</mfDefaultSorter>
             </th>
             <th style="width: 20%">
@@ -40,8 +40,9 @@
                  routerLink="/control/targets/edit/{{item.id}}"><i class="fa fa-search"></i></a>
             </td>
             <td>
-              <label *ngIf="item.status == 'IDLE'" class="label label-success">IDLE</label>
+              <label *ngIf="item.status == 'READY'" class="label label-success">READY</label>
               <label *ngIf="item.status == 'WORKING'" class="label label-info">WORKING</label>
+              <label *ngIf="item.status == 'ERROR'" class="label label-danger">ERROR</label>
             </td>
             <td>{{item.name}}</td>
             <td>{{item.description}}</td>

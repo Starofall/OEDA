@@ -16,7 +16,6 @@ export class EditTargetsComponent implements OnInit {
   constructor(private layout: LayoutService, private api: OEDAApiService,
               private router: Router, private route: ActivatedRoute,
               private notify: NotificationsService) {
-
   }
 
   target: Target
@@ -94,20 +93,30 @@ export class EditTargetsComponent implements OnInit {
     return JSON.stringify(this.target) !== JSON.stringify(this.originalTarget)
   }
 
-  saveChanges() {
+
+  saveChangesAsCopy() {
     if (!this.hasErrors()) {
-      this.api.saveTarget(this.target).subscribe(
-        (success) => {
-          this.originalTarget = _.cloneDeep(this.target)
-          this.notify.success("Success", "Target saved")
-          // move to the editing of this track
-          if (this.router.url.indexOf("/create") !== -1) {
+
+      if (this.router.url.indexOf("/create") !== -1) {
+        this.api.saveTarget(this.target).subscribe(
+          (success) => {
+            this.notify.success("Success", "Target saved")
             this.router.navigate(["control/targets/edit", this.target.id])
-          } else {
-            // @todo reload track to see server based changes
           }
-        }
-      )
+        )
+      } else {
+        // this is a edit, so create new uuid
+        this.target.id = UUID.UUID()
+        this.target.name = this.target.name + " Copy"
+        this.api.saveTarget(this.target).subscribe(
+          (success) => {
+            this.notify.success("Success", "Target saved")
+            this.router.navigate(["control/targets/edit", this.target.id])
+          }
+        )
+      }
+
+
     }
   }
 
