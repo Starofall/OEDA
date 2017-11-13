@@ -31,7 +31,7 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/experimentResults/" + rtx_run_id)
   }
 
-  public loadSingleResultOfExperiment(rtx_run_id: string, exp_run_id: string) {
+  public loadResultOfSingleExperiment(rtx_run_id: string, exp_run_id: string) {
     return this.doGETPublicRequest("/experimentResults/" + rtx_run_id + "/" + exp_run_id)
   }
 

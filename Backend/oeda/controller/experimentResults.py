@@ -3,8 +3,12 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from elasticsearch import Elasticsearch
 from datetime import datetime
+import math
 import json as json
 import traceback
+
+from scipy import stats
+import numpy as np
 
 experimentResults = {
     "123123":
@@ -28,7 +32,9 @@ data_point_type_name = "rtx_run"
 class ExperimentResultsController(Resource):
     def get(self, rtx_run_id):
         try:
-            resp = jsonify(ExperimentResults=json.dumps(get_data_points(rtx_run_id)), sort_keys=True)
+            data_points = get_data_points(rtx_run_id)
+            bins = math.min(self._freedman_diaconis_bins(data_points), 50)
+            resp = jsonify(ExperimentResults=json.dumps(), sort_keys=True)
             resp.status_code = 200
             return resp
         except Exception as e:
@@ -42,10 +48,17 @@ class ExperimentResultsController(Resource):
         # here we first check if the experiment can be run and then fork it
         return {}, 200
 
-
 class ExperimentResultsWithExpRunIdController(Resource):
     def get(self, rtx_run_id, exp_run_id):
         try:
+            data_points = get_data_points(rtx_run_id)
+            # print data_points[str(exp_run_id)][0]
+
+            a = [d["payload"]["overhead"] for d in data_points[str(exp_run_id)] ]
+            # print a
+            bins = self._freedman_diaconis_bins(a)
+            print("bins: " + str(bins))
+
             resp = jsonify(ExperimentResults=json.dumps(get_exp_results(rtx_run_id, exp_run_id)), sort_keys=True)
             resp.status_code = 200
             return resp
@@ -60,6 +73,25 @@ class ExperimentResultsWithExpRunIdController(Resource):
         # here we first check if the experiment can be run and then fork it
         return {}, 200
 
+    def _freedman_diaconis_bins(self, a):
+        """Calculate number of hist bins using Freedman-Diaconis rule."""
+        # From http://stats.stackexchange.com/questions/798/
+        a = np.asarray(a)
+        if len(a) < 2:
+            return 1
+        h = 2 * self.iqr(a) / (len(a) ** (1 / 3))
+        # fall back to sqrt(a) bins if iqr is 0
+        if h == 0:
+            return int(np.sqrt(a.size))
+        else:
+            return int(np.ceil((a.max() - a.min()) / h))
+
+    def iqr(self, a):
+        a = np.asarray(a)
+        """Calculate the IQR for an array of numbers."""
+        q1 = stats.scoreatpercentile(a, 25)
+        q3 = stats.scoreatpercentile(a, 75)
+        return q3 - q1
 
 class ExperimentsResultsListController(Resource):
     def get(self):
@@ -113,7 +145,7 @@ def get_exp_runs_from_db(rtx_run_id):
                     "id": str(rtx_run_id)
                 }
             },
-            "size" : 0,
+            "size": 0,
             "aggs": {
                 "exp_run_aggregation": {
                     "terms": {

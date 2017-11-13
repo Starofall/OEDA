@@ -1,9 +1,17 @@
 import {Component, Injectable, OnInit, ViewChild, AfterViewInit, OnDestroy} from '@angular/core';
+import {ActivatedRoute, Params} from '@angular/router';
 import {LayoutService} from "../../../shared/modules/helper/layout.service";
 import {OEDAApiService} from "../../../shared/modules/api/oeda-api.service";
 import { AmChartsService, AmChart } from "@amcharts/amcharts3-angular";
+import { Stocks } from './data';
 
 import * as d3 from "d3";
+import * as d3Scale from 'd3-scale';
+import * as d3Shape from 'd3-shape';
+import * as d3Array from 'd3-array';
+import * as d3Axis from 'd3-axis';
+import * as $ from "jquery";
+
 import {Observable} from "rxjs/Observable";
 
 @Component({
@@ -15,10 +23,33 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
   private chart2: AmChart;
   private chart3: AmChart;
 
-  constructor(private layout: LayoutService, private apiService: OEDAApiService, private AmCharts: AmChartsService) {
+  // hard-coded rtx_run_id
+  private rtx_run_id = "AV9FCKeEkoAcnVWq358x";
+
+  public exp_run_id: string;
+  public experimentResults: object;
+  public isLogSelected: boolean;
+  public initialThresholdForSmoothLineChart: number;
+
+
+  // attributes for qq plot with D3
+  private margin_qq = {top: 20, right: 20, bottom: 30, left: 50};
+  private width_qq: number;
+  private height_qq: number;
+  private x: any;
+  private y: any;
+  private svg: any;
+  private line: d3Shape.Line<[number, number]>;
+
+  constructor(private layout: LayoutService, private apiService: OEDAApiService, private AmCharts: AmChartsService, private activatedRoute: ActivatedRoute) {
     this.layout.setHeader("Experiments", "Show Experiment");
+    this.isLogSelected = false;
+    this.width_qq = 900 - this.margin_qq.left - this.margin_qq.right;
+    this.height_qq = 500 - this.margin_qq.top - this.margin_qq.bottom;
+
   }
 
+  /*
   @ViewChild('nvd3') nvd3;
   @ViewChild('nvd32') nvd32;
   @ViewChild('nvd33') nvd33;
@@ -61,8 +92,9 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
       }
     }
   }
+  */
 
-  chart2Options = {
+  /*chart2Options = {
     chart: {
       type: 'linePlusBarChart',
       height: 300,
@@ -90,9 +122,9 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
         }
       }
     }
-  }
+  }*/
 
-  chart3Options = {
+  /*chart3Options = {
     chart: {
       type: 'historicalBarChart',
       height: 300,
@@ -120,19 +152,21 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
         }
       }
     }
-  }
+  }*/
 
   ngOnInit() {
-
+    /*
     const timer = Observable.timer(1000, 2000);
     timer.subscribe(t => {
       this.chartLastValue = this.chartLastValue * (Math.random() + 0.55)
       this.chart1Data[0].values = this.chart1Data[0].values.concat([{x: this.chartIndex, y: this.chartLastValue}])
-      this.nvd3.chart.update();
+      // this.nvd3.chart.update();
       this.nvd32.chart.update();
-      this.nvd33.chart.update();
+      // this.nvd33.chart.update();
       this.chartIndex += 1
     });
+    */
+    /*
     {
 
       const xValues = ['A', 'B', 'C', 'D', 'E'];
@@ -196,8 +230,9 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
         }
       }
       window["Plotly"].newPlot('myDiv', data, layout);
-    }
+    }*/
 
+    /*
     function normal() {
       var x = 0,
         y = 0,
@@ -209,8 +244,9 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
       } while (rds == 0 || rds > 1);
       c = Math.sqrt(-2 * Math.log(rds) / rds); // Box-Muller transform
       return x * c; // throw away extra sample y * c
-    }
+    }*/
 
+    /*
     {
 
 
@@ -294,60 +330,142 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
         }
       };
       window["Plotly"].newPlot('heat2', data, layout);
-    }
+    }*/
+    console.log("ngOnInit works");
 
-  }
-
-  /*
-     Newly integrated plots using amChart
-  */
-  // to avoid "no dom element in ...." error
-  ngAfterViewInit() {
-    // hard-coded routing and exp_run ids
-    const routing = "AV9FCKeEkoAcnVWq358x";
-    const rtx_run_id = "AV9FCKeEkoAcnVWq358x";
-    const exp_run_ids = ["0", "1", "2"];
-
-    // TODO: chartdiv1, chartdiv2 etc. should be dynamically generated at front-end and passed here
-    exp_run_ids.forEach((exp_run_id, index) => {
-      this.apiService.loadSingleResultOfExperiment(rtx_run_id, exp_run_id).subscribe(
-        data => {
-          const divId = "chartdiv" + index;
-          const processedData = this.processData(data, "ExperimentResults", exp_run_id, "timestamp", "value");
-          if (index % 3 === 0) {
-            this.drawSmoothLineChart(divId, processedData);
-          } else if (index % 3 === 1) {
-            this.drawScatterChart(divId, processedData);
-          } else {
-            this.drawLineChart(divId, processedData);
-          }
-        });
+    // subscribe to router event
+    this.activatedRoute.params.subscribe((params: Params) => {
+      // id is retrieved from URI
+      this.exp_run_id = params["id"];
     });
+
+    /*
+      Newly integrated plots using amChart
+    */
+    const ctrl = this;
+    this.apiService.loadResultOfSingleExperiment(this.rtx_run_id, this.exp_run_id).subscribe(
+      data => {
+        const experimentResults = JSON.parse(data["ExperimentResults"]);
+        ctrl.experimentResults = experimentResults[ctrl.exp_run_id];
+        const divId = "chartdiv" + ctrl.exp_run_id;
+        const histogramDivId = "histogram" + ctrl.exp_run_id;
+        const histogramLogDivId = histogramDivId + "_log";
+        const filterSummaryId = "filterSummary" + ctrl.exp_run_id;
+        // const filterButtonId = "filterdiv" + index;
+        const processedData = ctrl.processData(data, "ExperimentResults", ctrl.exp_run_id, "timestamp", "value");
+
+        // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
+        const clonedData = JSON.parse(JSON.stringify(processedData));
+        ctrl.initialThresholdForSmoothLineChart = ctrl.calculateThresholdForGivenPercentile(clonedData, 95);
+
+        ctrl.drawSmoothLineChart(divId, filterSummaryId, processedData);
+        ctrl.drawHistogram(histogramDivId, processedData, false);
+        ctrl.drawHistogram(histogramLogDivId, processedData, true);
+      });
+
+    // methods for qq plot with d3
+    this.initSvg();
+    this.initAxis();
+    this.drawAxis();
+    this.drawLine();
   }
 
-  ngOnDestroy() {
-    if (this.chart1) {
-      this.AmCharts.destroyChart(this.chart1);
-    }
-    if (this.chart2) {
-      this.AmCharts.destroyChart(this.chart2);
-    }
-    if (this.chart3) {
-      this.AmCharts.destroyChart(this.chart3);
-    }
-  }
-
-  drawSmoothLineChart(divID, processedData) {
-    this.chart1 = this.AmCharts.makeChart(divID, {
-      "mouseWheelZoomEnabled": true,
-      "mouseWheelScrollEnabled": true,
+  drawHistogram(divID, processedData, isLogSelected) {
+    const AmCharts = this.AmCharts;
+    const histogram = AmCharts.makeChart(divID, {
       "type": "serial",
       "theme": "light",
-      "marginRight": 80,
+      "responsive": {
+        "enabled": true
+      },
+      "columnWidth": 1,
+      "dataProvider": this.categorizeData(processedData, isLogSelected),
+      "graphs": [{
+        "fillColors": "#c55",
+        "fillAlphas": 0.9,
+        "lineColor": "#fff",
+        "lineAlpha": 0.7,
+        "type": "column",
+        "valueField": "percentage"
+      }],
+      "categoryField": "binLowerBound",
+      "categoryAxis": {
+        "startOnAxis": true,
+        "title": "Overhead"
+      },
+      "valueAxes": [{
+        "title": "Percentage"
+      }]
+    });
+    return histogram;
+  }
+
+  // helper function to distribute overheads in the given data to fixed-size bins (i.e. by 0.33 increment)
+  categorizeData(data, isLogSelected) {
+    // create bins if log is not selected
+    const bins = [];
+    const onlyValuesInData = this.extractValuesFromArray(data, "value");
+    const transformedData = this.getTransformedData(onlyValuesInData, isLogSelected);
+
+    const upperThresholdForBins = this.getMaximumValueFromArray(transformedData);
+
+    // data is also transformed here
+    const nrOfBins = this.determineNumberOfBinsForHistogram(onlyValuesInData, 10);
+    const stepSize = upperThresholdForBins / nrOfBins;
+
+    for (let i = 0; i < upperThresholdForBins; i = i + stepSize) {
+      // unary plus to convert a string to a number
+      const bin = {binLowerBound: +i.toFixed(2), count: 0, percentage: 0};
+      bins.push(bin);
+    }
+
+    // distribute data to the bins
+    for (let j = 0; j < data.length - 1; j = j + 1) {
+
+      let val = data[j]["value"];
+      if (isLogSelected) {
+        val = Math.log(val);
+      }
+
+      for (let k = 0; k < bins.length; k++) {
+        if (k === bins.length - 1) {
+            if (val >= bins[k]["binLowerBound"] ) {
+              bins[k]["count"] = bins[k]["count"] + 1;
+            }
+        } else {
+            if (val >= bins[k]["binLowerBound"] && val < bins[k + 1]["binLowerBound"] ) {
+              bins[k]["count"] = bins[k]["count"] + 1;
+            }
+        }
+      }
+    }
+
+    // now transform the array to indicate the percentage instead of counts
+    for (let k = 0; k < bins.length; k++) {
+      // rounding to 2 decimals and indicating the percentage %
+      // unary plus to convert a string to a number
+      bins[k]["percentage"] = +(bins[k]["count"] * 100 / data.length).toFixed(2);
+    }
+    return bins;
+  }
+  drawSmoothLineChart(divID, summaryFieldID, processedData) {
+    const ctrl = this;
+    let selectedThreshold = -1;
+    const AmCharts = this.AmCharts;
+    this.chart1 = AmCharts.makeChart(divID, {
+      "mouseWheelZoomEnabled": true,
+      "mouseWheelScrollEnabled": true,
+      "responsive": {
+        "enabled": true
+      },
+      "type": "serial",
+      "theme": "light",
+      "autoMarginOffset": 10,
       "dataProvider": processedData,
       "valueAxes": [{
         "position": "left",
-        "title": "Average Overhead"
+        "title": "Overhead",
+        "precision": 2
       }],
       "graphs": [{
         "balloonText": "[[category]]<br><b><span style='font-size:12px;'>[[value]]</span></b>",
@@ -356,36 +474,48 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
         "lineColor": "#d1655d",
         "lineThickness": 2,
         "negativeLineColor": "#637bb6",
-        "negativeBase": 3.2, // threshold to indicate outliers etc. dummy variable for now
+        "negativeBase": ctrl.initialThresholdForSmoothLineChart,
         "type": "smoothedLine",
-        "fillAlphas": 0.2,
-        "valueField": "value"
+        "fillAlphas": 0,
+        "valueField": "value",
+        "lineAlpha": 0,
+        "negativeLineAlpha": 0
       }],
       "chartScrollbar": {
-        "graph":"g1",
-        "gridAlpha":0,
-        "color":"#888888",
-        "scrollbarHeight":55,
-        "backgroundAlpha":0,
-        "selectedBackgroundAlpha":0.1,
-        "selectedBackgroundColor":"#888888",
-        "graphFillAlpha":0,
-        "autoGridCount":true,
-        "selectedGraphFillAlpha":0,
-        "graphLineAlpha":0.2,
-        "graphLineColor":"#c2c2c2",
-        "selectedGraphLineColor":"#888888",
-        "selectedGraphLineAlpha":1
+        "graph": "g1",
+        "gridAlpha": 0,
+        "color": "#888888",
+        "scrollbarHeight": 55,
+        "backgroundAlpha": 0,
+        "selectedBackgroundAlpha": 0.1,
+        "selectedBackgroundColor": "#888888",
+        "graphFillAlpha": 0,
+        "autoGridCount": true,
+        "selectedGraphFillAlpha": 0,
+        "graphLineAlpha": 0,
+        "graphLineColor": "#c2c2c2",
+        "selectedGraphLineColor": "#888888",
+        "selectedGraphLineAlpha": 1
       },
       "chartCursor": {
         "categoryBalloonDateFormat": "YYYY-MM-DD HH:NN:SS.QQQ",
         "cursorAlpha": 0,
-        "valueLineEnabled":true,
-        "valueLineBalloonEnabled":true,
-        "valueLineAlpha":0.5,
-        "fullWidth":true
+        "valueLineEnabled": true,
+        "valueLineBalloonEnabled": true,
+        "valueLineAlpha": 0,
+        "fullWidth": true,
+        // used to retrieve current position of cursor and respective value, it also rounds to 2 decimals
+        "listeners": [{
+          "event": "moved",
+          "method": function(event) {
+            const yValueAsThreshold = event.chart.valueAxes[0].coordinateToValue(event.y);
+            const roundedThreshold = yValueAsThreshold.toFixed(2);
+            selectedThreshold = roundedThreshold;
+          }
+        }]
       },
       "categoryField": "timestamp",
+      "valueField": "value",
       "dataDateFormat": "YYYY-MM-DD HH:NN:SS.QQQ",
       "categoryAxis": {
         "minPeriod": "fff",
@@ -395,22 +525,73 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
       },
       "export": {
         "enabled": true,
-        "position": "bottom-right"
-      }
+        "position": "bottom-left"
+      },
+      // an initial guide is created here because we cannot inject new Guide() in AmChartsService class for now
+      "guides": [{
+          "id": "guideID",
+          "value": ctrl.initialThresholdForSmoothLineChart,
+          "lineAlpha": "1",
+          "lineColor": "#c44"
+      }],
+      // used to draw a line for at the cursor's position horizontally
+      "listeners": [ {
+        "event": "init",
+        "method": function( e ) {
+
+          /**
+           * Pre-zoom disabled for now
+           */
+          // e.chart.zoomToIndexes( e.chart.dataProvider.length - 40, e.chart.dataProvider.length - 1 );
+
+          /**
+           * Add click event on the plot area
+           */
+          e.chart.chartDiv.addEventListener( "click", function() {
+
+              // we track cursor's last known position by using selectedThreshold variable
+              if ( selectedThreshold !== undefined ) {
+
+                // following will get the value of a data point, not with the exact position of cursor
+                // const overhead = e.chart.dataProvider[ e.chart.lastCursorPosition ][ e.chart.valueField ];
+
+                // create a new guide or update position of the previous one
+                if ( e.chart.valueAxes[0].guides.length === 0 ) {
+                  const guide = e.chart.guides[0];
+                  guide.value = selectedThreshold;
+                  guide.lineAlpha = 1;
+                  guide.lineColor = "#c44";
+                  e.chart.valueAxes[0].addGuide(guide);
+                } else {
+                  e.chart.valueAxes[0].guides[0].value = selectedThreshold;
+                }
+
+                const nrOfItemsToBeFiltered = processedData.filter(function(item){
+                  return item.value > selectedThreshold;
+                }).length;
+
+                // reflect changes on html side
+                document.getElementById(summaryFieldID).innerHTML = "<p>selected threshold: <b>" + selectedThreshold + "</b> and # of points to be removed: <b>" + nrOfItemsToBeFiltered + "</b></p>";
+
+                // also reflect changes on chart
+                e.chart.graphs[0].negativeBase = selectedThreshold;
+                e.chart.validateNow();
+              } else {
+                alert("Please move your cursor to determine the threshold");
+              }
+          } )
+        }
+      }]
     });
 
-    this.chart1.addListener("rendered", zoomChart);
 
-    function zoomChart(){
-      this.chart1.zoomToIndexes(processedData.length - 40, processedData.length - 1);
-    }
   }
 
   drawScatterChart(divID, processedData) {
     this.chart2 = this.AmCharts.makeChart(divID, {
       "type": "xy",
       "theme": "light",
-      "autoMarginOffset": 20,
+      "autoMarginOffset": 10,
       "dataProvider": processedData,
       "dataDateFormat": "YYYY-MM-DD HH:NN:SS.QQQ",
       "mouseWheelZoomEnabled": true,
@@ -446,7 +627,7 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
       }],
       "export": {
         "enabled": true,
-        "position": "bottom-right"
+        "position": "bottom-left"
       }
     });
     this.chart2.addListener("rendered", zoomChart);
@@ -504,7 +685,7 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
       },
       "export": {
         "enabled": true,
-        "position": "bottom-right"
+        "position": "bottom-left"
       }
     });
 
@@ -537,5 +718,123 @@ export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestro
     } catch(err) {
       throw err;
     }
+  }
+
+  // helper function that filters out data above the given threshold
+  filterOutliers(divID) {
+    alert("button of " + divID + " is clicked");
+  }
+
+  getAmChartById(id) {
+    const allCharts = this.AmCharts.charts;
+    for (let i = 0; i < allCharts.length; i++) {
+      if (id === allCharts[i].div.id) {
+        return allCharts[i];
+      }
+    }
+  }
+
+  getTransformedData(data, isLogSelected) {
+    const loggedData = [];
+    if (isLogSelected) {
+      for (const number of data) {
+        loggedData.push(Math.log(number));
+      }
+      return loggedData;
+    }
+    return data;
+  }
+
+  getMaximumValueFromArray(array) {
+    const max_of_array = Math.max.apply(Math, array);
+    return max_of_array;
+  }
+
+  extractValuesFromArray(array, attribute) {
+    const retVal = [];
+    for (let i = 0; i < array.length; i++) {
+      retVal.push(array[i][attribute]);
+    }
+    return retVal;
+  }
+
+  // metric = array of real numbers (like > 100 or something)
+  // IQR = inter-quaartile-range
+  determineNumberOfBinsForHistogram(array, defaultBins) {
+    const h = this.getBinWidth(array), ulim = Math.max.apply(Math, array), llim = Math.min.apply(Math, array);
+    if (h <= (ulim - llim) / array.length) {
+      return defaultBins || 10; // Fix num bins if binWidth yields too small a value.
+    }
+    return Math.ceil((ulim - llim) / h);
+  }
+
+  getBinWidth(array) {
+    return 2 * this.iqr(array) * Math.pow(array.length, -1 / 3);
+  }
+
+  iqr(array) {
+    const sorted = array.slice(0).sort(function (a, b) { return a - b; });
+    const q1 = sorted[Math.floor(sorted.length / 4)];
+    const q3 = sorted[Math.floor(sorted.length * 3 / 4)];
+    return q3 - q1;
+  }
+
+  calculateThresholdForGivenPercentile(data, percentile) {
+    const sortedData = data.sort(this.sort_by('value', true, parseFloat);
+    const index = Math.floor(sortedData.length * percentile / 100 - 1);
+    const result = sortedData[index]["value"];
+    return +result.toFixed(2);
+  }
+
+  // https://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects
+  sort_by(field, reverse, primer) {
+    const key = function (x) {return primer ? primer(x[field]) : x[field]};
+    return function (a, b) {
+      const A = key(a), B = key(b);
+      return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1, 1][+!!reverse];
+    }
+  }
+
+  private initSvg() {
+    this.svg = d3.select("svg")
+      .append("g")
+      .attr("transform", "translate(" + this.margin_qq.left + "," + this.margin_qq.top + ")");
+  }
+
+  private initAxis() {
+    this.x = d3Scale.scaleTime().range([0, this.width_qq]);
+    this.y = d3Scale.scaleLinear().range([this.height_qq, 0]);
+    this.x.domain(d3Array.extent(Stocks, (d) => d.date ));
+    this.y.domain(d3Array.extent(Stocks, (d) => d.value ));
+  }
+
+  private drawAxis() {
+
+    this.svg.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + this.height_qq + ")")
+      .call(d3Axis.axisBottom(this.x));
+
+    this.svg.append("g")
+      .attr("class", "axis axis--y")
+      .call(d3Axis.axisLeft(this.y))
+      .append("text")
+      .attr("class", "axis-title")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Price ($)");
+  }
+
+  private drawLine() {
+    this.line = d3Shape.line()
+      .x( (d: any) => this.x(d.date) )
+      .y( (d: any) => this.y(d.value) );
+
+    this.svg.append("path")
+      .datum(Stocks)
+      .attr("class", "line")
+      .attr("d", this.line);
   }
 }

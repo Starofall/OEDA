@@ -1,92 +1,179 @@
 <div class="row">
 
 
-  <div class="col-md-6">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <div class="card-title">
-          <div class="title pull-left">All Experiments</div>
-        </div>
-      </div>
-      <div class="panel-body">
-        <nvd3 #nvd32 class="col-md-12" [options]="chart2Options" [data]="chart1Data"></nvd3>
-      </div>
-    </div>
+  <!--<div class="col-md-6">-->
+    <!--<div class="panel panel-default">-->
+      <!--<div class="panel-heading">-->
+        <!--<div class="card-title">-->
+          <!--<div class="title pull-left">All Experiments</div>-->
+        <!--</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body">-->
+        <!--<nvd3 #nvd32 class="col-md-12" [options]="chart1Options" [data]="chart1Data"></nvd3>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--<div class="col-md-6">-->
+    <!--<div class="panel panel-default">-->
+      <!--<div class="panel-heading">-->
+        <!--<div class="card-title">-->
+          <!--<div class="title pull-left">All Experiments</div>-->
+        <!--</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body">-->
+        <!--<nvd3 #nvd3 class="col-md-12" [options]="chart1Options" [data]="chart1Data"></nvd3>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--<div class="col-md-6">-->
+    <!--<div class="panel panel-default">-->
+      <!--<div class="panel-heading">-->
+        <!--<div class="card-title">-->
+          <!--<div class="title pull-left">All Experiments</div>-->
+        <!--</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body">-->
+        <!--<nvd3 #nvd33 class="col-md-12" [options]="chart3Options" [data]="chart1Data"></nvd3>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+
+  <!--<div class="col-md-6">-->
+    <!--<div id="myDiv"></div>-->
+  <!--</div>-->
+
+  <!--<div class="col-md-6">-->
+     <!--<div id="heat2"></div>-->
+  <!--</div>-->
+
+  <!--<div class="col-md-6">-->
+    <!--<div class="panel panel-default">-->
+      <!--<div class="panel-heading">-->
+        <!--<div class="card-title">-->
+          <!--<div class="title pull-left">Histogram with Fixed-size bins (Run 1)</div>-->
+        <!--</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body" >-->
+        <!--<div class="col-md-12" id="histogram1" style="width: 600px; height: 400px"></div>-->
+      <!--</div>-->
+      <!--<div class="panel-footer">-->
+        <!--<p id="logSummary1">click to switch to Log. scale</p>-->
+        <!--<button type="button" class="btn btn-primary" (click)="renderLogScale('histogram1', '1')" id="logScaleButton1">Logarithmic Scale</button>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--<div class="col-md-6">-->
+    <!--<div class="panel panel-default">-->
+      <!--<div class="panel-heading">-->
+        <!--<div class="card-title">-->
+          <!--<div class="title pull-left">Scatter Chart (Run 1)</div>-->
+        <!--</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body" >-->
+        <!--<div class="col-md-12" id="chartdiv1" style="width: 600px; height: 400px"></div>-->
+      <!--</div>-->
+      <!--<div class="panel-footer">-->
+        <!--<p id="filterSummary1">click on graph to pick a threshold for removing outliers</p>-->
+        <!--<button type="button" class="btn btn-primary" (click)="filterOutliers('chartdiv1')">Filter</button>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--<div class="col-md-6">-->
+    <!--<div class="panel panel-default">-->
+      <!--<div class="panel-heading">-->
+        <!--<div class="card-title">-->
+          <!--<div class="title pull-left">Histogram with Fixed-size bins (Run 2)</div>-->
+        <!--</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body" >-->
+        <!--<div class="col-md-12" id="histogram2" style="width: 600px; height: 400px"></div>-->
+      <!--</div>-->
+      <!--<div class="panel-footer">-->
+        <!--<p id="logSummary2">click to switch to Log. scale</p>-->
+        <!--<button type="button" class="btn btn-primary" (click)="renderLogScale('histogram2', '2')" id="logScaleButton2">Logarithmic Scale</button>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--<div class="col-md-6">-->
+    <!--<div class="panel panel-default">-->
+      <!--<div class="panel-heading">-->
+        <!--<div class="card-title">-->
+          <!--<div class="title pull-left">Line Chart</div>-->
+        <!--</div>-->
+      <!--</div>-->
+      <!--<div class="panel-body" >-->
+        <!--<div class="col-md-12" id="chartdiv2" style="width: 600px; height: 400px"></div>-->
+      <!--</div>-->
+      <!--<div class="panel-footer">-->
+        <!--<p id="filterSummary2">click on graph to pick a threshold for removing outliers</p>-->
+        <!--<button type="button" class="btn btn-primary" (click)="filterOutliers('chartdiv2')">Filter</button>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <div class="page-header">
+    <h3>Graphs for Run {{exp_run_id}}</h3>
   </div>
 
-  <div class="col-md-6">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <div class="card-title">
-          <div class="title pull-left">All Experiments</div>
-        </div>
-      </div>
-      <div class="panel-body">
-        <nvd3 #nvd3 class="col-md-12" [options]="chart1Options" [data]="chart1Data"></nvd3>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-6">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <div class="card-title">
-          <div class="title pull-left">All Experiments</div>
-        </div>
-      </div>
-      <div class="panel-body">
-        <nvd3 #nvd33 class="col-md-12" [options]="chart3Options" [data]="chart1Data"></nvd3>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="col-md-6">
-    <div id="myDiv"></div>
-  </div>
-
-  <div class="col-md-6">
-     <div id="heat2"></div>
-  </div>
-
-
-  <!--TODO: following div ids should be dynamically generated -->
-  <div class="col-md-6">
+  <div class="col-md-12">
     <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
           <div class="title pull-left">Smooth-Line Chart</div>
         </div>
       </div>
-      <div class="panel-body" >
-        <div class="col-md-12" id="chartdiv0" style="width: 100%; height: 400px"></div>
+      <div class="panel-body">
+        <div class="col-md-12" id="chartdiv{{exp_run_id}}" style="width: 100%; height: 400px"></div>
+      </div>
+      <div class="panel-footer">
+        <p id="filterSummary{{exp_run_id}}">Initial threshold for 95-percentile: <b>{{initialThresholdForSmoothLineChart}}</b></p>
+        <button type="button" class="btn btn-primary" (click)="filterOutliers()">Filter</button>
       </div>
     </div>
   </div>
 
-  <div class="col-md-6">
+  <div class="col-md-12">
     <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">Scatter Chart</div>
-        </div>
+          <div class="title pull-left" [hidden]="isLogSelected">Histogram with Normal Scale</div>
+          <div class="title pull-left" [hidden]="!isLogSelected">Histogram with Logarithmic Scale</div>
       </div>
-      <div class="panel-body" >
-        <div class="col-md-12" id="chartdiv1" style="width: 100%; height: 400px"></div>
+    </div>
+    <div class="panel-body" >
+      <div class="col-md-12" id="histogram{{exp_run_id}}" [hidden]="isLogSelected" style="width: 100%; height: 400px"></div>
+      <div class="col-md-12" id="histogram{{exp_run_id}}_log" [hidden]="!isLogSelected" style="width: 100%; height: 400px"></div>
+      <div class="panel-footer">
+        <button type="button" class="btn btn-primary" [hidden]="isLogSelected" (click)="isLogSelected = !isLogSelected">
+          Switch to Logarithmic Scale
+        </button>
+      <button type="button" class="btn btn-primary" [hidden]="!isLogSelected" (click)="isLogSelected = !isLogSelected">
+          Switch to Normal Scale
+      </button>
       </div>
     </div>
   </div>
 
-  <div class="col-md-6">
+  <!-- QQ graph -->
+  <div class="col-md-12">
     <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
           <div class="title pull-left">Line Chart</div>
         </div>
       </div>
-      <div class="panel-body" >
-        <div class="col-md-12" id="chartdiv2" style="width: 100%; height: 400px"></div>
+      <div class="panel-body">
+        <svg width="100%" height="400px"></svg>
       </div>
     </div>
   </div>
+
 </div>
+
+

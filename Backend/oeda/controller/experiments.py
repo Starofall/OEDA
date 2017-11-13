@@ -3,18 +3,24 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 
 experiments = {
-    "123123":
+    "0":
         {
-            "id": "123123",
-            "name": "TestName",
+            "id": "0",
+            "name": "Experiment 0",
             "status": "RUNNING"
         },
-    "123124":
+    "1":
         {
-            "id": "123124",
-            "name": "Done Stuff",
-            "status": "SUCCESS"
-        }
+            "id": "1",
+            "name": "Experiment 1",
+            "status": "RUNNING"
+        },
+    "2":
+        {
+            "id": "2",
+            "name": "Experiment 2",
+            "status": "RUNNING"
+        },
 }
 
 
@@ -34,4 +40,5 @@ class ExperimentController(Resource):
 
 class ExperimentsListController(Resource):
     def get(self):
+        print experiments
         return experiments.values()
