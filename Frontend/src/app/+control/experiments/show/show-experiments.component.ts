@@ -18,7 +18,7 @@ import {Observable} from "rxjs/Observable";
   selector: 'show-control-experiments',
   templateUrl: './show-experiments.component.html'
 })
-export class ShowExperimentsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ShowExperimentsComponent implements OnInit {
   private chart1: AmChart;
   private chart2: AmChart;
   private chart3: AmChart;
