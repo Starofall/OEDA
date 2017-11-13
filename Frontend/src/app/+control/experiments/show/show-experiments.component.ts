@@ -507,7 +507,7 @@ export class ShowExperimentsComponent implements OnInit {
         // used to retrieve current position of cursor and respective value, it also rounds to 2 decimals
         "listeners": [{
           "event": "moved",
-          "method": function(event) {
+          "method": function (event) {
             const yValueAsThreshold = event.chart.valueAxes[0].coordinateToValue(event.y);
             const roundedThreshold = yValueAsThreshold.toFixed(2);
             selectedThreshold = roundedThreshold;
@@ -529,15 +529,15 @@ export class ShowExperimentsComponent implements OnInit {
       },
       // an initial guide is created here because we cannot inject new Guide() in AmChartsService class for now
       "guides": [{
-          "id": "guideID",
-          "value": ctrl.initialThresholdForSmoothLineChart,
-          "lineAlpha": "1",
-          "lineColor": "#c44"
+        "id": "guideID",
+        "value": ctrl.initialThresholdForSmoothLineChart,
+        "lineAlpha": "1",
+        "lineColor": "#c44"
       }],
       // used to draw a line for at the cursor's position horizontally
-      "listeners": [ {
+      "listeners": [{
         "event": "init",
-        "method": function( e ) {
+        "method": function (e) {
 
           /**
            * Pre-zoom disabled for now
@@ -547,39 +547,39 @@ export class ShowExperimentsComponent implements OnInit {
           /**
            * Add click event on the plot area
            */
-          e.chart.chartDiv.addEventListener( "click", function() {
+          e.chart.chartDiv.addEventListener("click", function () {
 
-              // we track cursor's last known position by using selectedThreshold variable
-              if ( selectedThreshold !== undefined ) {
+            // we track cursor's last known position by using selectedThreshold variable
+            if (selectedThreshold !== undefined) {
 
-                // following will get the value of a data point, not with the exact position of cursor
-                // const overhead = e.chart.dataProvider[ e.chart.lastCursorPosition ][ e.chart.valueField ];
+              // following will get the value of a data point, not with the exact position of cursor
+              // const overhead = e.chart.dataProvider[ e.chart.lastCursorPosition ][ e.chart.valueField ];
 
-                // create a new guide or update position of the previous one
-                if ( e.chart.valueAxes[0].guides.length === 0 ) {
-                  const guide = e.chart.guides[0];
-                  guide.value = selectedThreshold;
-                  guide.lineAlpha = 1;
-                  guide.lineColor = "#c44";
-                  e.chart.valueAxes[0].addGuide(guide);
-                } else {
-                  e.chart.valueAxes[0].guides[0].value = selectedThreshold;
-                }
-
-                const nrOfItemsToBeFiltered = processedData.filter(function(item){
-                  return item.value > selectedThreshold;
-                }).length;
-
-                // reflect changes on html side
-                document.getElementById(summaryFieldID).innerHTML = "<p>selected threshold: <b>" + selectedThreshold + "</b> and # of points to be removed: <b>" + nrOfItemsToBeFiltered + "</b></p>";
-
-                // also reflect changes on chart
-                e.chart.graphs[0].negativeBase = selectedThreshold;
-                e.chart.validateNow();
+              // create a new guide or update position of the previous one
+              if (e.chart.valueAxes[0].guides.length === 0) {
+                const guide = e.chart.guides[0];
+                guide.value = selectedThreshold;
+                guide.lineAlpha = 1;
+                guide.lineColor = "#c44";
+                e.chart.valueAxes[0].addGuide(guide);
               } else {
-                alert("Please move your cursor to determine the threshold");
+                e.chart.valueAxes[0].guides[0].value = selectedThreshold;
               }
-          } )
+
+              const nrOfItemsToBeFiltered = processedData.filter(function (item) {
+                return item.value > selectedThreshold;
+              }).length;
+
+              // reflect changes on html side
+              document.getElementById(summaryFieldID).innerHTML = "<p>selected threshold: <b>" + selectedThreshold + "</b> and # of points to be removed: <b>" + nrOfItemsToBeFiltered + "</b></p>";
+
+              // also reflect changes on chart
+              e.chart.graphs[0].negativeBase = selectedThreshold;
+              e.chart.validateNow();
+            } else {
+              alert("Please move your cursor to determine the threshold");
+            }
+          })
         }
       }]
     });
@@ -780,7 +780,7 @@ export class ShowExperimentsComponent implements OnInit {
   }
 
   calculateThresholdForGivenPercentile(data, percentile) {
-    const sortedData = data.sort(this.sort_by('value', true, parseFloat);
+    const sortedData = data.sort(this.sort_by('value', true, parseFloat));
     const index = Math.floor(sortedData.length * percentile / 100 - 1);
     const result = sortedData[index]["value"];
     return +result.toFixed(2);
