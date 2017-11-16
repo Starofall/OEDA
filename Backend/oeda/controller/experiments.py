@@ -6,14 +6,18 @@ experiments = {
     "123123":
         {
             "id": "123123",
-            "name": "TestName",
-            "status": "RUNNING"
+            "name": "CrowdNav Optimization #1",
+            "status": "OPEN",
+            "targetId":"12313",
+            "sample_size":123
         },
     "123124":
         {
             "id": "123124",
-            "name": "Done Stuff",
-            "status": "SUCCESS"
+            "name": "CrowdNav Optimization #2",
+            "status": "SUCCESS",
+            "targetId":"333333",
+            "sample_size":123
         }
 }
 

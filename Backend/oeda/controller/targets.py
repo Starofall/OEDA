@@ -5,8 +5,8 @@ from flask_restful import Resource, Api
 from oeda.databases import db
 
 targets = {
-    "12313123-12313-123123": {
-        "id": "12313123-12313-123123",
+    "12313": {
+        "id": "12313",
         "primary_data_provider": {
             "type": "kafka_consumer",
             "topic": "crowd-nav-trips",

@@ -6,6 +6,7 @@ from flask_restful import Resource, Api
 from oeda.controller.targets import TargetController, TargetsListController
 from oeda.controller.configuration import ConfigurationController
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
+from oeda.service.execution_scheduler import initializeExecutionScheduler
 
 app = Flask(__name__, static_folder="assets")
 
@@ -82,6 +83,7 @@ if __name__ == '__main__':
     http_server.listen(5000)
     enable_pretty_logging()
     # setup_database("elasticsearch", "localhost", 9200)
+    initializeExecutionScheduler()
     IOLoop.instance().start()
 
 

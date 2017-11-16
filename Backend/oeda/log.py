@@ -6,7 +6,7 @@ LEVEL_INFO = 3
 LEVEL_WARN = 2
 LEVEL_ERROR = 1
 LEVEL_NONE = 0
-LOG_LEVEL = 3
+LOG_LEVEL = 4
 
 # Global variable for the folder to log to
 LOG_FOLDER = None
