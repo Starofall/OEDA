@@ -1,5 +1,4 @@
 #!flask/bin/python
-from flask import Flask, jsonify
 from flask import Flask, request
 from flask_restful import Resource, Api
 
@@ -7,8 +6,8 @@ from controller.targets import TargetController, TargetsListController
 from controller.configuration import ConfigurationController
 from controller.defintions import DefinitionsListController, DefinitionController
 from controller.experiments import ExperimentsListController, ExperimentController
-from controller.experimentResults import ExperimentResultsController, ExperimentsResultsListController, ExperimentResultsWithExpRunIdController
-
+from controller.experimentResults import ExperimentsResultsListController, ExperimentResultsWithExpRunIdController
+from controller.plotting import QQPlotController
 
 app = Flask(__name__, static_folder="assets")
 
@@ -64,6 +63,7 @@ def styles():
 def stylesJS():
     return app.send_static_file('styles.bundle.js')
 
+
 # Defining API Part
 api = Api(app)
 api.add_resource(ConfigurationController, '/api/configuration')
@@ -74,9 +74,9 @@ api.add_resource(ExperimentController, '/api/experiments/<string:id>')
 api.add_resource(TargetsListController, '/api/targets')
 api.add_resource(TargetController, '/api/targets/<string:id>')
 
-api.add_resource(ExperimentResultsController, '/api/experimentResults/<string:rtx_run_id>')
 api.add_resource(ExperimentResultsWithExpRunIdController, '/api/experimentResults/<string:rtx_run_id>/<string:exp_run_id>')
 api.add_resource(ExperimentsResultsListController, '/api/experimentsResults')
+api.add_resource(QQPlotController, '/api/qqPlot/<string:distribution>/<string:scale>')
 
 
 if __name__ == '__main__':

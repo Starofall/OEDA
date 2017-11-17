@@ -3,6 +3,8 @@ Build/app/**
 *.pyc
 Backend/oeda/build
 Backend/oeda/OEDA_Backend.egg-info
+Backend/oeda/controller/*.pyc
+Backend/oeda/controller/*.iml
 *.egg
 *.iml
 # Byte-compiled / optimized / DLL files

@@ -133,47 +133,151 @@
       </div>
       <div class="panel-footer">
         <p id="filterSummary{{exp_run_id}}">Initial threshold for 95-percentile: <b>{{initialThresholdForSmoothLineChart}}</b></p>
-        <button type="button" class="btn btn-primary" (click)="filterOutliers()">Filter</button>
+        <button id="filterButton{{exp_run_id}}" type="button" class="btn btn-primary" (click)="filterOutliers($event)">Filter</button>
       </div>
     </div>
   </div>
 
   <div class="col-md-12">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <div class="card-title">
-          <div class="title pull-left" [hidden]="isLogSelected">Histogram with Normal Scale</div>
-          <div class="title pull-left" [hidden]="!isLogSelected">Histogram with Logarithmic Scale</div>
-      </div>
-    </div>
-    <div class="panel-body" >
-      <div class="col-md-12" id="histogram{{exp_run_id}}" [hidden]="isLogSelected" style="width: 100%; height: 400px"></div>
-      <div class="col-md-12" id="histogram{{exp_run_id}}_log" [hidden]="!isLogSelected" style="width: 100%; height: 400px"></div>
-      <div class="panel-footer">
-        <button type="button" class="btn btn-primary" [hidden]="isLogSelected" (click)="isLogSelected = !isLogSelected">
-          Switch to Logarithmic Scale
-        </button>
-      <button type="button" class="btn btn-primary" [hidden]="!isLogSelected" (click)="isLogSelected = !isLogSelected">
-          Switch to Normal Scale
-      </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- QQ graph -->
-  <div class="col-md-12">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <div class="card-title">
-          <div class="title pull-left">Line Chart</div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left" [hidden]="isLogSelected">Histogram with Normal Scale</div>
+            <div class="title pull-left" [hidden]="!isLogSelected">Histogram with Logarithmic Scale</div>
         </div>
       </div>
-      <div class="panel-body">
-        <svg width="100%" height="400px"></svg>
+      <div class="panel-body" >
+        <div class="col-md-12" id="histogram{{exp_run_id}}" [hidden]="isLogSelected" style="width: 100%; height: 400px"></div>
+        <div class="col-md-12" id="histogram{{exp_run_id}}_log" [hidden]="!isLogSelected" style="width: 100%; height: 400px"></div>
+        <div class="panel-footer">
+          <button type="button" class="btn btn-primary" [hidden]="isLogSelected" (click)="isLogSelected = !isLogSelected">
+            Switch to Logarithmic Scale
+          </button>
+        <button type="button" class="btn btn-primary" [hidden]="!isLogSelected" (click)="isLogSelected = !isLogSelected">
+            Switch to Normal Scale
+        </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QQ graph 1 -->
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="panel-title">
+            <div class="title pull-left">Quantile Quantile (QQ) Plot against Theoretical Data &nbsp;</div>
+            <div class="col-md-6">
+              <div style="margin-top: 5%">
+                <span>Theoretical Data Distribution:</span>
+                  <li id="availableDistributionsDropdown" class="dropdown">
+                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                    {{distribution}} <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-tasks">
+                    <li *ngFor="let dist of availableDistributions">
+                      <a>
+                        <div (click)="selectDistribution(dist)">
+                          <p>
+                            <strong>{{dist}}</strong>
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                  <!-- /.dropdown-tasks -->
+                </li>
+              </div>
+              <div style="margin-top: 5%">
+                <span>Data scale:</span>
+                <li id="availableScalesQQ" class="dropdown">
+                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                    {{scale}} <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-tasks">
+                    <li *ngFor="let scale of availableScales">
+                      <a>
+                        <div (click)="selectScale(scale)">
+                          <p>
+                            <strong>{{scale}}</strong>
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body" style="margin-top: 5%">
+          <div [hidden]="!qqPlotIsRendered">
+            <img class="col-md-6" id="qqPlot{{exp_run_id}}" class="img-thumbnail" style="width: 100%; height: 400px; margin-top: 5%">
+          </div>
+        </div>
+        <div class="panel-footer">
+          <button type="button" class="btn btn-primary" (click)="drawQQPlot()" id="renderQQPlotButton">Render Plot</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QQ graph 2 -->
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="panel-title">
+            <div class="title pull-left">Quantile Quantile (QQ) Plot against Other Experiment Runs &nbsp;</div>
+            <div class="col-md-6">
+              <div style="margin-top: 5%">
+                <span>Experiment Run:</span>
+                <li id="availableExpRuns" class="dropdown">
+                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                    {{selectedExpRunIdForQQJS}} <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-tasks">
+                    <li *ngFor="let expRunId of availableExpRunIdsForQQJS">
+                      <a>
+                        <div (click)="selectExpRunIdForQQJS(expRunId)">
+                          <p>
+                            <strong>{{expRunId}}</strong>
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                  <!-- /.dropdown-tasks -->
+                </li>
+              </div>
+              <div style="margin-top: 5%">
+                <span>Data scale:</span>
+                <li id="availableScalesQQJS" class="dropdown">
+                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                    {{selectedScaleForQQJS}} <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-tasks">
+                    <li *ngFor="let scaleQQJS of availableScalesForQQJS">
+                      <a>
+                        <div (click)="selectScaleForQQJS(scaleQQJS)">
+                          <p>
+                            <strong>{{scaleQQJS}}</strong>
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body svg-container" style="margin-top: 5%">
+          <div [hidden]="!qqJSPlotIsRendered">
+            <svg id="qqPlotJS{{exp_run_id}}" viewBox="0 0 500 500" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <button type="button" class="btn btn-primary" (click)="drawQQJS()" id="renderQQJSButton">Render Plot</button>
+        </div>
       </div>
     </div>
   </div>
-
 </div>
-
-
