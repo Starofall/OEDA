@@ -23,10 +23,17 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/experiments/" + id)
   }
 
+  public loadResultOfSingleExperiment(rtx_run_id: string, exp_run_id: string): Observable<any> {
+    return this.doGETPublicRequest("/experimentResults/" + rtx_run_id + "/" + exp_run_id)
+  }
+
+  public getQQPlot(distribution: string, scale: string, target: object): Observable<any> {
+    return this.doPOSTPublicRequest("/qqPlot/" + distribution + "/" + scale, target)
+  }
+
   public saveExperiment(experiment: Experiment): Observable<any> {
     return this.doPOSTRequest("/experiments/" + experiment.id, experiment)
   }
-
 
   public loadAllDefinitions(): Observable<Definition[]> {
     return this.doGETPublicRequest("/definitions")
@@ -60,6 +67,8 @@ export class OEDAApiService extends RESTService {
   public saveConfiguration(configuration: Configuration): Observable<any> {
     return this.doPOSTPublicRequest("/configuration", configuration)
   }
+
+
 }
 
 

@@ -1,5 +1,4 @@
 #!flask/bin/python
-from flask import Flask, jsonify
 from flask import Flask, request
 from flask_restful import Resource, Api
 
@@ -7,6 +6,9 @@ from oeda.controller.targets import TargetController, TargetsListController
 from oeda.controller.configuration import ConfigurationController
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
 from oeda.service.execution_scheduler import initializeExecutionScheduler
+from oeda.controller.experiments import ExperimentsListController, ExperimentController
+from oeda.controller.experimentResults import ExperimentsResultsListController, ExperimentResultsWithExpRunIdController
+from oeda.controller.plotting import QQPlotController
 
 app = Flask(__name__, static_folder="assets")
 
@@ -71,6 +73,11 @@ api.add_resource(ExperimentController, '/api/experiments/<string:id>')
 api.add_resource(TargetsListController, '/api/targets')
 api.add_resource(TargetController, '/api/targets/<string:id>')
 
+api.add_resource(ExperimentResultsWithExpRunIdController, '/api/experimentResults/<string:rtx_run_id>/<string:exp_run_id>')
+api.add_resource(ExperimentsResultsListController, '/api/experimentsResults')
+api.add_resource(QQPlotController, '/api/qqPlot/<string:distribution>/<string:scale>')
+
+
 if __name__ == '__main__':
     from tornado.wsgi import WSGIContainer
     from tornado.httpserver import HTTPServer
@@ -82,9 +89,13 @@ if __name__ == '__main__':
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     enable_pretty_logging()
+<<<<<<< HEAD:Backend/server.py
     # setup_database("elasticsearch", "localhost", 9200)
     initializeExecutionScheduler()
     IOLoop.instance().start()
 
 
 
+=======
+    IOLoop.instance().start()
+>>>>>>> visualization:Backend/oeda/server.py
