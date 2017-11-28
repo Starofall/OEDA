@@ -26,17 +26,17 @@ from oeda.databases import db
 
 
 class TargetController(Resource):
-    def get(self, id):
-        target = db().get_target(id)
+    def get(self, target_id):
+        target = db().get_target(target_id)
         try:
             return target
         except:
             return {"error": "not found"}, 404
 
-    def post(self, id):
+    def post(self, target_id):
         content = request.get_json()
         content["status"] = "READY"
-        db().save_target(id, content)
+        db().save_target(target_id, content)
         # targets[id] = content
         return {}, 200
 

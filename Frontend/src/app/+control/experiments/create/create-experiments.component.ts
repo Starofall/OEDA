@@ -80,7 +80,7 @@ export class CreateExperimentsComponent implements OnInit {
   firstDropDownChanged(targetSystemName: any) {
     console.log(targetSystemName);
 
-    // TODO target system names must be uniquely defined, should be checked on target system creation
+    // TODO target system names must be uniquely defined, should be checked upon target system creation
     this.selectedTargetSystem = this.availableTargetSystems.find(item => item.name === targetSystemName);
     if (this.selectedTargetSystem !== undefined) {
       console.log("obj:", this.selectedTargetSystem);
@@ -117,51 +117,35 @@ export class CreateExperimentsComponent implements OnInit {
     }
   }
 
-  secondDropdownChanged(event: any) {
-    console.log("secondDropdownChanged event: ", event);
-  }
-
-  addChangeableVariable() {
+  addChangeableVariable(variable) {
     const ctrl = this;
-    console.log("VARIABLE", ctrl.variable);
-    if (!isNullOrUndefined(ctrl.variable)) {
-      if (ctrl.experiment.changeableVariable.some(item => item.name === ctrl.variable.name) ) {
+    console.log("variable to be added", variable);
+    if (!isNullOrUndefined(variable)) {
+      if (ctrl.experiment.changeableVariable.some(item => item.name === variable.name) ) {
         ctrl.notify.error("Error", "This variable is already added");
       } else {
-        ctrl.experiment.changeableVariable.push(ctrl.variable);
+        ctrl.experiment.changeableVariable.push(variable);
       }
-    } else if (isNull(ctrl.variable) || isUndefined(ctrl.variable)) {
-      // workaround for following case: if user picks a variable but changes the target system
-      // then user can see but cant select among new variables, i.e. model (variable) does not update itself
-      // so pick the 0th variable as initial
-      if (this.selectedTargetSystem.changeableVariable.length > 0) {
-        this.variable = this.selectedTargetSystem.changeableVariable[0];
-      }
-    } else {
-      ctrl.notify.error("Error", "Please select a variable");
     }
   }
 
   addAllChangeableVariables() {
     const ctrl = this;
-    for (let i = 0; i < ctrl.initialVariables.length; i++) {
-
-      if (ctrl.experiment.changeableVariable.filter(item => item.name === ctrl.initialVariables[i].name).length === 0) {
+    console.log(ctrl.targetSystem.changeableVariable);
+    for (let i = 0; i < ctrl.targetSystem.changeableVariable.length; i++) {
+      if (ctrl.experiment.changeableVariable.filter(item => item.name === ctrl.targetSystem.changeableVariable[i].name).length === 0) {
         /* vendor does not contain the element we're looking for */
-        ctrl.experiment.changeableVariable.push(ctrl.initialVariables[i]);
+        ctrl.experiment.changeableVariable.push(ctrl.targetSystem.changeableVariable[i]);
       }
-
     }
   }
 
-  removeChangeableVariable(index, variableToBeRemoved) {
-    const ctrl = this;
-    ctrl.experiment.changeableVariable.splice(index, 1);
+  removeChangeableVariable(index) {
+    this.experiment.changeableVariable.splice(index, 1);
+  }
 
-    if (ctrl.initialVariables.filter(item => item.name === variableToBeRemoved.name).length === 0) {
-      /* vendor does not contain the element we're looking for */
-      ctrl.initialVariables.push(variableToBeRemoved);
-    }
+  removeAllVariables() {
+    this.experiment.changeableVariable.splice(0);
   }
 
   hasChanges(): boolean {
@@ -221,6 +205,9 @@ export class CreateExperimentsComponent implements OnInit {
     const cond5 = this.experiment.name === null;
     const cond6 = this.experiment.name.length === 0;
 
+    const cond7 = this.experiment.description === null;
+    const cond8 = this.experiment.description.length === 0;
+
     // const cond5 = this.experiment.executionStrategy.knobs.x.step == null;
     //
     // const cond6 = this.experiment.executionStrategy.knobs.y.min == null;
@@ -230,14 +217,15 @@ export class CreateExperimentsComponent implements OnInit {
     // const cond9 = this.experiment.executionStrategy.ignore_first_n_results == null;
     // const cond10 = this.experiment.executionStrategy.knobs.y.step == null;
 
-    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 ;
-      //  cond7 || cond8 || cond9 || cond10;
+    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7 || cond8;
+    // || cond9 || cond10;
   }
 
   createExperiment(): Experiment {
     return {
       "id": UUID.UUID(),
       "name": "",
+      "description": "",
       "status": "",
       "targetSystemId": "",
       "executionStrategy": this.executionStrategy,

@@ -19,6 +19,7 @@ export class TargetsComponent implements OnInit {
     this.api.loadAllTargets().subscribe(
       (data) => {
         this.targets = data
+        console.log(data);
       }
     )
   }

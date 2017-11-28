@@ -5,14 +5,7 @@ from oeda.databases import db
 
 class ExperimentController(Resource):
     def get(self, experimentId):
-        try:
-            for i in experiments:
-                if experiments[i]["id"] == experimentId:
-                    return experiments[i]
-
-            return {"error": "not found"}, 404
-        except:
-            return {"error": "not found"}, 404
+        return db().get
 
     def post(self, experimentId):
         content = request.get_json()

@@ -75,6 +75,7 @@ export class OEDAApiService extends RESTService {
 export interface Experiment {
   id: string,
   name: string,
+  description: string,
   status: string,
   targetSystemId: string,
   changeableVariable: any,

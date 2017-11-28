@@ -70,7 +70,7 @@ api.add_resource(ConfigurationController, '/api/configuration')
 api.add_resource(ExperimentsListController, '/api/experiments')
 api.add_resource(ExperimentController, '/api/experiments/<string:experimentId>')
 api.add_resource(TargetsListController, '/api/targets')
-api.add_resource(TargetController, '/api/targets/<string:id>')
+api.add_resource(TargetController, '/api/targets/<string:target_id>')
 
 api.add_resource(ExperimentResultsWithExpRunIdController, '/api/experimentResults/<string:rtx_run_id>/<string:exp_run_id>')
 api.add_resource(ExperimentsResultsListController, '/api/experimentsResults')
