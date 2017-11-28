@@ -23,11 +23,20 @@ class Database:
     def save_experiment(self, experiment_id, experiment_data):
         pass
 
-    def get_target(self, experiment_id):
+    def get_target(self, target_system_id):
         pass
 
     def get_experiments(self):
         """ returns all the experiments """
+        pass
+
+    def get_experiment(self, experiment_id):
+        pass
+
+    def update_experiment_status(self, experiment_id, status):
+        pass
+
+    def update_target_system_status(self, target_system_id, status):
         pass
 
 class TargetSystemNotFoundException(Exception):
