@@ -10,7 +10,7 @@ import {OEDAApiService} from "../../shared/modules/api/oeda-api.service";
 export class ExperimentsComponent {
 
   constructor(private layout: LayoutService, api: OEDAApiService) {
-    this.layout.setHeader("Experiments", "Current Experiments")
+    this.layout.setHeader("Experiments", "Current Experiments");
     api.loadAllExperiments().subscribe(
       (data) => {
         this.experiments = data

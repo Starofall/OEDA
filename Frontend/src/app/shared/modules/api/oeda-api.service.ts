@@ -19,8 +19,8 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/experiments")
   }
 
-  public loadExperimentById(id: string): Observable<Experiment> {
-    return this.doGETPublicRequest("/experiments/" + id)
+  public loadExperimentById(experimentId: string): Observable<Experiment> {
+    return this.doGETPublicRequest("/experiments/" + experimentId)
   }
 
   public loadResultOfSingleExperiment(rtx_run_id: string, exp_run_id: string): Observable<any> {
@@ -32,7 +32,7 @@ export class OEDAApiService extends RESTService {
   }
 
   public saveExperiment(experiment: Experiment): Observable<any> {
-    return this.doPOSTRequest("/experiments/" + experiment.id, experiment)
+    return this.doPOSTPublicRequest("/experiments/" + experiment.id, experiment)
   }
 
   public loadAllDefinitions(): Observable<Definition[]> {
@@ -75,7 +75,10 @@ export class OEDAApiService extends RESTService {
 export interface Experiment {
   id: string,
   name: string,
-  status: string
+  status: string,
+  targetSystemId: string,
+  changeableVariable: any,
+  executionStrategy: ExecutionStrategy,
 }
 
 
@@ -94,6 +97,13 @@ export interface Target {
   changeProvider: any,
   incomingDataTypes: any,
   changeableVariable: any
+}
+
+export interface ExecutionStrategy {
+  type: string,
+  ignore_first_n_results: number,
+  sample_size: number,
+  knobs: any
 }
 
 export interface Configuration {

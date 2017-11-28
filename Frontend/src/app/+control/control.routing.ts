@@ -7,6 +7,7 @@ import {ConfigurationComponent} from "./configuration/configuration.component";
 import {EditTargetsComponent} from "./targets/edit/edit-targets.component";
 import {ExperimentsComponent} from "./experiments/experiments.component";
 import {ShowExperimentsComponent} from "./experiments/show/show-experiments.component";
+import {CreateExperimentsComponent} from "./experiments/create/create-experiments.component";
 
 export const routes: Routes = [
   {
@@ -30,6 +31,10 @@ export const routes: Routes = [
       {
         path: 'experiments',
         component: ExperimentsComponent,
+      },
+      {
+        path: 'experiments/create',
+        component: CreateExperimentsComponent,
       },
       {
         path: 'experiments/show/:id',

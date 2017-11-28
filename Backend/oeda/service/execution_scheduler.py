@@ -34,7 +34,8 @@ def getTargetSystem(targetId):
 def initializeExecutionScheduler():
     # we start the threaded timer to search for experiments with status "OPEN"
     info("Starting execution scheduler")
-    Timer(1, search_for_open_experiments, ()).start()
+    # Timer(1, search_for_open_experiments, ()).start()
+    # Timer(10, search_for_open_experiments, ()).start()
 
 
 def search_for_open_experiments():

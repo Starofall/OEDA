@@ -18,25 +18,31 @@ export class EditTargetsComponent implements OnInit {
               private notify: NotificationsService) {
   }
 
-  target: Target
-  originalTarget: Target
+  target: Target;
+  originalTarget: Target;
+  pageTitle: string;
+  saveButtonLabel: string;
 
   ngOnInit(): void {
-    this.layout.setHeader("Targets", "Edit Targets")
-
+    const ctrl = this;
+    this.layout.setHeader("Target System", "");
     this.route.params.subscribe((params: Params) => {
       if (params['id']) {
+        ctrl.pageTitle = "Edit Target System";
+        ctrl.saveButtonLabel = "Save Changes as Copy";
         this.api.loadTargetById(params['id']).subscribe(
           (data) => {
-            this.target = data
-            this.originalTarget = _.cloneDeep(this.target)
-            this.assureObjectContract()
+            this.target = data;
+            this.originalTarget = _.cloneDeep(this.target);
+            this.assureObjectContract();
           }
         )
       } else {
-        this.target = this.createTarget()
-        this.originalTarget = _.cloneDeep(this.target)
-        this.assureObjectContract()
+        ctrl.pageTitle = "Create Target System";
+        ctrl.saveButtonLabel = "Save Target System";
+        this.target = this.createTarget();
+        this.originalTarget = _.cloneDeep(this.target);
+        this.assureObjectContract();
       }
     })
   }
@@ -94,26 +100,28 @@ export class EditTargetsComponent implements OnInit {
   }
 
 
-  saveChangesAsCopy() {
+  saveChanges() {
     if (!this.hasErrors()) {
 
+      console.log("router value: ", this.router.url.indexOf("/create"));
       if (this.router.url.indexOf("/create") !== -1) {
+
         this.api.saveTarget(this.target).subscribe(
           (success) => {
-            this.notify.success("Success", "Target saved")
-            this.router.navigate(["control/targets/edit", this.target.id])
+            this.notify.success("Success", "Target saved");
+            this.router.navigate(["control/targets/edit", this.target.id]);
           }
         )
       } else {
         // this is a edit, so create new uuid
-        this.target.id = UUID.UUID()
-        this.target.name = this.target.name + " Copy"
+        this.target.id = UUID.UUID();
+        this.target.name = this.target.name + " Copy";
         this.api.saveTarget(this.target).subscribe(
           (success) => {
             this.notify.success("Success", "Target saved")
             this.router.navigate(["control/targets/edit", this.target.id])
           }
-        )
+        );
       }
 
 

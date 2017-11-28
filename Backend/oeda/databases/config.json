@@ -6,8 +6,8 @@
       "number_of_replicas" : 1
     }
   },
-  "rtx_run_type": {
-    "name": "rtx_run",
+  "experiment_type": {
+    "name": "experiment",
     "mapping": {
       "properties": {
         "strategy": {
@@ -20,7 +20,17 @@
             "exp_count":               { "type": "integer" }
           }
         },
-        "created":  { "type": "date"  }
+        "created":        { "type": "date"  },
+        "targetSystemId": { "type": "keyword"  }
+      }
+    }
+  },
+  "stage_type": {
+    "name": "stage",
+    "mapping": {
+      "_parent":    { "type": "experiment"},
+      "properties": {
+        "id":  { "type": "integer" }
       }
     }
   },
@@ -38,7 +48,7 @@
   "data_point_type": {
     "name": "data_point",
     "mapping": {
-      "_parent":    { "type": "analysis"},
+      "_parent":    { "type": "stage"},
       "properties": {
         "exp_run":  { "type": "integer" },
         "knobs":    { "type": "object"  },
@@ -65,10 +75,10 @@
             "serializer":    { "type": "keyword" }
           }
         },
-        "name":        { "type": "keyword"  },
-        "description": { "type": "text"     },
-        "in_use":      { "type": "boolean"  },
-        "created":     { "type": "date"     }
+        "name":         { "type": "keyword"  },
+        "description":  { "type": "text"     },
+        "status":       { "type": "keyword"  },
+        "created":      { "type": "date"     }
       }
     }
   }

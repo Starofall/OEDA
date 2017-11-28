@@ -12,7 +12,6 @@ from oeda.controller.plotting import QQPlotController
 
 app = Flask(__name__, static_folder="assets")
 
-
 # Define Frontend Hosting
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -69,7 +68,7 @@ def stylesJS():
 api = Api(app)
 api.add_resource(ConfigurationController, '/api/configuration')
 api.add_resource(ExperimentsListController, '/api/experiments')
-api.add_resource(ExperimentController, '/api/experiments/<string:id>')
+api.add_resource(ExperimentController, '/api/experiments/<string:experimentId>')
 api.add_resource(TargetsListController, '/api/targets')
 api.add_resource(TargetController, '/api/targets/<string:id>')
 
@@ -89,13 +88,6 @@ if __name__ == '__main__':
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)
     enable_pretty_logging()
-<<<<<<< HEAD:Backend/server.py
-    # setup_database("elasticsearch", "localhost", 9200)
+    setup_database("elasticsearch", "localhost", 9200)
     initializeExecutionScheduler()
     IOLoop.instance().start()
-
-
-
-=======
-    IOLoop.instance().start()
->>>>>>> visualization:Backend/oeda/server.py

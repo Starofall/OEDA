@@ -11,7 +11,7 @@ import {OnInit, Component, Input, EventEmitter, Output, OnChanges, SimpleChanges
                [(ngModel)]="model[key]" [min]="minNumber" [max]="maxNumber">
         <input (ngModelChange)="onModelChange($event)" *ngIf="inputType == 'text'" class="form-control" type="text"
                id="{{name}}Edit" name="{{name}}-{{key}}"
-               [(ngModel)]="model[key]" placeholder="{{placeholder}}">
+               [(ngModel)]="model[key]" placeholder="{{placeholder}}" disabled="{{disabled}}">
       </div>
     </div>
   `
@@ -31,6 +31,7 @@ export class LabeledInputComponent implements OnChanges {
   @Input() model: any
   @Input() key: string
   @Input() placeholder = ""
+  @Input() disabled = false
 
 
   @Input() required = true

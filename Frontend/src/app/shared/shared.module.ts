@@ -7,7 +7,6 @@ import {AccordionModule} from "ng2-bootstrap/accordion";
 import {ProgressbarModule} from "ng2-bootstrap/progressbar";
 import {ModalModule} from "ng2-bootstrap/modal";
 import {NotificationsService} from "angular2-notifications";
-import * as _ from 'lodash'
 import {HttpInterceptor} from "./util/http-interceptor";
 import {CustomErrorHandler} from "./util/custom-error-handler";
 import {LoggerService} from "./modules/helper/logger.service";

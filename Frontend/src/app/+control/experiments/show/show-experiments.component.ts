@@ -369,34 +369,40 @@ export class ShowExperimentsComponent implements OnInit {
 
     ctrl.apiService.loadAllExperiments().subscribe(allExperiments => {
       ctrl.allExperiments = allExperiments;
+      console.log("allExperiments", allExperiments);
       for (let k = 0; k < allExperiments.length; k++) {
         if (allExperiments[k].id !== ctrl.exp_run_id) {
           ctrl.availableExpRunIdsForQQJS.push(allExperiments[k].id);
         }
       }
-      console.log(ctrl.availableExpRunIdsForQQJS);
     });
 
     ctrl.apiService.loadResultOfSingleExperiment(ctrl.rtx_run_id, ctrl.exp_run_id).subscribe(
       data => {
         const expRes = JSON.parse(data["ExperimentResults"]);
-        const id = ctrl.exp_run_id;
-        ctrl.singleExperimentResult = expRes[id];
-        ctrl.divId = "chartdiv" + id;
-        ctrl.histogramDivId = "histogram" + id;
-        ctrl.histogramLogDivId = ctrl.histogramDivId + "_log";
-        ctrl.filterSummaryId = "filterSummary" + id;
-        ctrl.qqPlotDivId = "qqPlot" + id;
-        ctrl.qqPlotDivIdJS = "qqPlotJS" + id;
-        ctrl.processedData = ctrl.processData(data, "ExperimentResults", id, "timestamp", "value");
-        ctrl.processedDataForQQPlotJS = ctrl.processData(data, "ExperimentResults", id, null, null);
-        // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
-        const clonedData = JSON.parse(JSON.stringify( ctrl.processedData));
-        ctrl.initialThresholdForSmoothLineChart = ctrl.calculateThresholdForGivenPercentile(clonedData, 95);
+        console.log("expRes", expRes);
+        if (expRes !== undefined) {
+          const id = ctrl.exp_run_id;
+          ctrl.singleExperimentResult = expRes[id];
+          ctrl.divId = "chartdiv" + id;
+          ctrl.histogramDivId = "histogram" + id;
+          ctrl.histogramLogDivId = ctrl.histogramDivId + "_log";
+          ctrl.filterSummaryId = "filterSummary" + id;
+          ctrl.qqPlotDivId = "qqPlot" + id;
+          ctrl.qqPlotDivIdJS = "qqPlotJS" + id;
+          ctrl.processedData = ctrl.processData(data, "ExperimentResults", id, "timestamp", "value");
+          ctrl.processedDataForQQPlotJS = ctrl.processData(data, "ExperimentResults", id, null, null);
+          // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
+          const clonedData = JSON.parse(JSON.stringify( ctrl.processedData));
+          ctrl.initialThresholdForSmoothLineChart = ctrl.calculateThresholdForGivenPercentile(clonedData, 95);
 
-        ctrl.drawSmoothLineChart( ctrl.divId,  ctrl.filterSummaryId,  ctrl.processedData);
-        ctrl.drawHistogram( ctrl.histogramDivId,  ctrl.processedData, false);
-        ctrl.drawHistogram( ctrl.histogramLogDivId, ctrl.processedData, true);
+          ctrl.drawSmoothLineChart( ctrl.divId,  ctrl.filterSummaryId,  ctrl.processedData);
+          ctrl.drawHistogram( ctrl.histogramDivId,  ctrl.processedData, false);
+          ctrl.drawHistogram( ctrl.histogramLogDivId, ctrl.processedData, true);
+        } else {
+          console.log("error");
+        }
+
       });
   }
 

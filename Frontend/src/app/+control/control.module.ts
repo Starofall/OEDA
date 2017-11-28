@@ -13,6 +13,7 @@ import {ExperimentsComponent} from "./experiments/experiments.component";
 import {ShowExperimentsComponent} from "./experiments/show/show-experiments.component";
 import {GraphsModule} from "../shared/modules/graphs/graphs.module";
 import {EditTargetsComponent} from "./targets/edit/edit-targets.component";
+import {CreateExperimentsComponent} from "./experiments/create/create-experiments.component";
 
 @NgModule({
   imports: [
@@ -30,6 +31,7 @@ import {EditTargetsComponent} from "./targets/edit/edit-targets.component";
     DashboardComponent,
     TargetsComponent,
     ExperimentsComponent,
+    CreateExperimentsComponent,
     ShowExperimentsComponent,
     EditTargetsComponent
   ]

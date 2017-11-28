@@ -16,15 +16,15 @@ export class ConfigurationComponent implements OnInit {
               private notify: NotificationsService) {
   }
 
-  configuration: Configuration = {database: ""}
-  originalConfiguration = {}
+  configuration: Configuration = {database: ""};
+  originalConfiguration = {};
 
   ngOnInit(): void {
-    this.layout.setHeader("Configuration", "Setup the System")
+    this.layout.setHeader("Configuration", "Setup the System");
     this.api.loadConfiguration().subscribe(
       (data) => {
-        this.configuration = data
-        this.originalConfiguration = _.cloneDeep(this.configuration)
+        this.configuration = data;
+        this.originalConfiguration = _.cloneDeep(this.configuration);
       }
     )
   }
@@ -38,7 +38,7 @@ export class ConfigurationComponent implements OnInit {
     if (!this.hasErrors()) {
       this.api.saveConfiguration(this.configuration).subscribe(
         (success) => {
-          this.originalConfiguration = _.cloneDeep(this.configuration)
+          this.originalConfiguration = _.cloneDeep(this.configuration);
           this.notify.success("Success", "Configuration saved")
         }
       )
@@ -50,7 +50,7 @@ export class ConfigurationComponent implements OnInit {
   }
 
   revertChanges() {
-    this.configuration = _.cloneDeep(this.originalConfiguration)
+    this.configuration = _.cloneDeep(this.originalConfiguration);
   }
 
 

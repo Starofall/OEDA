@@ -1,0 +1,334 @@
+<div class="row">
+
+  <div class="col-sm-12 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Select a Target System</div>
+          <div class="pull-right">
+            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveExperiment()" class="btn btn-sm btn-orange"><i
+              class="fa fa-send"></i> Create Experiment
+            </div>
+            <div *ngIf="hasChanges() && hasErrors()" class="btn btn-m btn-danger"><i
+              class="fa fa-close"></i> Incomplete Fields
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row">
+          <div class="col-md-3">
+            <div class="sub-title">Name</div>
+            <div>
+                <!--<select class="form-control" required (change)="firstDropDownChanged($event.target.value)"-->
+                        <!--[(ngModel)]="targetSystem" (ngModelChange)="onTargetSystemChange($event)">-->
+                <select class="form-control" required (change)="firstDropDownChanged($event.target.value)">
+                  <option disabled>Select target system</option>
+                  <option *ngFor="let i of availableTargetSystems;" [ngValue]="i">{{ i.name }}</option>
+                </select>
+            </div>
+          </div>
+
+          <div class="col-md-6" *ngIf="targetSystem.name !== ''">
+            <div class="sub-title">Description</div>
+            <span>{{targetSystem.description}}</span>
+          </div>
+
+          <div class="col-md-3" *ngIf="targetSystem.name !== ''">
+            <div class="sub-title">Status</div>
+            <label *ngIf="targetSystem.status == 'READY'" class="label label-success">READY</label>
+            <label *ngIf="targetSystem.status == 'WORKING'" class="label label-info">WORKING</label>
+            <label *ngIf="targetSystem.status == 'ERROR'" class="label label-danger">ERROR</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xs-12" *ngIf="targetSystem.name !== ''">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Execution Strategy</div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <labeled-input-select name="Type" [model]="experiment.executionStrategy" key="type" [colSize]="12"
+                              [options]="[
+                                  {key:'step_strategy',label:'Step Strategy'},
+                                  {key:'forever_strategy',label:'Forever Strategy'},
+                                  {key:'self_optimizer_strategy',label:'Self Optimizer Strategy'},
+                                  {key:'sequential_strategy',label:'Sequential Strategy'},
+                                  {key:'uncorrelated_self_optimizer_strategy',label:'Uncorrelated Self Optimizer Strategy'}]">
+        </labeled-input-select>
+
+        <labeled-input name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
+        <labeled-input name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xs-12" *ngIf="targetSystem.name !== ''">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="row">
+          <labeled-input name="Experiment Name" [model]="experiment" key="name" [colSize]="9"></labeled-input>
+        </div>
+        <div class="card-title">
+          <div class="title pull-left" style="padding-top: 3%">Experiment Parameters</div>
+        </div>
+      </div>
+      <div class="panel-body">
+
+        <div class="row">
+          <div class="col-md-6" style="padding-left: 4%; padding-right: 2%" *ngIf="initialVariables.length > 0 && experiment.changeableVariable.length != initialVariables.length">
+            <select class="form-control" required [(ngModel)]="variable">
+              <option *ngFor="let i of initialVariables" [ngValue]="i">Name: {{ i.name }} , Scale: {{ i.scale }}</option>
+            </select>
+          </div>
+          <div class="col-md-3"
+               (click)="addChangeableVariable($event)"
+               *ngIf="initialVariables.length > 0 && experiment.changeableVariable.length != initialVariables.length"
+               class="btn btn-xs btn-orange">
+            <i class="fa fa-plus push-5-r"></i> Add
+          </div>
+          <div class="col-md-3" (click)="addAllChangeableVariables()" class="btn btn-xs btn-orange"
+               *ngIf="initialVariables.length > 1 && experiment.changeableVariable.length != initialVariables.length">
+            <i class="fa fa-plus push-5-r"></i>
+            Add All
+          </div>
+        </div>
+
+        <div class="row" *ngFor="let input of experiment.changeableVariable; let i = index">
+          <div class="row">
+            <div class="row" style="padding-left: 5%">
+              <labeled-input name="Name" [model]="input" key="name" [colSize]="3" disabled="true"></labeled-input>
+              <labeled-input name="Description" [model]="input" key="description" [colSize]="5" disabled="true"></labeled-input>
+              <labeled-input name="Scale" [model]="input" key="scale" [colSize]="3" disabled="true"></labeled-input>
+            </div>
+
+            <div class="row" style="padding-left: 5%">
+              <labeled-input name="Min" [model]="input" key="min" [colSize]="3" disabled="true"></labeled-input>
+              <labeled-input name="Max" [model]="input" key="max" [colSize]="3" disabled="true"></labeled-input>
+              <labeled-input name="Step Size" [model]="input" key="step" [colSize]="3"></labeled-input>
+            </div>
+
+            <div class="pull-right" style="padding-right: 5%">
+              <div (click)="removeChangeableVariable(i, input)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i> Remove</div>
+            </div>
+            <hr class="col-md-12">
+          </div>
+        </div>
+
+      </div>
+        <!--<div class="card-title" *ngIf="experiment.newlyAddedChangeableVariables.length > 0" style="color: #555;-->
+                                                                                                    <!--border-color: #FFF;-->
+                                                                                                    <!--font-weight: bold;-->
+                                                                                                    <!--background: #FFFFFF;-->
+                                                                                                    <!--font-size: 16px;-->
+                                                                                                    <!--text-shadow: none;">-->
+          <!--&lt;!&ndash;<div class="title pull-left">User-Specified Parameters</div>&ndash;&gt;-->
+        <!--</div>-->
+
+        <!--<div class="row" *ngFor="let input of experiment.newlyAddedChangeableVariables; let i = index">-->
+          <!--<div class="row" style="padding-left: 5%; padding-top: 5%">-->
+            <!--<labeled-input name="Name" [model]="input" key="name" [colSize]="3" disabled="false"></labeled-input>-->
+            <!--<labeled-input name="Description" [model]="input" key="description" [colSize]="5"></labeled-input>-->
+            <!--<labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="4"-->
+                                  <!--[options]="[{key:'ORDINAL',label:'Ordinal'},-->
+                                  <!--{key:'METRIC',label:'Metric'},-->
+                                  <!--{key:'NOMINAL',label:'Nominal'}]"></labeled-input-select>-->
+          <!--</div>-->
+
+          <!--<div class="row" style="padding-left: 5%">-->
+            <!--<labeled-input name="Min" inputType="number" [model]="input" key="min" [colSize]="3"></labeled-input>-->
+            <!--<labeled-input name="Max" inputType="number" [model]="input" key="max" [colSize]="3"></labeled-input>-->
+            <!--<labeled-input name="Step Size" inputType="number" [model]="input" key="step" [colSize]="3"></labeled-input>-->
+          <!--</div>-->
+
+          <!--<div class="pull-right">-->
+            <!--<div (click)="removeChangeableVariable(i)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i> Remove</div>-->
+          <!--</div>-->
+        <!--</div>-->
+
+    </div>
+  </div>
+
+  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''" >
+    <div class="col-sm-6 col-xs-12" style="padding-left: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left">Primary Data Provider</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+
+          <div class="row" *ngIf="targetSystem.primaryDataProvider.type == 'http_request'">
+            <div class="col-md-6">
+              <div class="sub-title">URL</div>
+              <span>{{targetSystem.primaryDataProvider.url}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.primaryDataProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.primaryDataProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.primaryDataProvider.type == 'kafka_consumer'">
+            <div class="col-md-6">
+              <div class="sub-title">Kafka URI</div>
+              <span>{{targetSystem.primaryDataProvider.kafka_uri}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.primaryDataProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.primaryDataProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.primaryDataProvider.type == 'mqtt_listener'">
+            <div class="col-md-6">
+              <div class="sub-title">Host</div>
+              <span>{{targetSystem.primaryDataProvider.host}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.primaryDataProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.primaryDataProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.primaryDataProvider.serializer}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xs-12" style="padding-right: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left">Change Provider</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+
+          <div class="row" *ngIf="targetSystem.changeProvider.type == 'http_request'">
+            <div class="col-md-6">
+              <div class="sub-title">URL</div>
+              <span>{{targetSystem.changeProvider.url}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.changeProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.changeProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.changeProvider.type == 'kafka_producer'">
+            <div class="col-md-6">
+              <div class="sub-title">Kafka URI</div>
+              <span>{{targetSystem.changeProvider.kafka_uri}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.changeProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.changeProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.changeProvider.type == 'mqtt_listener'">
+            <div class="col-md-6">
+              <div class="sub-title">Host</div>
+              <span>{{targetSystem.changeProvider.host}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.changeProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.changeProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.changeProvider.serializer}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-sm-6 col-xs-12" *ngIf="targetSystem.name !== ''">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Incoming Data Types</div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <table>
+          <thead>
+          <th style="width: 5%">Name</th>
+          <th style="width: 5%">Scale</th>
+          <th style="width: 5%">Description</th>
+          </thead>
+          <tbody>
+          <tr *ngFor="let dataType of targetSystem.incomingDataTypes" style="padding-top: 1%">
+            <td style="padding-top: 1%">{{dataType.name}}</td>
+            <td>{{dataType.scale}}</td>
+            <td>{{dataType.description}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xs-12" *ngIf="targetSystem.name !== ''">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Changeable Variables</div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <table>
+          <thead>
+          <th style="width: 5%">Name</th>
+          <th style="width: 5%">Scale</th>
+          <th style="width: 5%">Description</th>
+          </thead>
+          <tbody>
+          <tr *ngFor="let dataType of targetSystem.changeableVariable" style="padding-top: 1%">
+            <td style="padding-top: 1%">{{dataType.name}}</td>
+            <td>{{dataType.scale}}</td>
+            <td>{{dataType.description}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -3,13 +3,13 @@
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">Edit Target System</div>
+          <div class="title pull-left">{{pageTitle}}</div>
           <div class="pull-right">
             <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-default"><i
               class="fa fa-recycle"></i> Revert Changes
             </div>
-            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChangesAsCopy()" class="btn btn-sm btn-orange"><i
-              class="fa fa-send"></i> Save Changes as Copy
+            <div *ngIf="hasChanges() && !hasErrors()" (click)="saveChanges()" class="btn btn-sm btn-orange"><i
+              class="fa fa-send"></i> {{saveButtonLabel}}
             </div>
             <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-danger"><i
               class="fa fa-close"></i> Data Error
@@ -167,8 +167,8 @@
             </a>
           </div>
 
-          <labeled-input name="Minimum Value" inputType="number" [model]="input" key="min"></labeled-input>
-          <labeled-input name="Maximum Value" inputType="number" [model]="input" key="max"></labeled-input>
+          <labeled-input name="Minimum Value" inputType="number" [model]="input" key="min" [colSize]="4"></labeled-input>
+          <labeled-input name="Maximum Value" inputType="number" [model]="input" key="max" [colSize]="4"></labeled-input>
           <hr class="col-md-12">
         </div>
       </div>
