@@ -34,7 +34,7 @@ class ElasticSearchDb(Database):
         self.target_system_type_name = target_system_type["name"]
 
         experiment_system_type = db_config["experiment_type"]
-        self.experiment_system_type_name = experiment_system_type["name"]
+        self.experiment_type_name = experiment_system_type["name"]
 
         mappings = dict()
         # user can specify an type without a mapping (dynamic mapping)
@@ -63,6 +63,7 @@ class ElasticSearchDb(Database):
     def save_target(self, target_system_id, target_system_data):
         #        target_system_data["in_use"] = False
         target_system_data["created"] = datetime.now()
+        del target_system_data["id"]
         try:
             self.es.index(self.index, self.target_system_type_name, target_system_data, target_system_id)
         except ConnectionError:
@@ -79,20 +80,19 @@ class ElasticSearchDb(Database):
             }
         }
         res = self.es.search(self.index, self.target_system_type_name, query)
-        return [r["_source"] for r in res["hits"]["hits"]]
-
-
+        return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
 
     def save_experiment(self, experiment_id, experiment_data):
-        #        target_system_data["in_use"] = False
+        experiment_data["status"] = "OPEN"
         experiment_data["created"] = datetime.now()
+        del experiment_data["id"]
         try:
-            self.es.index(self.index, self.experiment_system_type_name, experiment_data, experiment_id)
+            self.es.index(self.index, self.experiment_type_name, experiment_data, experiment_id)
         except ConnectionError:
             error("Error while saving experiment data in elasticsearch. Check connection to elasticsearch and restart.")
 
     def get_experiment(self, experiment_id):
-        res = self.es.get(self.index, experiment_id, self.experiment_system_type_name)
+        res = self.es.get(self.index, experiment_id, self.experiment_type_name)
         return res["_source"]
 
     def get_experiments(self):
@@ -101,7 +101,20 @@ class ElasticSearchDb(Database):
                 "match_all": {}
             }
         }
-        res = self.es.search(self.index, self.experiment_system_type_name, query)
-        return [r["_source"] for r in res["hits"]["hits"]]
+        res = self.es.search(self.index, self.experiment_type_name, query)
+        return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
 
+    def update_experiment_status(self, experiment_id, status):
+        body = {"doc": {"status": status}}
+        try:
+            self.es.update(self.index, self.experiment_type_name, experiment_id, body)
+        except ConnectionError:
+            error("Error while updating experiment's status in elasticsearch. Check connection to elasticsearch.")
+
+    def update_target_system_status(self, target_system_id, status):
+        body = {"doc": {"status": status}}
+        try:
+            self.es.update(self.index, self.target_system_type_name, target_system_id, body)
+        except ConnectionError:
+            error("Error while updating target system in_use flag in elasticsearch. Check connection to elasticsearch.")
 

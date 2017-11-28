@@ -11,6 +11,7 @@ def execute_workflow(wf):
     """ this is the main workflow for executing a given workflow """
     try:
         # check that the definition is correct
+        print "$$$$$$"
         info("######################################", Fore.CYAN)
         info("> Workflow       | " + str(wf.name), Fore.CYAN)
         # check variables

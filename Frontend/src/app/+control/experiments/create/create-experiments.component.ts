@@ -177,28 +177,33 @@ export class CreateExperimentsComponent implements OnInit {
         return;
       }
 
-      const knob1 = {};
-      const startEndArray1 = [];
-      startEndArray1.push(this.experiment.changeableVariable[0].min);
-      startEndArray1.push(this.experiment.changeableVariable[0].max);
-      startEndArray1.push(this.experiment.changeableVariable[0].step);
-
-      const variableName1 = this.experiment.changeableVariable[0].name;
-      Object.defineProperty(knob1, variableName1, {value : startEndArray1,
-                            writable : true,
-                            enumerable : true,
-                            configurable : true});
-
-      this.experiment.executionStrategy.knobs = knob1;
+      // const knob1 = {};
+      // const startEndArray1 = [];
+      // startEndArray1.push(this.experiment.changeableVariable[0].min);
+      // startEndArray1.push(this.experiment.changeableVariable[0].max);
+      // startEndArray1.push(this.experiment.changeableVariable[0].step);
+      //
+      // const variableName1 = this.experiment.changeableVariable[0].name;
+      // Object.defineProperty(knob1, variableName1, {value : startEndArray1,
+      //                       writable : true,
+      //                       enumerable : true,
+      //                       configurable : true});
+      //
+      // this.experiment.executionStrategy.knobs = knob1;
 
       console.log(this.experiment);
-      // for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
-      //   // "knobs": {
-      //   //   "x": ([-4.0, 4.0], 1.6),
-      //   //     "y": ([-10.0, 10.0], 2.4)
-      //   // }
-      //   this.experiment.executionStrategy.knobs.push()
-      // }
+
+      const all_knobs = [];
+      for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
+        const knob = [];
+        knob.push(this.experiment.changeableVariable[j].name);
+        knob.push(this.experiment.changeableVariable[j].min);
+        knob.push(this.experiment.changeableVariable[j].max);
+        knob.push(this.experiment.changeableVariable[j].step);
+        all_knobs.push(knob);
+      }
+      this.experiment.executionStrategy.knobs = all_knobs;
+
       this.api.saveExperiment(this.experiment).subscribe(
         (success) => {
           console.log("success: ", success);
@@ -264,11 +269,11 @@ export class CreateExperimentsComponent implements OnInit {
 
   createExecutionStrategy(): ExecutionStrategy {
     return {
-      type: "step_strategy",
+      type: "step_explorer",
       // type: "" --- change to this if we dont want a default value
       ignore_first_n_results: 100,
       sample_size: 100,
-      knobs: {}
+      knobs: []
     }
   }
 

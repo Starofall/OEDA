@@ -20,7 +20,9 @@
             "exp_count":               { "type": "integer" }
           }
         },
-        "created":  { "type": "date"  }
+        "status":         { "type": "keyword"  },
+        "created":        { "type": "date"  },
+        "targetSystemId": { "type": "keyword"  }
       }
     }
   },
