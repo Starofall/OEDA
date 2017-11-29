@@ -10,7 +10,7 @@
     "name": "rtx_run",
     "mapping": {
       "properties": {
-        "strategy": {
+        "executionStrategy": {
           "type": "nested",
           "properties": {
             "ignore_first_n_results":  { "type": "integer" },

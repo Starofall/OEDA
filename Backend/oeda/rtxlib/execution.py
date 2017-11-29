@@ -6,7 +6,8 @@ def _defaultChangeProvider(variables,wf):
 
 
 def experimentFunction(wf, exp):
-    """ executes a given experiment """
+    """ executes a given experiment stage """
+
     start_time = current_milli_time()
     # remove all old data from the queues
     wf.primary_data_provider["instance"].reset()

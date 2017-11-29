@@ -39,6 +39,12 @@ class Database:
     def update_target_system_status(self, target_system_id, status):
         pass
 
+    def save_data_point(self, exp_run, knobs, payload, data_point_count, analysis_id):
+        pass
+
+    def save_stage(self, stage_no, knobs, experiment_id):
+        pass
+
 class TargetSystemNotFoundException(Exception):
     pass
 

@@ -51,4 +51,5 @@ def step_execution(wf, configuration, variables):
     exp["ignore_first_n_results"] = wf.execution_strategy["ignore_first_n_results"]
     exp["sample_size"] = wf.execution_strategy["sample_size"]
     exp["knobs"] = knob_object
+    wf.setup_stage(wf)
     return experimentFunction(wf, exp)

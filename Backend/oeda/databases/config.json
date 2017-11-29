@@ -10,7 +10,7 @@
     "name": "experiment",
     "mapping": {
       "properties": {
-        "strategy": {
+        "executionStrategy": {
           "type": "nested",
           "properties": {
             "ignore_first_n_results":  { "type": "integer" },
@@ -30,7 +30,8 @@
     "mapping": {
       "_parent":    { "type": "experiment"},
       "properties": {
-        "id":  { "type": "integer" }
+        "number":       { "type": "integer" },
+        "knobs":    { "type": "object"  }
       }
     }
   },
@@ -50,8 +51,6 @@
     "mapping": {
       "_parent":    { "type": "stage"},
       "properties": {
-        "exp_run":  { "type": "integer" },
-        "knobs":    { "type": "object"  },
         "payload":  { "type": "object"  },
         "created":  { "type": "date"    }
       }

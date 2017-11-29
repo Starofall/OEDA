@@ -118,3 +118,25 @@ class ElasticSearchDb(Database):
         except ConnectionError:
             error("Error while updating target system in_use flag in elasticsearch. Check connection to elasticsearch.")
 
+    def save_data_point(self, exp_run, knobs, payload, data_point_count, stage_id):
+        data_point_id = stage_id + "#" + str(exp_run) + "_" + str(data_point_count)
+        body = dict()
+        # body["exp_run"] = exp_run
+        # body["knobs"] = knobs
+        body["payload"] = payload
+        body["created"] = datetime.now()
+        try:
+            self.es.index(self.index, self.data_point_type_name, body, data_point_id, parent=stage_id)
+        except ConnectionError:
+            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+
+    def save_stage(self, stage_no, knobs, experiment_id):
+        stage_id = experiment_id + "#" + str(stage_no)
+        body = dict()
+        body["number"] = stage_no
+        # body["knobs"] = knobs
+        body["created"] = datetime.now()
+        try:
+            self.es.index(self.index, self.stage_type_name, body, stage_id, parent=experiment_id)
+        except ConnectionError:
+            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")

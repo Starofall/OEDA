@@ -182,9 +182,9 @@ export class CreateExperimentsComponent implements OnInit {
       for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
         const knob = [];
         knob.push(this.experiment.changeableVariable[j].name);
-        knob.push(this.experiment.changeableVariable[j].min);
-        knob.push(this.experiment.changeableVariable[j].max);
-        knob.push(this.experiment.changeableVariable[j].step);
+        knob.push(Number(this.experiment.changeableVariable[j].min));
+        knob.push(Number(this.experiment.changeableVariable[j].max));
+        knob.push(Number(this.experiment.changeableVariable[j].step));
         all_knobs.push(knob);
       }
       this.experiment.executionStrategy.knobs = all_knobs;

@@ -9,6 +9,8 @@ class RTXDefinition:
     _oedaCallback = lambda x: x
     primary_data_provider = None
     change_provider = None
+    id = None
+    stage_counter = None
 
     # execution_strategy = {
     #     "ignore_first_n_results": 0,
@@ -24,6 +26,8 @@ class RTXDefinition:
         self._oedaTarget = oedaTarget
         self._oedaCallback = oedaCallback
         self.name = oedaExperiment["name"]
+        self.id = oedaExperiment["id"]
+        self.stage_counter = 0
         # self.execution_strategy["sample_size"] = oedaExperiment["executionStrategy"]["sample_size"]
 
         # self.wf = ModuleType('workflow')
@@ -34,13 +38,16 @@ class RTXDefinition:
         self.change_provider = oedaTarget["changeProvider"]
         execution_strategy = oedaExperiment["executionStrategy"]
         new_knobs = {}
-        for knob in oedaExperiment["executionStrategy"]["knobs"]:
-            new_knobs[knob[0]] = ([knob[1], knob[2]], knob[3])
+        for knob_key, knob_value in oedaExperiment["executionStrategy"]["knobs"].iteritems():
+            new_knobs[knob_key] = ([knob_value[0], knob_value[1]], knob_value[2])
 
+        print "new_knobs"
+        print new_knobs
         execution_strategy["knobs"] = new_knobs
         self.execution_strategy = execution_strategy
         self.state_initializer = RTXDefinition.state_initializer
         self.evaluator = RTXDefinition.evaluator
+        self.setup_stage = RTXDefinition.setup_stage
         self.folder = None
 
 
@@ -55,7 +62,7 @@ class RTXDefinition:
 
     @staticmethod
     def primary_data_reducer(state, newData, wf):
-        db().save_data_point(wf.experimentCounter, wf.current_knobs, newData, state["data_points"], wf.rtx_run_id)
+        db().save_data_point(0, 0, newData, state["data_points"], wf.id)
         state["data_points"] += 1
         return state
 
@@ -65,15 +72,22 @@ class RTXDefinition:
         return state
 
     @staticmethod
+    def setup_stage(wf):
+        # db().save_stage(state["stage_number"], wf.id["knobs"], wf.id)
+        db().save_stage(wf.stage_counter, None, wf.id)
+        wf.stage_counter += 1
+
+    @staticmethod
     def evaluator(resultState, wf):
         return 0
+
+    def runOedaCallback(self,dict):
+        self._oedaCallback(dict)
 
     # def default_reducer(state, newData, wf):
     #     # @todo add default DB storage here
     #     return state
     #
-    # def runOedaCallback(self,dict):
-    #     self._oedaCallback(dict)
 
     # execution_strategy = {
     #     "type": "step_explorer",
