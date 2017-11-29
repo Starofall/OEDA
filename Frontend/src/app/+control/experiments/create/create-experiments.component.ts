@@ -79,9 +79,11 @@ export class CreateExperimentsComponent implements OnInit {
 
   firstDropDownChanged(targetSystemName: any) {
     console.log(targetSystemName);
-
+    console.log("available", this.availableTargetSystems);
     // TODO target system names must be uniquely defined, should be checked upon target system creation
     this.selectedTargetSystem = this.availableTargetSystems.find(item => item.name === targetSystemName);
+    console.log("selected:", this.selectedTargetSystem);
+
     if (this.selectedTargetSystem !== undefined) {
       console.log("obj:", this.selectedTargetSystem);
       if (this.selectedTargetSystem.changeableVariable.length === 0) {
@@ -175,7 +177,6 @@ export class CreateExperimentsComponent implements OnInit {
       //
       // this.experiment.executionStrategy.knobs = knob1;
 
-      console.log(this.experiment);
 
       const all_knobs = [];
       for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
@@ -188,11 +189,14 @@ export class CreateExperimentsComponent implements OnInit {
       }
       this.experiment.executionStrategy.knobs = all_knobs;
 
+      console.log("experiment to be submitted:", this.experiment);
+
       this.api.saveExperiment(this.experiment).subscribe(
         (success) => {
           console.log("success: ", success);
           this.notify.success("Success", "Experiment saved");
-          this.router.navigate(["control/experiments"])
+          this.router.navigate(["control/experiments"]).then(() => {
+          });
         }, (error) => {
           console.log("error: ", error);
         }

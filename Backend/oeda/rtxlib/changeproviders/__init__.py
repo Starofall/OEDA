@@ -1,5 +1,4 @@
-from oeda.rtxlib import error
-
+from oeda.log import *
 from oeda.rtxlib.changeproviders.DummyChangeProvider import DummyChangeChangeProvider
 from oeda.rtxlib.changeproviders.HTTPRequestChangeProvider import HTTPRequestChangeProvider
 from oeda.rtxlib.changeproviders.KafkaProducerChangeProvider import KafkaProducerChangeProvider

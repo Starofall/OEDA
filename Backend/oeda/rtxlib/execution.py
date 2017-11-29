@@ -1,5 +1,4 @@
-from oeda.rtxlib import info, error, warn, direct_print, process, log_results, current_milli_time
-
+from oeda.log import *
 
 def _defaultChangeProvider(variables,wf):
     """ by default we just forword the message to the change provider """

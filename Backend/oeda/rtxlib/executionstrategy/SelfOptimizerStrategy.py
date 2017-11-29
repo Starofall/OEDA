@@ -1,7 +1,7 @@
 from colorama import Fore
 
 from skopt import gp_minimize
-from oeda.rtxlib import info, error
+from oeda.log import *
 from oeda.rtxlib.execution import experimentFunction
 
 

@@ -7,7 +7,7 @@ from flask import json
 from paho import mqtt
 import paho.mqtt.client as mqtt
 
-from oeda.rtxlib import info, error, debug, warn, direct_print, inline_print
+from oeda.log import *
 from oeda.rtxlib.dataproviders.DataProvider import DataProvider
 
 

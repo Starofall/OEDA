@@ -4,10 +4,11 @@ class RTXDefinition:
 
     name = None
     # folder = None
-    # _oedaExperiment = None
-    # _oedaTarget = None
+    _oedaExperiment = None
+    _oedaTarget = None
     _oedaCallback = lambda x: x
-
+    primary_data_provider = None
+    change_provider = None
 
     # execution_strategy = {
     #     "ignore_first_n_results": 0,
@@ -19,14 +20,12 @@ class RTXDefinition:
     #     }
 
     def __init__(self, oedaExperiment, oedaTarget, oedaCallback):
-        # self._oedaExperiment = oedaExperiment
-        # self._oedaTarget = oedaTarget
-        # self._oedaCallback = oedaCallback
-        # self.name = oedaExperiment["name"]
-        # self.execution_strategy["sample_size"] = oedaExperiment["strategy"]["sample_size"]
+        self._oedaExperiment = oedaExperiment
+        self._oedaTarget = oedaTarget
+        self._oedaCallback = oedaCallback
+        self.name = oedaExperiment["name"]
+        # self.execution_strategy["sample_size"] = oedaExperiment["executionStrategy"]["sample_size"]
 
-
-        pass
         # self.wf = ModuleType('workflow')
 
         primary_data_provider = oedaTarget["primaryDataProvider"]
@@ -40,8 +39,8 @@ class RTXDefinition:
 
         execution_strategy["knobs"] = new_knobs
         self.execution_strategy = execution_strategy
-        self.state_initializer = self.state_initializer
-        self.evaluator = self.evaluator
+        self.state_initializer = RTXDefinition.state_initializer
+        self.evaluator = RTXDefinition.evaluator
         self.folder = None
 
 

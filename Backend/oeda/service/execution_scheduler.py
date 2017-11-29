@@ -96,7 +96,8 @@ def rtxExecution(experiment, targetSystem):
         # convert OEDA to RTX experiment
         rtxDefinition = RTXDefinition(experiment, targetSystem, oedaCallback)
         # here we now start the experiment on a differen thread (in the thread pool)
-        print "here"
+        print "execution_scheduler rtxDefinition"
+        print rtxDefinition
         execute_workflow(rtxDefinition)
         # @todo here the analytics part should start and also do
         # @todo updateExperiment(experimentId,analysisResults)

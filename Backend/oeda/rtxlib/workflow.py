@@ -1,6 +1,6 @@
 from colorama import Fore
 
-from oeda.rtxlib import info, error
+from oeda.log import *
 from oeda.rtxlib.changeproviders import init_change_provider
 from oeda.rtxlib.dataproviders import init_data_providers
 from oeda.rtxlib.executionstrategy import run_execution_strategy
@@ -11,13 +11,25 @@ def execute_workflow(wf):
     """ this is the main workflow for executing a given workflow """
     try:
         # check that the definition is correct
-        print "$$$$$$"
+        info("sssss", Fore.CYAN)
+        print "$$$$$$ wf in execute_workflow"  
+        print wf
+
         info("######################################", Fore.CYAN)
         info("> Workflow       | " + str(wf.name), Fore.CYAN)
         # check variables
+        
         b = wf.change_provider
+        print "b:"
+        print b
+
         c = wf.primary_data_provider
+        print "c:"
+        print c
+
         d = wf.execution_strategy
+        print "d:"
+        print d
     except KeyError as e:
         error("definition.py is missing value " + str(e))
         exit(1)

@@ -2,7 +2,7 @@ import logging
 from colorama import Fore
 from kafka import KafkaConsumer
 from flask import json
-from oeda.rtxlib import info, error, debug, warn, direct_print, inline_print
+from oeda.log import *
 from oeda.rtxlib.dataproviders.DataProvider import DataProvider
 
 

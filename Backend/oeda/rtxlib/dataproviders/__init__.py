@@ -1,4 +1,4 @@
-from logging import error
+from oeda.log import *
 
 from oeda.rtxlib.dataproviders.HTTPRequestDataProvider import HTTPRequestDataProvider
 from oeda.rtxlib.dataproviders.IntervalDataProvider import IntervalDataProvider

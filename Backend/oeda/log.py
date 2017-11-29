@@ -1,4 +1,5 @@
 from colorama import Fore
+import time
 
 # Log Levels
 LEVEL_DEBUG = 4
@@ -11,6 +12,9 @@ LOG_LEVEL = 4
 # Global variable for the folder to log to
 LOG_FOLDER = None
 
+
+def current_milli_time():
+    return int(round(time.time() * 1000))
 
 def clearOldLog():
     """ clears the old execution.log file """

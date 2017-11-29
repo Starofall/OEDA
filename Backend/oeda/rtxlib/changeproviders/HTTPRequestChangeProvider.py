@@ -4,7 +4,7 @@ import requests
 from colorama import Fore
 from flask import json
 
-from oeda.rtxlib import info, error, debug
+from oeda.log import *
 from oeda.rtxlib.changeproviders.ChangeProvider import ChangeProvider
 
 

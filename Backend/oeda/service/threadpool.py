@@ -3,6 +3,7 @@
 
 import sys
 from oeda.log import *
+from threading import Thread
 
 IS_PY2 = sys.version_info < (3, 0)
 
@@ -11,7 +12,6 @@ if IS_PY2:
 else:
     from queue import Queue
 
-from threading import Thread
 
 threadpool = None
 
@@ -20,7 +20,7 @@ def getCachedThreadPool():
     global threadpool
     if threadpool is None:
         debug("Creating new threadpool")
-        threadpool = ThreadPool(4)
+        threadpool = ThreadPool(20)
         return threadpool
     else:
         debug("Using cached threadpool")

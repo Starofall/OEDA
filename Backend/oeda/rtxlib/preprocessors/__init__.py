@@ -1,6 +1,6 @@
 from colorama import Fore
 
-from oeda.rtxlib import info, error, debug
+from oeda.log import *
 from oeda.rtxlib.preprocessors.SparkPreProcessor import SparkPreProcessor
 
 

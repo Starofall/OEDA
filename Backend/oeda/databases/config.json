@@ -7,7 +7,23 @@
     }
   },
   "experiment_type": {
-    "name": "experiment"
+    "name": "experiment",
+    "mapping": {
+      "properties": {
+        "strategy": {
+          "type": "nested",
+          "properties": {
+            "ignore_first_n_results":  { "type": "integer" },
+            "knobs":                   { "type": "object"  },
+            "sample_size":             { "type": "integer" },
+            "type":                    { "type": "keyword" },
+            "exp_count":               { "type": "integer" }
+          }
+        },
+        "created":        { "type": "date"  },
+        "targetSystemId": { "type": "keyword"  }
+      }
+    }
   },
   "stage_type": {
     "name": "stage",

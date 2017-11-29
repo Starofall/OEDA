@@ -3,7 +3,7 @@ from oeda.rtxlib.executionstrategy.StepStrategy import start_step_strategy
 from oeda.rtxlib.executionstrategy.SelfOptimizerStrategy import start_self_optimizer_strategy
 from oeda.rtxlib.executionstrategy.SequencialStrategy import start_sequential_strategy
 
-from oeda.rtxlib import log_results, error, info
+from oeda.log import *
 
 from oeda.rtxlib.executionstrategy.UncorrelatedSelfOptimizerStrategy import start_uncorrelated_self_optimizer_strategy
 

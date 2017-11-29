@@ -14,7 +14,7 @@ class ExperimentController(Resource):
             new_knobs[knob[0]] = [knob[1], knob[2], knob[3]]
 
         content["executionStrategy"]["knobs"] = new_knobs
-        print "afyer"
+        print "content in ExperimentController after:"
         print content
         # here we first check if the experiment can be run and then fork it
         db().save_experiment(experimentId, content)

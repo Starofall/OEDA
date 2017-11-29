@@ -3,7 +3,7 @@ from colorama import Fore
 from paho import mqtt
 from paho.mqtt import publish
 
-from oeda.rtxlib import info, error, debug
+from oeda.log import *
 from oeda.rtxlib.changeproviders.ChangeProvider import ChangeProvider
 from flask import json
 
