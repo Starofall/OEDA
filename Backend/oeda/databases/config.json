@@ -17,7 +17,7 @@
             "knobs":                   { "type": "object"  },
             "sample_size":             { "type": "integer" },
             "type":                    { "type": "keyword" },
-            "exp_count":               { "type": "integer" }
+            "stages_count":            { "type": "integer" }
           }
         },
         "created":        { "type": "date"  },

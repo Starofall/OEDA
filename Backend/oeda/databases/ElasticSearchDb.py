@@ -118,8 +118,9 @@ class ElasticSearchDb(Database):
         except ConnectionError:
             error("Error while updating target system in_use flag in elasticsearch. Check connection to elasticsearch.")
 
-    def save_data_point(self, exp_run, knobs, payload, data_point_count, stage_id):
-        data_point_id = stage_id + "#" + str(exp_run) + "_" + str(data_point_count)
+    def save_data_point(self, exp_run, knobs, payload, data_point_count, experiment_id, stage_no):
+        data_point_id = experiment_id + "#" + str(stage_no) + "_" + str(data_point_count)
+        stage_id = experiment_id + "#" + str(stage_no)
         body = dict()
         # body["exp_run"] = exp_run
         # body["knobs"] = knobs

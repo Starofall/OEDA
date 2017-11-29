@@ -62,7 +62,7 @@ class RTXDefinition:
 
     @staticmethod
     def primary_data_reducer(state, newData, wf):
-        db().save_data_point(0, 0, newData, state["data_points"], wf.id)
+        db().save_data_point(0, 0, newData, state["data_points"], wf.id, wf.stage_counter)
         state["data_points"] += 1
         return state
 
