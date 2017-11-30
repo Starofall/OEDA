@@ -47,7 +47,7 @@ def experimentFunction(wf, exp):
     try:
         while i < sample_size:
             # NEW - we call back to oeda and give us infos there
-            wf.runOedaCallback({"i":i,"size":sample_size})
+            wf.run_oeda_callback({"i":i, "size":sample_size})
             # we start with the primary data provider using blocking returnData
             new_data = wf.primary_data_provider["instance"].returnData()
             if new_data is not None:

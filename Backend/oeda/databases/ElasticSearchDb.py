@@ -75,6 +75,7 @@ class ElasticSearchDb(Database):
 
     def get_targets(self):
         query = {
+            "size" : 1000,
             "query": {
                 "match_all": {}
             }
@@ -97,6 +98,7 @@ class ElasticSearchDb(Database):
 
     def get_experiments(self):
         query = {
+            "size" : 1000,
             "query": {
                 "match_all": {}
             }
@@ -123,8 +125,6 @@ class ElasticSearchDb(Database):
         data_point_id = experiment_id + "#" + str(stage_no) + "_" + str(data_point_count)
         stage_id = experiment_id + "#" + str(stage_no)
         body = dict()
-        # body["exp_run"] = exp_run
-        # body["knobs"] = knobs
         body["payload"] = payload
         body["created"] = datetime.now()
         try:
@@ -163,7 +163,7 @@ class ElasticSearchDb(Database):
         stage_id = experiment_id + "#" + str(stage_no)
         body = dict()
         body["number"] = stage_no
-        # body["knobs"] = knobs
+        body["knobs"] = knobs
         body["created"] = datetime.now()
         try:
             self.es.index(self.index, self.stage_type_name, body, stage_id, parent=experiment_id)

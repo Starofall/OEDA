@@ -4,7 +4,9 @@ from flask_restful import Resource, Api
 
 from oeda.controller.targets import TargetController, TargetsListController
 from oeda.controller.configuration import ConfigurationController
-from oeda.service.execution_scheduler import initializeExecutionScheduler
+
+from oeda.controller.experiments import ExperimentsListController, ExperimentController
+from oeda.service.execution_scheduler import initialize_execution_scheduler
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
 from oeda.controller.experimentResults import ExperimentsResultsListController, StageResultsWithExperimentIdController
 from oeda.controller.StageController import StageController
@@ -89,5 +91,5 @@ if __name__ == '__main__':
     http_server.listen(5000)
     enable_pretty_logging()
     setup_database("elasticsearch", "localhost", 9200)
-    initializeExecutionScheduler()
+    initialize_execution_scheduler()
     IOLoop.instance().start()
