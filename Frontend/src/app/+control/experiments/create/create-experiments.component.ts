@@ -189,6 +189,8 @@ export class CreateExperimentsComponent implements OnInit {
       }
       this.experiment.executionStrategy.knobs = all_knobs;
 
+      this.experiment.executionStrategy.ignore_first_n_results = Number(this.experiment.executionStrategy.ignore_first_n_results);
+      this.experiment.executionStrategy.sample_size = Number(this.experiment.executionStrategy.sample_size);
       console.log("experiment to be submitted:", this.experiment);
 
       this.api.saveExperiment(this.experiment).subscribe(
