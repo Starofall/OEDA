@@ -1,9 +1,10 @@
 from oeda.databases import db
 
+
 class RTXDefinition:
 
     name = None
-    # folder = None
+    folder = None
     _oedaExperiment = None
     _oedaTarget = None
     _oedaCallback = lambda x: x
@@ -11,15 +12,7 @@ class RTXDefinition:
     change_provider = None
     id = None
     stage_counter = None
-
-    # execution_strategy = {
-    #     "ignore_first_n_results": 0,
-    #     "sample_size": 2,
-    #     "type": "step_explorer",
-    #     "knobs": {
-    #         "route_random_sigma": ([0.0, 0.2], 0.2),
-    #         "max_speed_and_length_factor": ([0.0, 0.4], 0.4)
-    #     }
+    all_knobs = None
 
     def __init__(self, oedaExperiment, oedaTarget, oedaCallback):
         self._oedaExperiment = oedaExperiment
@@ -28,10 +21,6 @@ class RTXDefinition:
         self.name = oedaExperiment["name"]
         self.id = oedaExperiment["id"]
         self.stage_counter = 0
-        # self.execution_strategy["sample_size"] = oedaExperiment["executionStrategy"]["sample_size"]
-
-        # self.wf = ModuleType('workflow')
-
         primary_data_provider = oedaTarget["primaryDataProvider"]
         primary_data_provider["data_reducer"] = RTXDefinition.primary_data_reducer
         self.primary_data_provider = primary_data_provider
@@ -49,16 +38,20 @@ class RTXDefinition:
         self.evaluator = RTXDefinition.evaluator
         self.setup_stage = RTXDefinition.setup_stage
         self.folder = None
+        knob_values = get_experiment_list(execution_strategy["type"], new_knobs)
+        knob_keys = get_knob_keys(execution_strategy["type"], execution_strategy["knobs"])
+        all_knobs = []
+        for i in range(len(knob_values)):
+            knobs = {}
+            index = 0
+            for k in knob_keys:
+                knobs[k] = knob_values[i][index]
+                index += 1
+            all_knobs.append(knobs)
+        self.all_knobs = all_knobs
 
-
-
-    # def run(self):
-    #     self.wf.execution_strategy["exp_count"] = \
-    #         calculate_experiment_count(self.wf.execution_strategy["type"], self.wf.execution_strategy["knobs"])
-    #     self.wf.name = self.wf.rtx_run_id = db().save_rtx_run(self.wf.execution_strategy)
-    #     execute_workflow(self.wf)
-    #     db().release_target_system(self.target_system_id)
-    #     return self.wf.rtx_run_id
+    def run_oeda_callback(self, dict):
+        self._oedaCallback(dict)
 
     @staticmethod
     def primary_data_reducer(state, newData, wf):
@@ -73,54 +66,46 @@ class RTXDefinition:
 
     @staticmethod
     def setup_stage(wf):
-        # db().save_stage(state["stage_number"], wf.id["knobs"], wf.id)
-        db().save_stage(wf.stage_counter, None, wf.id)
+        db().save_stage(wf.stage_counter, wf.all_knobs[wf.stage_counter], wf.id)
         wf.stage_counter += 1
 
     @staticmethod
     def evaluator(resultState, wf):
         return 0
 
-    def runOedaCallback(self,dict):
-        self._oedaCallback(dict)
 
-    # def default_reducer(state, newData, wf):
-    #     # @todo add default DB storage here
-    #     return state
-    #
+def get_experiment_list(type, knobs):
 
-    # execution_strategy = {
-    #     "type": "step_explorer",
-    #     "ignore_first_n_results": 100,
-    #     "sample_size": 100,
-    #     "knobs": {
-    #         "x": ([-4.0, 4.0], 1.6),
-    #         "y": ([-10.0, 10.0], 2.4)
-    #     }
-    # }
-    #
-    # primary_data_provider = {
-    #     "type": "http_request",
-    #     "url": "http://localhost:3000",
-    #     "serializer": "JSON",
-    #     "data_reducer": default_reducer
-    # }
-    #
-    # change_provider = {
-    #     "type": "http_request",
-    #     "url": "http://localhost:3000",
-    #     "serializer": "JSON",
-    # }
+    if type == "sequential":
+        return [config.values() for config in knobs]
+
+    if type == "step_explorer":
+        variables = []
+        parameters_values = []
+        for key in knobs:
+            variables += [key]
+            lower = knobs[key][0][0]
+            upper = knobs[key][0][1]
+            step = knobs[key][1]
+
+            decimal_points = str(step)[::-1].find('.')
+            multiplier = pow(10, decimal_points)
+
+            value = lower
+            parameter_values = []
+            while value <= upper:
+                parameter_values += [[value]]
+                value = float((value * multiplier) + (step * multiplier)) / multiplier
+
+            parameters_values += [parameter_values]
+        return reduce(lambda list1, list2: [x + y for x in list1 for y in list2], parameters_values)
 
 
+def get_knob_keys(type, knobs):
 
-    # def evaluator(self, resultState, wf):
-    #     # NOT IN USE
-    #     return 1
-    #
-    # def state_initializer(self, state, wf):
-    #     # NOT IN USE
-    #     return state
-    #
-    # def change_event_creator(self, variables, wf):
-    #     return variables
+    if type == "sequential":
+        '''Here we assume that the knobs in the sequential strategy are specified in the same order'''
+        return knobs[0].keys()
+
+    if type == "step_explorer":
+        return knobs.keys()
