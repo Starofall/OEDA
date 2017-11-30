@@ -185,7 +185,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
 
@@ -235,8 +234,8 @@
                                     {key:'uncorrelated_self_optimizer_strategy',label:'Uncorrelated Self Optimizer Strategy'}]">
           </labeled-input-select>
 
-          <labeled-input name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
-          <labeled-input name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
+          <labeled-input [inputType]="'number'" name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
+          <labeled-input [inputType]="'number'" name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
         </div>
       </div>
     </div>
@@ -246,7 +245,7 @@
 
   <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''" >
 
-    <!-- Changeable Variables -->
+    <!--Changeable Variables -->
     <div class="col-sm-6 col-xs-12" style="padding-left: 0">
       <div class="panel panel-default chartJs">
         <div class="panel-heading">
@@ -255,32 +254,34 @@
           </div>
         </div>
         <div class="panel-body" style="padding-top: 20px">
-          <table>
-            <thead>
-            <th style="width: 5%">Name</th>
-            <th style="width: 5%">Scale</th>
-            <th style="width: 20%">Description</th>
-            <th style="width: 4%">
-              <div class="btn btn-xs btn-orange" (click)="addAllChangeableVariables()"
-                                                         *ngIf="targetSystem.changeableVariable.length > 1 && targetSystem.changeableVariable.length != experiment.changeableVariable.length">
-                <i class="fa fa-plus push-5-r"></i> Add All
-              </div>
-            </th>
-            </thead>
-            <tbody>
-            <tr *ngFor="let dataType of targetSystem.changeableVariable" style="padding-top: 1%">
-              <td style="padding-top: 2%">{{dataType.name}}</td>
-              <td style="padding-top: 2%">{{dataType.scale}}</td>
-              <td style="padding-top: 2%; width: 20%">{{dataType.description}}</td>
-              <td style="padding-top: 2%">
-                <div class="btn btn-xs btn-orange" (click)="addChangeableVariable(dataType)"
-                     *ngIf="targetSystem.changeableVariable.length > 0 && targetSystem.changeableVariable.length != experiment.changeableVariable.length">
-                  <i class="fa fa-plus push-5-r"></i> Add
+          <div class="table-responsive">
+            <table>
+              <thead>
+              <th style="width: 5%">Name</th>
+              <th style="width: 5%">Scale</th>
+              <th style="width: 5%">Description</th>
+              <th style="width: 4%">
+                <div class="btn btn-xs btn-orange" (click)="addAllChangeableVariables()"
+                                                           *ngIf="targetSystem.changeableVariable.length > 1 && targetSystem.changeableVariable.length != experiment.changeableVariable.length">
+                  <i class="fa fa-plus push-5-r"></i> Add All
                 </div>
-              </td>
-            </tr>
-            </tbody>
-          </table>
+              </th>
+              </thead>
+              <tbody>
+              <tr *ngFor="let dataType of targetSystem.changeableVariable" style="padding-top: 1%">
+                <td style="padding-top: 2%">{{dataType.name}}</td>
+                <td style="padding-top: 2%">{{dataType.scale}}</td>
+                <td style="padding-top: 2%; width: 5%">{{dataType.description}}</td>
+                <td style="padding-top: 2%">
+                  <div class="btn btn-xs btn-orange" (click)="addChangeableVariable(dataType)"
+                       *ngIf="targetSystem.changeableVariable.length > 0 && targetSystem.changeableVariable.length != experiment.changeableVariable.length">
+                    <i class="fa fa-plus push-5-r"></i> Add
+                  </div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -317,9 +318,20 @@
               <!--</div>-->
               <div class="row" style="padding-left: 5%">
                 <labeled-input name="Name" [model]="input" key="name" [colSize]="3" disabled="true"></labeled-input>
-                <labeled-input name="Min" [model]="input" [required]="false" key="min" [colSize]="2"></labeled-input>
-                <labeled-input name="Max" [model]="input" [required]="false" key="max" [colSize]="2"></labeled-input>
-                <labeled-input name="Step Size" [model]="input" [required]="false" key="step" [colSize]="2"></labeled-input>
+                <labeled-input [inputType]="'number'" name="Min" [model]="input" [required]="false" key="min" [colSize]="2"></labeled-input>
+                <labeled-input [inputType]="'number'" name="Max" [model]="input" [required]="false" key="max" [colSize]="2"></labeled-input>
+                <!--<labeled-input name="Step Size" [model]="input" [required]="false" key="step" [colSize]="2"></labeled-input>-->
+                <div class="col-md-2">
+                  <div class="sub-title">Step Size</div>
+                  <div>
+                    <input type="number" class="form-control" name="myDecimal" placeholder="Decimal" [ngModel]="input.step"
+                           ng-pattern="/^[0-9]+(\.[0-9]{1,2})?$/" step="0.1" required />
+
+                    <span class="help-block" ng-show="!myDecimal.$valid">
+                      Invalid input
+                    </span>
+                  </div>
+                </div>
                 <div class="col-md-3 pull-right" style="padding-right: 5%">
                   <div (click)="removeChangeableVariable(i, input)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i> Remove</div>
                 </div>

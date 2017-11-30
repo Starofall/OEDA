@@ -3,10 +3,11 @@ from flask_restful import Resource, Api
 from oeda.databases import db
 
 class ExperimentController(Resource):
-    def get(self, experimentId):
-        return db().get_experiment(experimentId)
 
-    def post(self, experimentId):
+    def get(self, experiment_id):
+        return db().get_experiment(experiment_id)
+
+    def post(self, experiment_id):
         content = request.get_json()
         print content
         new_knobs = {}
@@ -17,7 +18,7 @@ class ExperimentController(Resource):
         print "content in ExperimentController after:"
         print content
         # here we first check if the experiment can be run and then fork it
-        db().save_experiment(experimentId, content)
+        db().save_experiment(experiment_id, content)
         return {}, 200
 
 class ExperimentsListController(Resource):

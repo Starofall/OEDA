@@ -50,7 +50,7 @@ def initializeExecutionScheduler():
     # we start the threaded timer to search for experiments with status "OPEN"
     info("Starting execution scheduler")
     # Timer(1, search_for_open_experiments, ()).start()
-    Timer(5, search_for_open_experiments, ()).start()
+    Timer(60, search_for_open_experiments, ()).start()
 
 
 def search_for_open_experiments():
@@ -63,7 +63,7 @@ def search_for_open_experiments():
     except Exception as e:
         print(e)
     # re-schedule the task
-    Timer(5, search_for_open_experiments, ()).start()
+    Timer(60, search_for_open_experiments, ()).start()
 
 
 def fork_and_run_experiment(experiment):

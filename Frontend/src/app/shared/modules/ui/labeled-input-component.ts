@@ -12,6 +12,12 @@ import {OnInit, Component, Input, EventEmitter, Output, OnChanges, SimpleChanges
         <input (ngModelChange)="onModelChange($event)" *ngIf="inputType == 'text'" class="form-control" type="text"
                id="{{name}}Edit" name="{{name}}-{{key}}"
                [(ngModel)]="model[key]" placeholder="{{placeholder}}" disabled="{{disabled}}">
+
+        <!--<input (ngModelChange)="onModelChange($event)" type="number" *ngIf="inputType == 'float'" -->
+               <!--class="form-control" name="{{name}}-{{key}}" placeholder="{{placeholder}}" [(ngModel)]="model[key]"-->
+               <!--disabled="{{disabled}}" ng-pattern="/^[0-9]+(\\.[0-9]{1,2})?$/" step="0.01" required/>-->
+
+        <!--<span class="help-block" *ngIf="!{{name}}-{{key}}.$valid">Invalid input</span>-->
       </div>
     </div>
   `

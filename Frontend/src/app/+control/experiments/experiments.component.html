@@ -4,64 +4,69 @@
       <div class="panel-heading">
         <div class="card-title">
           <div class="title pull-left">All Experiments</div>
-          <div class="pull-right">
-            <a routerLink="/control/experiments/create" class="btn btn-orange btn-sm">Create an Experiment</a>
-          </div>
         </div>
       </div>
       <div class="panel-body">
-        <table style="margin-top: 20px" class="table table-striped" [mfData]="experiments" #mf="mfDataTable"
+        <div class="table-responsive table-striped">
+          <table style="margin-top: 20px" class="table " [mfData]="experiments" #mf="mfDataTable"
                [mfRowsOnPage]="10" >
-          <thead>
-          <tr>
-            <th style="width:1%">
-            </th>
-            <th style="width:1%">
-              <mfDefaultSorter by="status">Status</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="name">Name</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="description">Description</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="target">Target</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="creator">Creator</mfDefaultSorter>
-            </th>
-            <th>
-              <mfDefaultSorter by="definition">Definition</mfDefaultSorter>
-            </th>
-          </tr>
-          </thead>
-          <tbody class="bigTable">
-          <tr *ngFor="let item of mf.data">
-            <td style="padding-right: 0px">
-              <a class="btn btn-xs btn-orange" type="button"
-                 routerLink="/control/experiments/show/{{item.id}}"><i class="fa fa-search"></i></a>
-            </td>
-            <td>
-              <label *ngIf="item.status == 'SUCCESS'" class="label label-success">Success</label>
-              <label *ngIf="item.status == 'RUNNING'" class="label label-info">Running</label>
-              <label *ngIf="item.status == 'FAILURE'" class="label label-danger">Failure</label>
-            </td>
-            <td>{{item.name}}</td>
-            <td>{{item.description}}</td>
-            <td><a routerLink="/control/targets/show/{{item.id}}">{{item.target?.name}}</a></td>
-            <td><a routerLink="/control/user/show/{{item.id}}">{{item.creator?.name}}</a></td>
-            <td>{{item.definition|json}}</td>
-          </tr>
-          </tbody>
-          <tfoot>
-          <tr>
-            <td colspan="4">
-              <mfBootstrapPaginator [rowsOnPageSet]="[10,25,100]"></mfBootstrapPaginator>
-            </td>
-          </tr>
-          </tfoot>
-        </table>
+            <thead>
+            <tr>
+              <th style="width:1%">
+              </th>
+              <th style="width:1%">
+                <mfDefaultSorter by="status">Status</mfDefaultSorter>
+              </th>
+              <th style="width: 20%">
+                <mfDefaultSorter by="name">Name</mfDefaultSorter>
+              </th>
+              <th style="width: 20%">
+                <mfDefaultSorter by="description">Description</mfDefaultSorter>
+              </th>
+              <th style="width: 10%">
+                <mfDefaultSorter by="target">Target System</mfDefaultSorter>
+              </th>
+              <th style="width: 1%">
+                <mfDefaultSorter by="target">Target System Status</mfDefaultSorter>
+              </th>
+              <th style="width: 10%">
+                <div class="pull-right">
+                  <a routerLink="/control/experiments/create" class="btn btn-orange btn-sm">Create an Experiment</a>
+                </div>
+              </th>
+            </tr>
+            </thead>
+            <tbody class="bigTable">
+            <tr *ngFor="let item of mf.data">
+              <td style="padding-right: 0px">
+                <a class="btn btn-xs btn-orange" type="button"
+                   routerLink="/control/experiments/show/{{item.id}}"><i class="fa fa-search"></i> Results</a>
+              </td>
+              <td>
+                <label *ngIf="item.status == 'SUCCESS'" class="label label-success">SUCCESS</label>
+                <label *ngIf="item.status == 'RUNNING'" class="label label-info">RUNNING</label>
+                <label *ngIf="item.status == 'ERROR'" class="label label-danger">ERROR</label>
+                <!--<label *ngIf="item.status == 'FAILURE'" class="label label-danger">Failure</label>-->
+              </td>
+              <td>{{item.name}}</td>
+              <td>{{item.description}}</td>
+              <td><a routerLink="/control/targets/edit/{{item.targetSystemId}}">{{item.targetSystem?.name}}</a></td>
+              <td>
+                <label *ngIf="item.targetSystem?.status == 'READY'" class="label label-success">READY</label>
+                <label *ngIf="item.targetSystem?.status == 'WORKING'" class="label label-info">WORKING</label>
+                <label *ngIf="item.targetSystem?.status == 'ERROR'" class="label label-danger">ERROR</label>
+              </td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+              <td colspan="4">
+                <mfBootstrapPaginator [rowsOnPageSet]="[10,25,100]"></mfBootstrapPaginator>
+              </td>
+            </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
     </div>
   </div>

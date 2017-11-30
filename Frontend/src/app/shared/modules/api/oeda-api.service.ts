@@ -19,12 +19,16 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/experiments")
   }
 
-  public loadExperimentById(experimentId: string): Observable<Experiment> {
-    return this.doGETPublicRequest("/experiments/" + experimentId)
+  public loadExperimentById(experiment_id: string): Observable<Experiment> {
+    return this.doGETPublicRequest("/experiments/" + experiment_id)
   }
 
-  public loadResultOfSingleExperiment(rtx_run_id: string, exp_run_id: string): Observable<any> {
-    return this.doGETPublicRequest("/experimentResults/" + rtx_run_id + "/" + exp_run_id)
+  public loadDataPointsOfStage(experiment_id: string, stage_no: string): Observable<any> {
+    return this.doGETPublicRequest("/experimentResults/" + experiment_id + "/" + stage_no)
+  }
+
+  public loadAvailableStagesWithExperimentId(experiment_id: string): Observable<any> {
+    return this.doGETPublicRequest("/stages/" + experiment_id)
   }
 
   public getQQPlot(distribution: string, scale: string, target: object): Observable<any> {
@@ -68,9 +72,7 @@ export class OEDAApiService extends RESTService {
     return this.doPOSTPublicRequest("/configuration", configuration)
   }
 
-
 }
-
 
 export interface Experiment {
   id: string,

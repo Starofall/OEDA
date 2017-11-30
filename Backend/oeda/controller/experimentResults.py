@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, Api
 from elasticsearch import Elasticsearch
 from datetime import datetime
+
+from oeda.databases import db
 import json as json
 import traceback
 
@@ -22,12 +24,11 @@ experimentResults = {
 
 # TODO: retrieve these hard-coded values from respective configuration files
 elastic_search_index = "rtx"
-data_point_type_name = "rtx_run"
 
-class ExperimentResultsWithExpRunIdController(Resource):
-    def get(self, rtx_run_id, exp_run_id):
+class StageResultsWithExperimentIdController(Resource):
+    def get(self, experiment_id, stage_no):
         try:
-            resp = jsonify(ExperimentResults=json.dumps(get_exp_results(rtx_run_id, exp_run_id)), sort_keys=True)
+            resp = jsonify(ExperimentResults=json.dumps(get_data_points(experiment_id, stage_no)), sort_keys=True)
             resp.status_code = 200
             return resp
         except Exception as e:
@@ -35,9 +36,9 @@ class ExperimentResultsWithExpRunIdController(Resource):
             print(tb)
             return {"error": e.message}, 404
 
-    def post(self, id):
+    def post(self, experiment_id):
         content = request.get_json()
-        experimentResults[id] = content
+        experimentResults[experiment_id] = content
         # here we first check if the experiment can be run and then fork it
         return {}, 200
 
@@ -45,59 +46,34 @@ class ExperimentsResultsListController(Resource):
     def get(self):
         return experimentResults.values()
 
-# Helper Function to fetch data from ES using parameters
-# One difference with the method in previous RTX class is that,
-# this does not only return payload but also other attributes of data
-def get_data_points(rtx_run_id):
-    try:
-        buckets = get_exp_runs_from_db(rtx_run_id)
-        response_obj = {}
-        for bucket in buckets:
-            exp_run_id = bucket["key"]
-            searchResults = searchWithQuery(rtx_run_id, exp_run_id)
-            parseResults(exp_run_id, searchResults, response_obj)
-        return response_obj
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(tb)
-        return e.message
+# Helper Function to fetch data from ES with given parameters
+def get_data_points(experiment_id, stage_no):
+    res = db().get_data_points(experiment_id=experiment_id, stage_no=stage_no)
+    formatted_res = format_data(res)
+    return [r["_source"] for r in formatted_res["hits"]["hits"]]
 
-def get_exp_results(rtx_run_id, exp_run_id):
-    try:
-        response_obj = {}
-        searchResults = searchWithQuery(rtx_run_id, exp_run_id)
-        parseResults(exp_run_id, searchResults, response_obj)
-        return response_obj
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(tb)
-        return e.message
-
-def parseResults(exp_run_id, searchResult, response_obj):
-    results = []
-    for hit in searchResult["hits"]["hits"]:
+def format_data(res):
+    for hit in res["hits"]["hits"]:
         if hit["_source"]:
             # date format is used to convert following dates e.g. "2016-03-26T09:25:55.000Z" into string without T
             hit["_source"]["created"] = str(datetime.strptime(hit["_source"]["created"], "%Y-%m-%dT%H:%M:%S.%f"))
-        results.append(hit["_source"])
-    # associate exp_run_id with key in the response object to be returned
-    response_obj[str(exp_run_id)] = results
+    return res
 
-# Helper function for finding out available exp_run ids in the ES
-def get_exp_runs_from_db(rtx_run_id):
+# Helper function for finding out available stage ids in the ES
+def get_stages_from_db(experiment_id):
     try:
         query = {
             "query": {
                 "parent_id": {
-                    "type": "data_point",
-                    "id": str(rtx_run_id)
+                    "type": "experiment",
+                    "id": str(experiment_id)
                 }
             },
             "size": 0,
             "aggs": {
-                "exp_run_aggregation": {
+                "stage_aggregation": {
                     "terms": {
-                        "field": "exp_run"
+                        "field": "number"
                     }
                 }
             }
@@ -106,7 +82,7 @@ def get_exp_runs_from_db(rtx_run_id):
         es.indices.refresh(index=elastic_search_index)
         res1 = es.search(index=elastic_search_index, body=query)
         print(res1)
-        buckets = res1["aggregations"]["exp_run_aggregation"]["buckets"]
+        buckets = res1["aggregations"]["stage_aggregation"]["buckets"]
         return buckets
 
     except Exception as e:
@@ -114,16 +90,16 @@ def get_exp_runs_from_db(rtx_run_id):
         print(tb)
         return e.message
 
-def searchWithQuery(rtx_run_id, exp_run_id):
+def searchWithQuery(experiment_id, stage_id):
     query = {
         "query": {
             "parent_id": {
-                "type": "data_point",
-                "id": str(rtx_run_id)
+                "type": "experiment",
+                "id": str(experiment_id)
             }
         },
         "post_filter": {
-            "term": {"exp_run": int(exp_run_id)}
+            "term": {"stage": int(stage_id)}
         }
     }
     es = Elasticsearch()

@@ -101,6 +101,7 @@ class ElasticSearchDb(Database):
                 "match_all": {}
             }
         }
+
         res = self.es.search(self.index, self.experiment_type_name, query)
         return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
 
@@ -131,6 +132,33 @@ class ElasticSearchDb(Database):
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
 
+    # returns data_points whose parent is the concatenated stage_id
+    def get_data_points(self, experiment_id, stage_no):
+        stage_id = experiment_id + "#" + str(stage_no)
+        query = {
+            "query": {
+                "has_parent": {
+                    "type": "stage",
+                    "query": {
+                        "match": {
+                            "_id": str(stage_id)
+                        }
+                    }
+                }
+            }
+        }
+        try:
+            res1 = self.es.search(self.index, self.data_point_type_name, query)
+            # first determine size, otherwise it returns only 10 data (by default)
+            size = res1['hits']['total']
+
+            # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
+            # sorting is required for proper visualization of data
+            res2 = self.es.search(self.index, body=query, size=size, sort='created')
+            return res2
+        except ConnectionError:
+            error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
+
     def save_stage(self, stage_no, knobs, experiment_id):
         stage_id = experiment_id + "#" + str(stage_no)
         body = dict()
@@ -139,5 +167,26 @@ class ElasticSearchDb(Database):
         body["created"] = datetime.now()
         try:
             self.es.index(self.index, self.stage_type_name, body, stage_id, parent=experiment_id)
+        except ConnectionError:
+            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+
+    def get_stages(self, experiment_id):
+
+        query = {
+            "query": {
+                "has_parent": {
+                    "type": "experiment",
+                    "query": {
+                        "match": {
+                            "_id": str(experiment_id)
+                        }
+                    }
+                }
+            }
+        }
+
+        try:
+            res = self.es.search(self.index, self.stage_type_name, query)
+            return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")

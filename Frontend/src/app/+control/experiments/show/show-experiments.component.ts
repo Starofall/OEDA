@@ -1,9 +1,11 @@
-import {Component, Injectable, OnInit, ViewChild, AfterViewInit, OnDestroy} from '@angular/core';
+import {Component, OnInit, AfterViewInit} from '@angular/core';
 import {ActivatedRoute, Params} from '@angular/router';
+import {NotificationsService} from "angular2-notifications";
 import {LayoutService} from "../../../shared/modules/helper/layout.service";
-import {OEDAApiService} from "../../../shared/modules/api/oeda-api.service";
+import {Experiment, Target, OEDAApiService} from "../../../shared/modules/api/oeda-api.service";
 import { AmChartsService, AmChart } from "@amcharts/amcharts3-angular";
 import * as d3 from "d3";
+import {isNullOrUndefined} from "util";
 
 @Component({
   selector: 'show-control-experiments',
@@ -17,9 +19,8 @@ export class ShowExperimentsComponent implements OnInit {
   private chart2: AmChart;
   private chart3: AmChart;
 
+  private dataAvailable: boolean;
 
-  // hard-coded rtx_run_id
-  private rtx_run_id = "AV9FCKeEkoAcnVWq358x";
   private divId: string;
   private histogramDivId: string;
   private qqPlotDivId: string;
@@ -29,13 +30,12 @@ export class ShowExperimentsComponent implements OnInit {
   private processedData: object;
   private processedDataForQQPlotJS: any;
 
-  public exp_run_id: string;
-  public singleExperimentResult: object;
+  public experiment_id: string;
+  public experiment: Experiment;
+  public targetSystem: Target;
   public isLogSelected: boolean;
   public isLogSelectedQQ: boolean;
   public initialThresholdForSmoothLineChart: number;
-
-  public allExperiments: object;
 
   // following attributes are used for QQ plotting in Python
   public availableDistributions: object;
@@ -45,17 +45,24 @@ export class ShowExperimentsComponent implements OnInit {
   public qqPlotIsRendered: boolean;
 
   // following attributes are used for QQ plotting in JavaScript
-  public availableExpRunIdsForQQJS: any;
+  public availableStageNosForQQJS: any;
   public availableScalesForQQJS: object;
   public selectedScaleForQQJS: string;
-  public selectedExpRunIdForQQJS: string;
+  public selectedStageNoForQQJS: string;
   public qqJSPlotIsRendered: boolean;
+  public is_enough_data_for_plots: boolean;
+
+  public availableStages = [];
+  public selected_stage_no: any;
 
   constructor(private layout: LayoutService,
               private apiService: OEDAApiService,
               private AmCharts: AmChartsService,
-              private activatedRoute: ActivatedRoute) {
-    this.layout.setHeader("Experiments", "Show Experiment");
+              private activatedRoute: ActivatedRoute,
+              private notify: NotificationsService) {
+
+    this.layout.setHeader("Experiment Results", "");
+    this.dataAvailable = false;
     this.isLogSelected = false;
     this.isLogSelectedQQ = false;
     this.distribution = "Select a distribution";
@@ -64,11 +71,21 @@ export class ShowExperimentsComponent implements OnInit {
     this.availableScales = ['Normal', 'Log'];
     this.qqPlotIsRendered = false;
 
-    this.selectedExpRunIdForQQJS = "Select an experiment run";
+    this.selectedStageNoForQQJS = "Select a stage";
     this.selectedScaleForQQJS = "Select a scale";
-    this.availableExpRunIdsForQQJS = [];
+
+    this.availableStageNosForQQJS = [];
     this.availableScalesForQQJS = ['Normal', 'Log'];
     this.qqJSPlotIsRendered = false;
+    this.is_enough_data_for_plots = false;
+
+
+    // subscribe to router event
+    this.activatedRoute.params.subscribe((params: Params) => {
+      // id is retrieved from URI
+      this.experiment_id = params["id"];
+
+    });
   }
 
   /*
@@ -355,55 +372,41 @@ export class ShowExperimentsComponent implements OnInit {
       window["Plotly"].newPlot('heat2', data, layout);
     }*/
     console.log("ngOnInit works");
-    const ctrl = this;
+    if (!isNullOrUndefined(this.experiment_id)) {
+      this.apiService.loadExperimentById(this.experiment_id).subscribe(experiment => {
 
-    // subscribe to router event
-    this.activatedRoute.params.subscribe((params: Params) => {
-      // id is retrieved from URI
-      ctrl.exp_run_id = params["id"];
-    });
+        if (!isNullOrUndefined(experiment)) {
+          this.experiment = experiment;
+          if (!isNullOrUndefined(experiment.targetSystemId) && !isNullOrUndefined(experiment.targetSystemId)) {
 
-    /*
-      Newly integrated plots
-    */
+            // retrieve target system
+            this.apiService.loadTargetById(experiment.targetSystemId).subscribe(targetSystem => {
+              if (!isNullOrUndefined(targetSystem)) {
+                this.targetSystem = targetSystem;
 
-    ctrl.apiService.loadAllExperiments().subscribe(allExperiments => {
-      ctrl.allExperiments = allExperiments;
-      console.log("allExperiments", allExperiments);
-      for (let k = 0; k < allExperiments.length; k++) {
-        if (allExperiments[k].id !== ctrl.exp_run_id) {
-          ctrl.availableExpRunIdsForQQJS.push(allExperiments[k].id);
-        }
-      }
-    });
-
-    ctrl.apiService.loadResultOfSingleExperiment(ctrl.rtx_run_id, ctrl.exp_run_id).subscribe(
-      data => {
-        const expRes = JSON.parse(data["ExperimentResults"]);
-        console.log("expRes", expRes);
-        if (expRes !== undefined) {
-          const id = ctrl.exp_run_id;
-          ctrl.singleExperimentResult = expRes[id];
-          ctrl.divId = "chartdiv" + id;
-          ctrl.histogramDivId = "histogram" + id;
-          ctrl.histogramLogDivId = ctrl.histogramDivId + "_log";
-          ctrl.filterSummaryId = "filterSummary" + id;
-          ctrl.qqPlotDivId = "qqPlot" + id;
-          ctrl.qqPlotDivIdJS = "qqPlotJS" + id;
-          ctrl.processedData = ctrl.processData(data, "ExperimentResults", id, "timestamp", "value");
-          ctrl.processedDataForQQPlotJS = ctrl.processData(data, "ExperimentResults", id, null, null);
-          // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
-          const clonedData = JSON.parse(JSON.stringify( ctrl.processedData));
-          ctrl.initialThresholdForSmoothLineChart = ctrl.calculateThresholdForGivenPercentile(clonedData, 95);
-
-          ctrl.drawSmoothLineChart( ctrl.divId,  ctrl.filterSummaryId,  ctrl.processedData);
-          ctrl.drawHistogram( ctrl.histogramDivId,  ctrl.processedData, false);
-          ctrl.drawHistogram( ctrl.histogramLogDivId, ctrl.processedData, true);
+                // retrieve stages
+                this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
+                  if (!isNullOrUndefined(stages)) {
+                    this.availableStages = stages;
+                    this.dataAvailable = true;
+                  }
+                });
+              }
+            });
+          }
         } else {
-          console.log("error");
+          this.notify.error("Error", "Cannot retrieve details of selected experiment, make sure DB is up and running");
         }
-
+        // for (let k = 0; k < allExperiments.length; k++) {
+        //   if (allExperiments[k].id !== ctrl.exp_run_id) {
+        //     ctrl.availableExpRunIdsForQQJS.push(allExperiments[k].id);
+        //   }
+        // }
       });
+    } else {
+      this.notify.error("Error", "Failed retrieving experiment id, please check URI");
+    }
+
   }
 
   drawHistogram(divID, processedData, isLogSelected) {
@@ -649,13 +652,13 @@ export class ShowExperimentsComponent implements OnInit {
   }
 
   // helper function for graphs
-  processData(jsonObject, outerKey, innerKey, xAttribute, yAttribute) {
+  processData(jsonObject, outerKey, xAttribute, yAttribute) {
     try {
       if (jsonObject !== undefined && jsonObject.hasOwnProperty(outerKey)) {
         const processedData = [];
         const innerJson = JSON.parse(jsonObject[outerKey]);
-        innerJson[innerKey].forEach(function(element) {
-          if (element !== null && element.hasOwnProperty("exp_run")) {
+        innerJson.forEach(function(element) {
+          if (element !== null) {
             if (xAttribute !== null && yAttribute !== null) {
               const newElement = {};
               newElement[xAttribute] = element["created"];
@@ -701,41 +704,11 @@ export class ShowExperimentsComponent implements OnInit {
     return retVal;
   }
 
-  // metric = array of real numbers (like > 100 or something)
-  // IQR = inter-quaartile-range
-  determineNumberOfBinsForHistogram(array, defaultBins) {
-    const h = this.getBinWidth(array), ulim = Math.max.apply(Math, array), llim = Math.min.apply(Math, array);
-    if (h <= (ulim - llim) / array.length) {
-      return defaultBins || 10; // Fix num bins if binWidth yields too small a value.
-    }
-    return Math.ceil((ulim - llim) / h);
-  }
-
-  getBinWidth(array) {
-    return 2 * this.iqr(array) * Math.pow(array.length, -1 / 3);
-  }
-
-  iqr(array) {
-    const sorted = array.slice(0).sort(function (a, b) { return a - b; });
-    const q1 = sorted[Math.floor(sorted.length / 4)];
-    const q3 = sorted[Math.floor(sorted.length * 3 / 4)];
-    return q3 - q1;
-  }
-
   calculateThresholdForGivenPercentile(data, percentile) {
     const sortedData = data.sort(this.sort_by('value', true, parseFloat));
     const index = Math.floor(sortedData.length * percentile / 100 - 1);
     const result = sortedData[index]["value"];
     return +result.toFixed(2);
-  }
-
-  // https://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects
-  sort_by(field, reverse, primer) {
-    const key = function (x) {return primer ? primer(x[field]) : x[field]};
-    return function (a, b) {
-      const A = key(a), B = key(b);
-      return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1, 1][+!!reverse];
-    }
   }
 
   // helper function that filters out data above the given threshold
@@ -748,129 +721,10 @@ export class ShowExperimentsComponent implements OnInit {
     console.log(value);
   }
 
-  drawScatterChart(divID, processedData) {
-    this.chart2 = this.AmCharts.makeChart(divID, {
-      "type": "xy",
-      "theme": "light",
-      "autoMarginOffset": 10,
-      "dataProvider": processedData,
-      "dataDateFormat": "YYYY-MM-DD HH:NN:SS.QQQ",
-      "mouseWheelZoomEnabled": true,
-      "mouseWheelScrollEnabled": true,
-      "startDuration": 1.5,
-      "chartCursor": {},
-      "graphs": [{
-        "bullet": "diamond",
-        "lineAlpha": 0,
-        "lineThickness": 2,
-        "lineColor": "#b0de09",
-        "xField": "timestamp",
-        "yField": "value",
-        "balloonText": "timestamp:[[timestamp]] overhead:[[value]]"
-      }],
-      "valueAxes": [{
-        "id": "v1",
-        "position": "left",
-        "title": "Average Overhead"
-      }, {
-        "id": "v2",
-        "position": "bottom",
-        "type": "date",
-        "minPeriod": "fff"
-      }],
-
-      "trendLines": [{
-        "finalValue": processedData[processedData.length - 1]["value"],
-        "finalXValue": processedData[processedData.length - 1]["timestamp"],
-        "initialValue": processedData[0]["value"],
-        "initialXValue": processedData[0]["timestamp"],
-        "lineColor": "#FF6600"
-      }],
-      "export": {
-        "enabled": true,
-        "position": "bottom-left"
-      }
-    });
-    this.chart2.addListener("rendered", zoomChart);
-
-    function zoomChart(){
-      this.chart2.zoomToIndexes(processedData.length - 40, processedData.length - 1);
-    }
-  }
-
-  drawLineChart(divID, processedData) {
-    this.chart3 = this.AmCharts.makeChart(divID, {
-      "type": "serial",
-      "theme": "light",
-      "marginRight": 80,
-      "autoMarginOffset": 20,
-      "marginTop": 7,
-      "dataProvider": processedData,
-      "valueAxes": [{
-        "axisAlpha": 0.2,
-        "dashLength": 1,
-        "position": "left",
-        "title": "Average Overhead"
-      }],
-      "mouseWheelZoomEnabled": true,
-      "graphs": [{
-        "id": "g1",
-        "balloonText": "[[value]]",
-        "bullet": "round",
-        "bulletBorderAlpha": 1,
-        "bulletColor": "#FFFFFF",
-        "hideBulletsCount": 50,
-        "title": "red line",
-        "valueField": "value",
-        "useLineColorForBulletBorder": true,
-        "balloon":{
-          "drop":true
-        }
-      }],
-      "chartScrollbar": {
-        "autoGridCount": true,
-        "graph": "g1",
-        "scrollbarHeight": 40
-      },
-      "chartCursor": {
-        "limitToGraph": "g1"
-      },
-      "dataDateFormat": "YYYY-MM-DD HH:NN:SS.QQQ",
-      "categoryField": "timestamp",
-      "categoryAxis": {
-        "parseDates": true,
-        "minPeriod": "fff",
-        "axisColor": "#DADADA",
-        "dashLength": 1,
-        "minorGridEnabled": true
-      },
-      "export": {
-        "enabled": true,
-        "position": "bottom-left"
-      }
-    });
-
-    this.chart3.addListener("rendered", zoomChart);
-
-    // this method is called when chart is first inited as we listen for "rendered" event
-    function zoomChart() {
-      this.chart3.zoomToIndexes(processedData.length - 40, processedData.length - 1);
-    }
-  }
-
-  getAmChartById(id) {
-    const allCharts = this.AmCharts.charts;
-    for (let i = 0; i < allCharts.length; i++) {
-      if (id === allCharts[i].div.id) {
-        return allCharts[i];
-      }
-    }
-  }
-
   drawQQJS() {
     const ctrl = this;
-    if (ctrl.selectedExpRunIdForQQJS === "Select an experiment run") {
-      alert("Please select an experiment run");
+    if (ctrl.selectedStageNoForQQJS === "Select a stage") {
+      alert("Please select a stage first");
       return;
     }
 
@@ -883,11 +737,11 @@ export class ShowExperimentsComponent implements OnInit {
     // https://stackoverflow.com/questions/3674265/is-there-an-easy-way-to-clear-an-svg-elements-contents
     d3.select("#" + ctrl.qqPlotDivIdJS).selectAll("*").remove();
 
-    if (ctrl.processedDataForQQPlotJS !== null && ctrl.selectedExpRunIdForQQJS !== null) {
+    if (ctrl.processedDataForQQPlotJS !== null && ctrl.selectedStageNoForQQJS !== null) {
       // first retrieve data for the selected experiment run
-      ctrl.apiService.loadResultOfSingleExperiment(ctrl.rtx_run_id, ctrl.selectedExpRunIdForQQJS).subscribe(data => {
+      ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selectedStageNoForQQJS).subscribe(data => {
         const expRes = JSON.parse(data["ExperimentResults"]);
-        let dataForYAxis = ctrl.processData(data, "ExperimentResults", ctrl.selectedExpRunIdForQQJS, null, null);
+        let dataForYAxis = ctrl.processData(data, "ExperimentResults", null, null);
 
         function t(t,n){var r=n.length-1;return n=n.slice().sort(d3.ascending),d3.range(t).map(function(a){return n[~~(a*r/t)]})}
         function n(t){return t.x}
@@ -1090,13 +944,13 @@ export class ShowExperimentsComponent implements OnInit {
 
       });
     } else {
-      alert("An error occurred, please refresh page");
+      alert("An error occurred, please refresh the web-page");
     }
 
   }
 
-  selectExpRunIdForQQJS(selectedExpRunIdForQQJS) {
-    this.selectedExpRunIdForQQJS = selectedExpRunIdForQQJS;
+  selectStageNoForQQJS(selectedStageNo) {
+    this.selectedStageNoForQQJS = selectedStageNo;
   }
 
   selectScaleForQQJS(selectedScaleForQQJS) {
@@ -1110,5 +964,201 @@ export class ShowExperimentsComponent implements OnInit {
   selectScale(scaleName) {
     this.scale = scaleName;
   }
+
+  drawScatterChart(divID, processedData) {
+    this.chart2 = this.AmCharts.makeChart(divID, {
+      "type": "xy",
+      "theme": "light",
+      "autoMarginOffset": 10,
+      "dataProvider": processedData,
+      "dataDateFormat": "YYYY-MM-DD HH:NN:SS.QQQ",
+      "mouseWheelZoomEnabled": true,
+      "mouseWheelScrollEnabled": true,
+      "startDuration": 1.5,
+      "chartCursor": {},
+      "graphs": [{
+        "bullet": "diamond",
+        "lineAlpha": 0,
+        "lineThickness": 2,
+        "lineColor": "#b0de09",
+        "xField": "timestamp",
+        "yField": "value",
+        "balloonText": "timestamp:[[timestamp]] overhead:[[value]]"
+      }],
+      "valueAxes": [{
+        "id": "v1",
+        "position": "left",
+        "title": "Average Overhead"
+      }, {
+        "id": "v2",
+        "position": "bottom",
+        "type": "date",
+        "minPeriod": "fff"
+      }],
+
+      "trendLines": [{
+        "finalValue": processedData[processedData.length - 1]["value"],
+        "finalXValue": processedData[processedData.length - 1]["timestamp"],
+        "initialValue": processedData[0]["value"],
+        "initialXValue": processedData[0]["timestamp"],
+        "lineColor": "#FF6600"
+      }],
+      "export": {
+        "enabled": true,
+        "position": "bottom-left"
+      }
+    });
+    this.chart2.addListener("rendered", zoomChart);
+
+    function zoomChart() {
+      this.chart2.zoomToIndexes(processedData.length - 40, processedData.length - 1);
+    }
+  }
+
+  drawLineChart(divID, processedData) {
+    this.chart3 = this.AmCharts.makeChart(divID, {
+      "type": "serial",
+      "theme": "light",
+      "marginRight": 80,
+      "autoMarginOffset": 20,
+      "marginTop": 7,
+      "dataProvider": processedData,
+      "valueAxes": [{
+        "axisAlpha": 0.2,
+        "dashLength": 1,
+        "position": "left",
+        "title": "Average Overhead"
+      }],
+      "mouseWheelZoomEnabled": true,
+      "graphs": [{
+        "id": "g1",
+        "balloonText": "[[value]]",
+        "bullet": "round",
+        "bulletBorderAlpha": 1,
+        "bulletColor": "#FFFFFF",
+        "hideBulletsCount": 50,
+        "title": "red line",
+        "valueField": "value",
+        "useLineColorForBulletBorder": true,
+        "balloon":{
+          "drop":true
+        }
+      }],
+      "chartScrollbar": {
+        "autoGridCount": true,
+        "graph": "g1",
+        "scrollbarHeight": 40
+      },
+      "chartCursor": {
+        "limitToGraph": "g1"
+      },
+      "dataDateFormat": "YYYY-MM-DD HH:NN:SS.QQQ",
+      "categoryField": "timestamp",
+      "categoryAxis": {
+        "parseDates": true,
+        "minPeriod": "fff",
+        "axisColor": "#DADADA",
+        "dashLength": 1,
+        "minorGridEnabled": true
+      },
+      "export": {
+        "enabled": true,
+        "position": "bottom-left"
+      }
+    });
+
+    this.chart3.addListener("rendered", zoomChart);
+
+    // this method is called when chart is first inited as we listen for "rendered" event
+    function zoomChart() {
+      this.chart3.zoomToIndexes(processedData.length - 40, processedData.length - 1);
+    }
+  }
+
+  getAmChartById(id) {
+    const allCharts = this.AmCharts.charts;
+    for (let i = 0; i < allCharts.length; i++) {
+      if (id === allCharts[i].div.id) {
+        return allCharts[i];
+      }
+    }
+  }
+
+  firstDropDownChanged(stage_no: any) {
+    if (!isNullOrUndefined(stage_no)) {
+      const ctrl = this;
+      ctrl.selected_stage_no = stage_no;
+      /*
+        Draw plots for the selected stage
+      */
+
+      ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selected_stage_no).subscribe(
+        data => {
+          const expRes = JSON.parse(data["ExperimentResults"]);
+          if (expRes !== undefined && expRes.length !== 0) {
+           ctrl.is_enough_data_for_plots = true;
+
+            // ctrl.singleExperimentResult = expRes[id];
+            ctrl.divId = "chartdiv" + ctrl.selected_stage_no;
+            ctrl.histogramDivId = "histogram" + ctrl.selected_stage_no;
+            ctrl.histogramLogDivId = ctrl.histogramDivId + "_log";
+            ctrl.filterSummaryId = "filterSummary" + ctrl.selected_stage_no;
+
+            ctrl.qqPlotDivId = "qqPlot" + ctrl.selected_stage_no;
+            ctrl.qqPlotDivIdJS = "qqPlotJS" + ctrl.selected_stage_no;
+            ctrl.processedData = ctrl.processData(data, "ExperimentResults", "timestamp", "value");
+
+            ctrl.processedDataForQQPlotJS = ctrl.processData(data, "ExperimentResults", null, null);
+
+            // // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
+            const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
+            ctrl.initialThresholdForSmoothLineChart = ctrl.calculateThresholdForGivenPercentile(clonedData, 95);
+
+            ctrl.drawSmoothLineChart( ctrl.divId,  ctrl.filterSummaryId,  ctrl.processedData);
+            ctrl.drawHistogram( ctrl.histogramDivId,  ctrl.processedData, false);
+            ctrl.drawHistogram( ctrl.histogramLogDivId, ctrl.processedData, true);
+          } else {
+            ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
+          }
+        });
+
+
+
+    } else {
+      this.notify.error("Error", "Stage number is null or undefined, please try again");
+      return;
+    }
+  }
+
+  // https://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects
+  sort_by(field, reverse, primer) {
+    const key = function (x) {return primer ? primer(x[field]) : x[field]};
+    return function (a, b) {
+      const A = key(a), B = key(b);
+      return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1, 1][+!!reverse];
+    }
+  }
+
+  getBinWidth(array) {
+    return 2 * this.iqr(array) * Math.pow(array.length, -1 / 3);
+  }
+
+  // metric = array of real numbers (like > 100 or something)
+  // IQR = inter-quaartile-range
+  determineNumberOfBinsForHistogram(array, defaultBins) {
+    const h = this.getBinWidth(array), ulim = Math.max.apply(Math, array), llim = Math.min.apply(Math, array);
+    if (h <= (ulim - llim) / array.length) {
+      return defaultBins || 10; // Fix num bins if binWidth yields too small a value.
+    }
+    return Math.ceil((ulim - llim) / h);
+  }
+
+  iqr(array) {
+    const sorted = array.slice(0).sort(function (a, b) { return a - b; });
+    const q1 = sorted[Math.floor(sorted.length / 4)];
+    const q3 = sorted[Math.floor(sorted.length * 3 / 4)];
+    return q3 - q1;
+  }
+
 
 }

@@ -4,10 +4,10 @@ from flask_restful import Resource, Api
 
 from oeda.controller.targets import TargetController, TargetsListController
 from oeda.controller.configuration import ConfigurationController
-from oeda.controller.experiments import ExperimentsListController, ExperimentController
 from oeda.service.execution_scheduler import initializeExecutionScheduler
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
-from oeda.controller.experimentResults import ExperimentsResultsListController, ExperimentResultsWithExpRunIdController
+from oeda.controller.experimentResults import ExperimentsResultsListController, StageResultsWithExperimentIdController
+from oeda.controller.StageController import StageController
 from oeda.controller.plotting import QQPlotController
 
 app = Flask(__name__, static_folder="assets")
@@ -68,14 +68,14 @@ def stylesJS():
 api = Api(app)
 api.add_resource(ConfigurationController, '/api/configuration')
 api.add_resource(ExperimentsListController, '/api/experiments')
-api.add_resource(ExperimentController, '/api/experiments/<string:experimentId>')
+api.add_resource(ExperimentController, '/api/experiments/<string:experiment_id>')
 api.add_resource(TargetsListController, '/api/targets')
 api.add_resource(TargetController, '/api/targets/<string:target_id>')
 
-api.add_resource(ExperimentResultsWithExpRunIdController, '/api/experimentResults/<string:rtx_run_id>/<string:exp_run_id>')
+api.add_resource(StageResultsWithExperimentIdController, '/api/experimentResults/<string:experiment_id>/<string:stage_no>')
 api.add_resource(ExperimentsResultsListController, '/api/experimentsResults')
 api.add_resource(QQPlotController, '/api/qqPlot/<string:distribution>/<string:scale>')
-
+api.add_resource(StageController, '/api/stages/<string:experiment_id>')
 
 if __name__ == '__main__':
     from tornado.wsgi import WSGIContainer

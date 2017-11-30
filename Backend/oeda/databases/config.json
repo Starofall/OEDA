@@ -30,8 +30,8 @@
     "mapping": {
       "_parent":    { "type": "experiment"},
       "properties": {
-        "number":       { "type": "integer" },
-        "knobs":    { "type": "object"  }
+        "number":                     { "type": "integer" },
+        "knobs":                      { "type": "object"  }
       }
     }
   },

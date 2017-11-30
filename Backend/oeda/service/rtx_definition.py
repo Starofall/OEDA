@@ -24,7 +24,7 @@ class RTXDefinition:
     def __init__(self, oedaExperiment, oedaTarget, oedaCallback):
         self._oedaExperiment = oedaExperiment
         self._oedaTarget = oedaTarget
-        self._oedaCallback = oedaCallback
+        self._oedaCallback = oedaCallback 
         self.name = oedaExperiment["name"]
         self.id = oedaExperiment["id"]
         self.stage_counter = 0
@@ -62,7 +62,7 @@ class RTXDefinition:
 
     @staticmethod
     def primary_data_reducer(state, newData, wf):
-        db().save_data_point(0, 0, newData, state["data_points"], wf.id, wf.stage_counter)
+        db().save_data_point(newData, state["data_points"], wf.id, wf.stage_counter)
         state["data_points"] += 1
         return state
 
