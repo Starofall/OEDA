@@ -1,122 +1,5 @@
 <div class="row" *ngIf="dataAvailable">
 
-
-  <!--<div class="col-md-6">-->
-    <!--<div class="panel panel-default">-->
-      <!--<div class="panel-heading">-->
-        <!--<div class="card-title">-->
-          <!--<div class="title pull-left">All Experiments</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="panel-body">-->
-        <!--<nvd3 #nvd32 class="col-md-12" [options]="chart1Options" [data]="chart1Data"></nvd3>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="col-md-6">-->
-    <!--<div class="panel panel-default">-->
-      <!--<div class="panel-heading">-->
-        <!--<div class="card-title">-->
-          <!--<div class="title pull-left">All Experiments</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="panel-body">-->
-        <!--<nvd3 #nvd3 class="col-md-12" [options]="chart1Options" [data]="chart1Data"></nvd3>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="col-md-6">-->
-    <!--<div class="panel panel-default">-->
-      <!--<div class="panel-heading">-->
-        <!--<div class="card-title">-->
-          <!--<div class="title pull-left">All Experiments</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="panel-body">-->
-        <!--<nvd3 #nvd33 class="col-md-12" [options]="chart3Options" [data]="chart1Data"></nvd3>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-
-
-  <!--<div class="col-md-6">-->
-    <!--<div id="myDiv"></div>-->
-  <!--</div>-->
-
-  <!--<div class="col-md-6">-->
-     <!--<div id="heat2"></div>-->
-  <!--</div>-->
-
-  <!--<div class="col-md-6">-->
-    <!--<div class="panel panel-default">-->
-      <!--<div class="panel-heading">-->
-        <!--<div class="card-title">-->
-          <!--<div class="title pull-left">Histogram with Fixed-size bins (Run 1)</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="panel-body" >-->
-        <!--<div class="col-md-12" id="histogram1" style="width: 600px; height: 400px"></div>-->
-      <!--</div>-->
-      <!--<div class="panel-footer">-->
-        <!--<p id="logSummary1">click to switch to Log. scale</p>-->
-        <!--<button type="button" class="btn btn-primary" (click)="renderLogScale('histogram1', '1')" id="logScaleButton1">Logarithmic Scale</button>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="col-md-6">-->
-    <!--<div class="panel panel-default">-->
-      <!--<div class="panel-heading">-->
-        <!--<div class="card-title">-->
-          <!--<div class="title pull-left">Scatter Chart (Run 1)</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="panel-body" >-->
-        <!--<div class="col-md-12" id="chartdiv1" style="width: 600px; height: 400px"></div>-->
-      <!--</div>-->
-      <!--<div class="panel-footer">-->
-        <!--<p id="filterSummary1">click on graph to pick a threshold for removing outliers</p>-->
-        <!--<button type="button" class="btn btn-primary" (click)="filterOutliers('chartdiv1')">Filter</button>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="col-md-6">-->
-    <!--<div class="panel panel-default">-->
-      <!--<div class="panel-heading">-->
-        <!--<div class="card-title">-->
-          <!--<div class="title pull-left">Histogram with Fixed-size bins (Run 2)</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="panel-body" >-->
-        <!--<div class="col-md-12" id="histogram2" style="width: 600px; height: 400px"></div>-->
-      <!--</div>-->
-      <!--<div class="panel-footer">-->
-        <!--<p id="logSummary2">click to switch to Log. scale</p>-->
-        <!--<button type="button" class="btn btn-primary" (click)="renderLogScale('histogram2', '2')" id="logScaleButton2">Logarithmic Scale</button>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="col-md-6">-->
-    <!--<div class="panel panel-default">-->
-      <!--<div class="panel-heading">-->
-        <!--<div class="card-title">-->
-          <!--<div class="title pull-left">Line Chart</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="panel-body" >-->
-        <!--<div class="col-md-12" id="chartdiv2" style="width: 600px; height: 400px"></div>-->
-      <!--</div>-->
-      <!--<div class="panel-footer">-->
-        <!--<p id="filterSummary2">click on graph to pick a threshold for removing outliers</p>-->
-        <!--<button type="button" class="btn btn-primary" (click)="filterOutliers('chartdiv2')">Filter</button>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-
   <!-- Experiment Details -->
   <div class="col-sm-12 col-xs-12">
     <div class="panel panel-default chartJs">
@@ -347,33 +230,54 @@
   </div>
 
   <div class="col-sm-12 col-xs-12">
-    <div class="panel panel-default chartJs">
-      <div class="panel-heading">
-        <div class="card-title">
-          <div class="title pull-left">Stages of Experiment</div>
-        </div>
-      </div>
-      <div class="panel-body" style="padding-top: 20px">
-        <div class="row">
-          <div class="col-md-3">
-            <div>
-              <select class="form-control" required (change)="firstDropDownChanged($event.target.value)">
-                <option disabled>Select stage</option>
-                <option *ngFor="let i of availableStages;" [ngValue]="i">{{ i.number }}</option>
-              </select>
+    <div class="row">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="col-md-6">
+              <div class="title pull-left">Stages of Experiment</div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="title pull-left">Scale of Results</div>
             </div>
           </div>
         </div>
+        <div class="panel-body" style="padding-top: 20px">
+          <div class="row">
+            <div class="col-md-6">
+              <div>
+                <select class="form-control" required (change)="stage_changed($event.target.value)">
+                  <option disabled>Select stage</option>
+                  <option *ngFor="let i of availableStages;" [ngValue]="i">{{ i.number }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-title">
+                <select class="form-control" required (change)="scale_changed($event.target.value)">
+                  <option [selected]="true">Normal</option>
+                  <option>Log</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
+
     </div>
   </div>
 
+
+
   <!-- Smooth-Line Chart -->
-  <div class="col-sm-12 col-xs-12" *ngIf="is_enough_data_for_plots">
+  <div class="col-sm-12 col-xs-12" [hidden]="!is_enough_data_for_plots">
     <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">Smooth-Line Chart</div>
+          <div class="title pull-left">Smooth-Line Chart with {{scale}} Scale</div>
         </div>
       </div>
       <div class="panel-body">
@@ -381,157 +285,90 @@
       </div>
       <div class="panel-footer">
         <p id="filterSummary{{selected_stage_no}}">Initial threshold for 95-percentile: <b>{{initialThresholdForSmoothLineChart}}</b></p>
-        <button id="filterButton{{selected_stage_no}}" type="button" class="btn btn-primary" (click)="filterOutliers($event)">Filter</button>
+        <!--<button id="filterButton{{selected_stage_no}}" type="button" class="btn btn-primary" (click)="filter_outliers($event)">Filter</button>-->
       </div>
     </div>
   </div>
 
-
-
-
-  <div class="col-sm-12 col-xs-12" *ngIf="is_enough_data_for_plots">
+  <div class="col-sm-12 col-xs-12" [hidden]="!is_enough_data_for_plots">
 
     <!-- Histogram -->
     <div class="panel panel-default">
         <div class="panel-heading">
           <div class="card-title">
-            <div class="title pull-left" [hidden]="isLogSelected">Histogram with Normal Scale</div>
-            <div class="title pull-left" [hidden]="!isLogSelected">Histogram with Logarithmic Scale</div>
+            <div class="title pull-left">Histogram with {{scale}} Scale</div>
         </div>
       </div>
       <div class="panel-body" >
-        <div class="col-md-12" id="histogram{{selected_stage_no}}" [hidden]="isLogSelected" style="width: 100%; height: 400px"></div>
-        <div class="col-md-12" id="histogram{{selected_stage_no}}_log" [hidden]="!isLogSelected" style="width: 100%; height: 400px"></div>
-        <div class="panel-footer">
-          <button type="button" class="btn btn-primary" [hidden]="isLogSelected" (click)="isLogSelected = !isLogSelected">
-            Switch to Logarithmic Scale
-          </button>
-        <button type="button" class="btn btn-primary" [hidden]="!isLogSelected" (click)="isLogSelected = !isLogSelected">
-            Switch to Normal Scale
-        </button>
-        </div>
+        <div class="col-md-12" id="histogram{{selected_stage_no}}" style="width: 100%; height: 400px"></div>
+        <!--<div class="col-md-12" id="histogram{{selected_stage_no}}_log" [hidden]="{{scale}}!='Log'" style="width: 100%; height: 400px"></div>-->
       </div>
     </div>
 
     <!-- QQ graph 1 -->
-    <div class="col-sm-6 col-xs-12" *ngIf="is_enough_data_for_plots">
-      <div class="panel panel-default">
+    <div class="col-sm-12 col-xs-12" *ngIf="is_enough_data_for_plots">
+      <div class="panel panel-default chartJs">
         <div class="panel-heading">
-          <div class="panel-title">
-            <div class="title pull-left">Quantile Quantile (QQ) Plot against Theoretical Data &nbsp;</div>
+          <div class="card-title">
             <div class="col-md-6">
-              <div style="margin-top: 5%">
-                <span>Theoretical Data Distribution:</span>
-                  <li id="availableDistributionsDropdown" class="dropdown">
-                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-                    {{distribution}} <i class="fa fa-caret-down"></i>
-                  </a>
-                  <ul class="dropdown-menu dropdown-tasks">
-                    <li *ngFor="let dist of availableDistributions">
-                      <a>
-                        <div (click)="selectDistribution(dist)">
-                          <p>
-                            <strong>{{dist}}</strong>
-                          </p>
-                        </div>
-                      </a>
-                    </li>
-                  </ul>
-                  <!-- /.dropdown-tasks -->
-                </li>
-              </div>
-              <div style="margin-top: 5%">
-                <span>Data scale:</span>
-                <li id="availableScalesQQ" class="dropdown">
-                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-                    {{scale}} <i class="fa fa-caret-down"></i>
-                  </a>
-                  <ul class="dropdown-menu dropdown-tasks">
-                    <li *ngFor="let scale of availableScales">
-                      <a>
-                        <div (click)="selectScale(scale)">
-                          <p>
-                            <strong>{{scale}}</strong>
-                          </p>
-                        </div>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
+              <div class="title pull-left">Quantile Quantile (QQ) Plot against Theoretical Data with {{scale}} Scale &nbsp;</div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="title">Theoretical Data Distribution</div>
+                <select class="form-control"
+                        [(ngModel)]="distribution" (ngModelChange)="selectDistribution($event)" size="1">
+                  <option *ngFor="let dist of available_distributions" value="{{dist}}">{{dist}}</option>
+                </select>
               </div>
             </div>
           </div>
         </div>
-        <div class="panel-body" style="margin-top: 5%">
-          <div [hidden]="!qqPlotIsRendered">
-            <img class="col-md-6" id="qqPlot{{selected_stage_no}}" class="img-thumbnail" style="width: 100%; height: 400px; margin-top: 5%">
+
+        <div class="panel-body">
+          <div [hidden]="!is_qq_plot_rendered">
+            <!--additional css for centering the img-->
+            <img class="col-md-6" id="qqPlot{{selected_stage_no}}" class="img-thumbnail"
+                 style="width: 50%; display: block; margin-left: auto; margin-right: auto">
           </div>
-        </div>
-        <div class="panel-footer">
-          <button type="button" class="btn btn-primary" (click)="drawQQPlot()" id="renderQQPlotButton">Render Plot</button>
         </div>
       </div>
     </div>
 
     <!-- QQ graph 2 -->
-    <div class="col-sm-6 col-xs-12" *ngIf="is_enough_data_for_plots">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <div class="panel-title">
-            <div class="title pull-left">Quantile Quantile (QQ) Plot against Stages &nbsp;</div>
-            <div class="col-md-6">
-              <div style="margin-top: 5%">
-                <span>Stage:</span>
-                <li id="availableExpRuns" class="dropdown">
-                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-                    {{selectedStageNoForQQJS}} <i class="fa fa-caret-down"></i>
-                  </a>
-                  <ul class="dropdown-menu dropdown-tasks">
-                    <li *ngFor="let stageNo of availableStages">
-                      <a>
-                        <div (click)="selectStageNoForQQJS(stageNo.number)">
-                          <p>
-                            <strong>{{stageNo.number}}</strong>
-                          </p>
-                        </div>
-                      </a>
-                    </li>
-                  </ul>
-                  <!-- /.dropdown-tasks -->
-                </li>
+    <div class="col-sm-12 col-xs-12" *ngIf="is_enough_data_for_plots && selected_stage_no !== -1">
+      <div class="panel panel-default chartJs">
+          <div class="panel-heading">
+            <div class="card-title">
+              <div class="col-md-6">
+                <div class="title pull-left">Quantile Quantile (QQ) Plot against Other Stage Data with {{scale}} Scale &nbsp;</div>
               </div>
-              <div style="margin-top: 5%">
-                <span>Data scale:</span>
-                <li id="availableScalesQQJS" class="dropdown">
-                  <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-                    {{selectedScaleForQQJS}} <i class="fa fa-caret-down"></i>
-                  </a>
-                  <ul class="dropdown-menu dropdown-tasks">
-                    <li *ngFor="let scaleQQJS of availableScalesForQQJS">
-                      <a>
-                        <div (click)="selectScaleForQQJS(scaleQQJS)">
-                          <p>
-                            <strong>{{scaleQQJS}}</strong>
-                          </p>
-                        </div>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="title">Other  Stage</div>
+                <select class="form-control"
+                        [(ngModel)]="selected_stage_for_qq_js" (ngModelChange)="selectStageNoForQQJS($event)" size="1">
+                  <option *ngFor="let stage_no of availableStages" value="{{stage_no.number}}">{{stage_no.number}}</option>
+                </select>
               </div>
             </div>
           </div>
-        </div>
-        <div class="panel-body svg-container" style="margin-top: 5%">
-          <div [hidden]="!qqJSPlotIsRendered">
-            <svg id="qqPlotJS{{selected_stage_no}}" viewBox="0 0 500 500" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>
+
+          <div class="panel-body">
+            <div class="col-md-12">
+              <div class="panel-body" style="padding-top: 20px">
+                <div class="svg-container"></div>
+                <div [hidden]="!qqJSPlotIsRendered">
+                  <!--<svg id="qqPlotJS{{selected_stage_no}}" viewBox="0 0 500 500" class="svg-content"></svg>-->
+                  <svg id="qqPlotJS{{selected_stage_no}}" viewBox="0 0 50 50"
+                       preserveAspectRatio="xMinYMin meet" class="svg-content"
+                       style="width: 50%; display: block; margin-left: auto; margin-right: auto"></svg>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="panel-footer">
-          <button type="button" class="btn btn-primary" (click)="drawQQJS()" id="renderQQJSButton">Render Plot</button>
-        </div>
       </div>
     </div>
-
   </div>
 </div>

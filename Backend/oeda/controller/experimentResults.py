@@ -2,25 +2,12 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, Api
 from elasticsearch import Elasticsearch
 from datetime import datetime
+from oeda.controller.StageController import StageController as sc
 
 from oeda.databases import db
 import json as json
 import traceback
 
-experimentResults = {
-    "123123":
-        {
-            "id": "123123",
-            "name": "TestName",
-            "status": "RUNNING"
-        },
-    "123124":
-        {
-            "id": "123124",
-            "name": "Done Stuff",
-            "status": "SUCCESS"
-        }
-}
 
 # TODO: retrieve these hard-coded values from respective configuration files
 elastic_search_index = "rtx"
@@ -38,13 +25,39 @@ class StageResultsWithExperimentIdController(Resource):
 
     def post(self, experiment_id):
         content = request.get_json()
-        experimentResults[experiment_id] = content
         # here we first check if the experiment can be run and then fork it
         return {}, 200
 
-class ExperimentsResultsListController(Resource):
-    def get(self):
-        return experimentResults.values()
+class AllStageResultsWithExperimentIdController(Resource):
+    # first gets all stages of given experiment, then concats all data to a single tuple
+    def get(self, experiment_id):
+        try:
+            all_stage_data = [];
+
+            # Same function in StageController class, TODO: how to reuse it?
+            stage_ids, stages = db().get_stages(experiment_id)
+            new_stages = stages
+            i = 0
+            for stage in stages:
+                new_stages[i]["id"] = stage_ids[i]
+                i += 1
+
+            for stage in new_stages:
+                data = get_data_points(experiment_id, stage['number'])
+
+                # filtering out stages with none values?
+                if len(data) > 0:
+                    for point in data:
+                        all_stage_data.append(point)
+
+            resp = jsonify(ExperimentResults=json.dumps(all_stage_data), sort_keys=True)
+            resp.status_code = 200
+            return resp
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(tb)
+            return {"error": e.message}, 404
+
 
 # Helper Function to fetch data from ES with given parameters
 def get_data_points(experiment_id, stage_no):

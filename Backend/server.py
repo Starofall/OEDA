@@ -5,10 +5,9 @@ from flask_restful import Resource, Api
 from oeda.controller.targets import TargetController, TargetsListController
 from oeda.controller.configuration import ConfigurationController
 
-from oeda.controller.experiments import ExperimentsListController, ExperimentController
 from oeda.service.execution_scheduler import initialize_execution_scheduler
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
-from oeda.controller.experimentResults import ExperimentsResultsListController, StageResultsWithExperimentIdController
+from oeda.controller.experimentResults import StageResultsWithExperimentIdController, AllStageResultsWithExperimentIdController
 from oeda.controller.StageController import StageController
 from oeda.controller.plotting import QQPlotController
 
@@ -75,7 +74,7 @@ api.add_resource(TargetsListController, '/api/targets')
 api.add_resource(TargetController, '/api/targets/<string:target_id>')
 
 api.add_resource(StageResultsWithExperimentIdController, '/api/experimentResults/<string:experiment_id>/<string:stage_no>')
-api.add_resource(ExperimentsResultsListController, '/api/experimentsResults')
+api.add_resource(AllStageResultsWithExperimentIdController, '/api/experimentResults/<string:experiment_id>')
 api.add_resource(QQPlotController, '/api/qqPlot/<string:distribution>/<string:scale>')
 api.add_resource(StageController, '/api/stages/<string:experiment_id>')
 

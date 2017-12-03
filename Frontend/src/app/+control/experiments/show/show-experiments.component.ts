@@ -6,6 +6,7 @@ import {Experiment, Target, OEDAApiService} from "../../../shared/modules/api/oe
 import { AmChartsService, AmChart } from "@amcharts/amcharts3-angular";
 import * as d3 from "d3";
 import {isNullOrUndefined} from "util";
+import {Observable} from "rxjs/Observable";
 
 @Component({
   selector: 'show-control-experiments',
@@ -19,7 +20,7 @@ export class ShowExperimentsComponent implements OnInit {
   private chart2: AmChart;
   private chart3: AmChart;
 
-  private dataAvailable: boolean;
+  public dataAvailable: boolean;
 
   private divId: string;
   private histogramDivId: string;
@@ -28,29 +29,26 @@ export class ShowExperimentsComponent implements OnInit {
   private filterSummaryId: string;
   private histogramLogDivId: string;
   private processedData: object;
-  private processedDataForQQPlotJS: any;
 
   public experiment_id: string;
   public experiment: Experiment;
   public targetSystem: Target;
-  public isLogSelected: boolean;
-  public isLogSelectedQQ: boolean;
+
   public initialThresholdForSmoothLineChart: number;
 
   // following attributes are used for QQ plotting in Python
-  public availableDistributions: object;
-  public availableScales: object;
+  public available_distributions: object;
   public distribution: string;
   public scale: string;
-  public qqPlotIsRendered: boolean;
+  public is_qq_plot_rendered: boolean;
 
   // following attributes are used for QQ plotting in JavaScript
   public availableStageNosForQQJS: any;
-  public availableScalesForQQJS: object;
-  public selectedScaleForQQJS: string;
-  public selectedStageNoForQQJS: string;
+
+  public selected_stage_for_qq_js: string;
   public qqJSPlotIsRendered: boolean;
   public is_enough_data_for_plots: boolean;
+  public is_all_stages_selected: boolean;
 
   public availableStages = [];
   public selected_stage_no: any;
@@ -58,30 +56,28 @@ export class ShowExperimentsComponent implements OnInit {
   constructor(private layout: LayoutService,
               private apiService: OEDAApiService,
               private AmCharts: AmChartsService,
-              private activatedRoute: ActivatedRoute,
+              private activated_route: ActivatedRoute,
               private notify: NotificationsService) {
 
     this.layout.setHeader("Experiment Results", "");
     this.dataAvailable = false;
-    this.isLogSelected = false;
-    this.isLogSelectedQQ = false;
-    this.distribution = "Select a distribution";
-    this.scale = "Select a scale";
-    this.availableDistributions = ['Norm', 'Gamma', 'Logistic', 'T', 'Uniform', 'Lognorm', 'Loggamma'];
-    this.availableScales = ['Normal', 'Log'];
-    this.qqPlotIsRendered = false;
-
-    this.selectedStageNoForQQJS = "Select a stage";
-    this.selectedScaleForQQJS = "Select a scale";
-
-    this.availableStageNosForQQJS = [];
-    this.availableScalesForQQJS = ['Normal', 'Log'];
+    this.is_all_stages_selected = false;
+    this.is_qq_plot_rendered = false;
     this.qqJSPlotIsRendered = false;
     this.is_enough_data_for_plots = false;
 
+    this.scale = "Normal";
+
+    this.distribution = "Norm";
+    this.available_distributions = ['Norm', 'Gamma', 'Logistic', 'T', 'Uniform', 'Lognorm', 'Loggamma'];
+
+    this.selected_stage_for_qq_js = "Select a stage";
+
+    this.availableStageNosForQQJS = [];
+
 
     // subscribe to router event
-    this.activatedRoute.params.subscribe((params: Params) => {
+    this.activated_route.params.subscribe((params: Params) => {
       // id is retrieved from URI
       this.experiment_id = params["id"];
 
@@ -387,7 +383,13 @@ export class ShowExperimentsComponent implements OnInit {
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
-                    this.availableStages = stages;
+                    // created variable can also be added here if necessary
+                    // casting might not have to be done here
+                    const all_stages = {"number": "All Stages"};
+                    this.availableStages.push(all_stages);
+                    for (let j = 0; j < stages.length; j++) {
+                      this.availableStages.push(stages[j]);
+                    }
                     this.dataAvailable = true;
                   }
                 });
@@ -397,11 +399,6 @@ export class ShowExperimentsComponent implements OnInit {
         } else {
           this.notify.error("Error", "Cannot retrieve details of selected experiment, make sure DB is up and running");
         }
-        // for (let k = 0; k < allExperiments.length; k++) {
-        //   if (allExperiments[k].id !== ctrl.exp_run_id) {
-        //     ctrl.availableExpRunIdsForQQJS.push(allExperiments[k].id);
-        //   }
-        // }
       });
     } else {
       this.notify.error("Error", "Failed retrieving experiment id, please check URI");
@@ -409,7 +406,50 @@ export class ShowExperimentsComponent implements OnInit {
 
   }
 
-  drawHistogram(divID, processedData, isLogSelected) {
+  draw_all_plots(selected_stage_no, data, scale) {
+    const ctrl = this;
+    // set it to false in case a new scale is selected
+    ctrl.is_enough_data_for_plots = false;
+    const expRes = JSON.parse(data["ExperimentResults"]);
+    console.log(expRes);
+    if (expRes !== undefined && expRes.length !== 0) {
+      ctrl.divId = "chartdiv" + selected_stage_no;
+      ctrl.histogramDivId = "histogram" + selected_stage_no;
+      ctrl.histogramLogDivId = ctrl.histogramDivId + "_log";
+      ctrl.filterSummaryId = "filterSummary" + selected_stage_no;
+
+      ctrl.qqPlotDivId = "qqPlot" + selected_stage_no;
+      ctrl.qqPlotDivIdJS = "qqPlotJS" + selected_stage_no;
+
+      ctrl.processedData = ctrl.process_data(data, "ExperimentResults", "timestamp", "value", scale);
+
+      // // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
+      const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
+      ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95);
+
+      ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
+      ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData, scale);
+      ctrl.draw_qq_plot();
+
+      // initial case when page is rendered, check if next stage exists
+      if (ctrl.selected_stage_no !== -1 && ctrl.selected_stage_for_qq_js === "Select a stage") {
+        // check if next stage exists
+        ctrl.availableStages.some(function(element) {
+          if (Number(element.number) === Number(ctrl.selected_stage_no) + 1) {
+            // TODO: ensure that next stage has enough data?
+            ctrl.selected_stage_for_qq_js = (Number(ctrl.selected_stage_no) + 1).toString();
+            ctrl.draw_qq_js(ctrl.selected_stage_for_qq_js);
+            return true;
+          }
+        });
+      }
+      ctrl.is_enough_data_for_plots = true;
+    } else {
+      ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
+    }
+  }
+
+  draw_histogram(divID, processedData, scale) {
     const AmCharts = this.AmCharts;
     const histogram = AmCharts.makeChart(divID, {
       "type": "serial",
@@ -418,7 +458,7 @@ export class ShowExperimentsComponent implements OnInit {
         "enabled": true
       },
       "columnWidth": 1,
-      "dataProvider": this.categorizeData(processedData, isLogSelected),
+      "dataProvider": this.categorize_data(processedData, scale),
       "graphs": [{
         "fillColors": "#c55",
         "fillAlphas": 0.9,
@@ -440,16 +480,16 @@ export class ShowExperimentsComponent implements OnInit {
   }
 
   // helper function to distribute overheads in the given data to fixed-size bins (i.e. by 0.33 increment)
-  categorizeData(data, isLogSelected) {
+  categorize_data(data, scale) {
     // create bins if log is not selected
     const bins = [];
-    const onlyValuesInData = this.extractValuesFromArray(data, "value");
-    const transformedData = this.getTransformedData(onlyValuesInData, isLogSelected);
+    const onlyValuesInData = this.extract_values_from_array(data, "value");
+    const transformedData = this.get_transformed_data(onlyValuesInData, scale);
 
-    const upperThresholdForBins = this.getMaximumValueFromArray(transformedData);
+    const upperThresholdForBins = this.get_maximum_value_from_array(transformedData);
 
     // data is also transformed here
-    const nrOfBins = this.determineNumberOfBinsForHistogram(onlyValuesInData, 10);
+    const nrOfBins = this.determine_nr_of_bins_for_histogram(onlyValuesInData, 10);
     const stepSize = upperThresholdForBins / nrOfBins;
 
     for (let i = 0; i < upperThresholdForBins; i = i + stepSize) {
@@ -462,7 +502,7 @@ export class ShowExperimentsComponent implements OnInit {
     for (let j = 0; j < data.length - 1; j = j + 1) {
 
       let val = data[j]["value"];
-      if (isLogSelected) {
+      if (this.scale === "Log") {
         val = Math.log(val);
       }
 
@@ -488,7 +528,7 @@ export class ShowExperimentsComponent implements OnInit {
     return bins;
   }
 
-  drawSmoothLineChart(divID, summaryFieldID, processedData) {
+  draw_smooth_line_chart(divID, summaryFieldID, processedData) {
     const ctrl = this;
     let selectedThreshold = -1;
     const AmCharts = this.AmCharts;
@@ -627,14 +667,10 @@ export class ShowExperimentsComponent implements OnInit {
 
   }
 
-  drawQQPlot() {
+  draw_qq_plot() {
     const ctrl = this;
     if (ctrl.distribution === "Select a distribution") {
       alert("Please select a distribution");
-      return;
-    }
-    if (ctrl.scale === "Select a scale") {
-      alert("Please select a scale");
       return;
     }
 
@@ -643,7 +679,7 @@ export class ShowExperimentsComponent implements OnInit {
         response => {
           const obj = JSON.parse(response._body);
           const imageSrc = 'data:image/jpg;base64,' + obj;
-          ctrl.qqPlotIsRendered = true;
+          ctrl.is_qq_plot_rendered = true;
           document.getElementById(ctrl.qqPlotDivId).setAttribute( 'src', imageSrc);
         });
     } else {
@@ -651,8 +687,246 @@ export class ShowExperimentsComponent implements OnInit {
     }
   }
 
+  draw_qq_js(other_stage_no) {
+    const ctrl = this;
+    console.log("selected_stage_no", ctrl.selected_stage_no);
+    console.log("other_stage_no", other_stage_no);
+    // clear svg data, so that two different plots should not overlap with each other upon several rendering
+    // https://stackoverflow.com/questions/3674265/is-there-an-easy-way-to-clear-an-svg-elements-contents
+    d3.select("#" + ctrl.qqPlotDivIdJS).selectAll("*").remove();
+
+    let data_for_x_axis: number[];
+    data_for_x_axis = Array<number>();
+    let data_for_y_axis: number[];
+    data_for_y_axis = Array<number>();
+
+    // TODO: how to guarantee that retrieval operations for both stages have same number of data points for an ongoing experiment?
+    // retrieve data for the initially selected stage
+    ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selected_stage_no).subscribe(
+      data => {
+        if (isNullOrUndefined(data)) {
+          this.notify.error("Error", "Cannot retrieve data for stage " + ctrl.selected_stage_no + " from DB, please try again");
+          return;
+        }
+        data_for_x_axis = ctrl.process_data(data, "ExperimentResults", null, null, ctrl.scale);
+        // retrieve data for the newly selected stage
+        ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, other_stage_no).subscribe(
+        data2 => {
+          if (isNullOrUndefined(data2)) {
+            this.notify.error("Error", "Cannot retrieve data for stage " + other_stage_no + " from DB, please try again");
+            return;
+          }
+          data_for_y_axis = ctrl.process_data(data2, "ExperimentResults", null, null, ctrl.scale);
+
+          function t(t,n){var r=n.length-1;return n=n.slice().sort(d3.ascending),d3.range(t).map(function(a){return n[~~(a*r/t)]})}
+          function n(t){return t.x}
+          function r(t){return t.y}
+
+          var width = 450,
+            height = 450,
+            margin = {top: 20, right: 10, bottom: 20, left: 35},
+            n1 = data_for_y_axis.length; // number of samples to generate
+
+          var chart = (qq() as any)
+            .width(width)
+            .height(height)
+            .domain([-.1, 1.1])
+            .tickFormat(function(d) { return ~~(d * 100); });
+
+          var vis = d3.select("#" + ctrl.qqPlotDivIdJS)
+            .attr("width", width + margin.right + margin.left)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          // let dataForXAxis = <Array<number>> data_for_x_axis;
+          // dataForXAxis = dataForXAxis.sort( function(a,b){return a - b; } );
+          // let dataForYAxis = <Array<number>> data_for_y_axis;
+          // dataForYAxis = dataForYAxis.sort(function(a,b){return a - b; } );
+
+          //if (ctrl.scale === "Log") {
+          //	dataForXAxis = ctrl.get_transformed_data(dataForXAxis, ctrl.scale);
+          //	dataForYAxis = ctrl.get_transformed_data(dataForYAxis, ctrl.scale);
+          //}
+
+          var tm = mean(data_for_x_axis);
+          var td = Math.sqrt(variance(data_for_x_axis));
+
+          var g = vis.selectAll("g")
+            .data([{
+              x: data_for_x_axis,
+              y: data_for_y_axis,
+              label: "Distribution of Stages"
+            }])
+            .enter().append("g")
+            .attr("class", "qq")
+            .attr("transform", function(d, i) { return "translate(" + (width + margin.right + margin.left) * i + ")"; });
+          g.append("rect")
+            .attr("class", "box")
+            .attr("width", width)
+            .attr("height", height);
+          g.call(chart);
+          g.append("text")
+            .attr("dy", "1.3em")
+            .attr("dx", ".6em")
+            .text(function(d) { return d.label; });
+          chart.duration(1000);
+          window['transition'] = function() {
+            g.datum(randomize).call(chart);
+          };
+
+
+
+          function randomize(d) {
+            d.y = d3.range(n).map(Math.random);
+            return d;
+          }
+
+          // Sample from a normal distribution with mean 0, stddev 1.
+          function normal() {
+            var x = 0, y = 0, rds, c;
+            do {
+              x = Math.random() * 2 - 1;
+              y = Math.random() * 2 - 1;
+              rds = x * x + y * y;
+            } while (rds === 0 || rds > 1);
+            c = Math.sqrt(-2 * Math.log(rds) / rds); // Box-Muller transform
+            return x * c; // throw away extra sample y * c
+          }
+
+          // Simple 1D Gaussian (normal) distribution
+          function normal1(mean, deviation) {
+            return function() {
+              return mean + deviation * normal();
+            };
+          }
+
+          // Welford's algorithm.
+          function mean(x) {
+            var n = x.length;
+            if (n === 0) return NaN;
+            var m = 0,
+              i = -1;
+            while (++i < n) m += (x[i] - m) / (i + 1);
+            return m;
+          }
+
+          // Unbiased estimate of a sample's variance.
+          // Also known as the sample variance, where the denominator is n - 1.
+          function variance(x) {
+            var n = x.length;
+            if (n < 1) return NaN;
+            if (n === 1) return 0;
+            var m = mean(x),
+              i = -1,
+              s = 0;
+            while (++i < n) {
+              var v = x[i] - m;
+              s += v * v;
+            }
+            return s / (n - 1);
+          }
+
+          function qq() {
+            function a(n) {
+              n.each(function(n, r) {
+                var a, y, g = d3.select(this),
+                  f = t(s, l.call(this, n, r)),
+                  m = t(s, d.call(this, n, r)),
+                  x = o && o.call(this, n, r) || [d3.min(f), d3.max(f)],
+                  h = o && o.call(this, n, r) || [d3.min(m), d3.max(m)],
+                  p = d3.scale.linear().domain(x).range([0, e]),
+                  v = d3.scale.linear().domain(h).range([i, 0]);
+                this.__chart__ ? (a = this.__chart__.x, y = this.__chart__.y) : (a = d3.scale.linear().domain([0, 1 / 0]).range(p.range()), y = d3.scale.linear().domain([0, 1 / 0]).range(v.range())), this.__chart__ = {
+                  x: p,
+                  y: v
+                };
+                var _ = g.selectAll("line.diagonal").data([null]);
+                _.enter().append("svg:line").attr("class", "diagonal").attr("x1", p(h[0])).attr("y1", v(x[0])).attr("x2", p(h[1])).attr("y2", v(x[1])), _.transition().duration(c).attr("x1", p(h[0])).attr("y1", v(x[0])).attr("x2", p(h[1])).attr("y2", v(x[1]));
+                var k = g.selectAll("circle").data(d3.range(s).map(function(t) {
+                  return {
+                    x: f[t],
+                    y: m[t]
+                  }
+                }));
+                k.enter().append("svg:circle").attr("class", "quantile").attr("r", 4.5).attr("cx", function(t) {
+                  return a(t.x)
+                }).attr("cy", function(t) {
+                  return y(t.y)
+                }).style("opacity", 1e-6).transition().duration(c).attr("cx", function(t) {
+                  return p(t.x)
+                }).attr("cy", function(t) {
+                  return v(t.y)
+                }).style("opacity", 1), k.transition().duration(c).attr("cx", function(t) {
+                  return p(t.x)
+                }).attr("cy", function(t) {
+                  return v(t.y)
+                }).style("opacity", 1), k.exit().transition().duration(c).attr("cx", function(t) {
+                  return p(t.x)
+                }).attr("cy", function(t) {
+                  return v(t.y)
+                }).style("opacity", 1e-6).remove();
+                var A = u || p.tickFormat(4),
+                  q = u || v.tickFormat(4),
+                  F = function(t) {
+                    return "translate(" + p(t) + "," + i + ")"
+                  },
+                  C = function(t) {
+                    return "translate(0," + v(t) + ")"
+                  },
+                  w = g.selectAll("g.x.tick").data(p.ticks(4), function(t) {
+                    return this.textContent || A(t)
+                  }),
+                  b = w.enter().append("svg:g").attr("class", "x tick").attr("transform", function(t) {
+                    return "translate(" + a(t) + "," + i + ")"
+                  }).style("opacity", 1e-6);
+                b.append("svg:line").attr("y1", 0).attr("y2", -6), b.append("svg:text").attr("text-anchor", "middle").attr("dy", "1em").text(A), b.transition().duration(c).attr("transform", F).style("opacity", 1), w.transition().duration(c).attr("transform", F).style("opacity", 1), w.exit().transition().duration(c).attr("transform", F).style("opacity", 1e-6).remove();
+                var j = g.selectAll("g.y.tick").data(v.ticks(4), function(t) {
+                    return this.textContent || q(t)
+                  }),
+                  z = j.enter().append("svg:g").attr("class", "y tick").attr("transform", function(t) {
+                    return "translate(0," + y(t) + ")"
+                  }).style("opacity", 1e-6);
+                z.append("svg:line").attr("x1", 0).attr("x2", 6), z.append("svg:text").attr("text-anchor", "end").attr("dx", "-.5em").attr("dy", ".3em").text(q), z.transition().duration(c).attr("transform", C).style("opacity", 1), j.transition().duration(c).attr("transform", C).style("opacity", 1), j.exit().transition().duration(c).attr("transform", C).style("opacity", 1e-6).remove()
+              })
+            }
+            var e = 1,
+              i = 1,
+              c = 0,
+              o = null,
+              u = null,
+              s = 100,
+              l = n,
+              d = r;
+            return a["width"] = function(t) {
+              return arguments.length ? (e = t, a) : e
+            }, a["height"] = function(t) {
+              return arguments.length ? (i = t, a) : i
+            }, a["duration"] = function(t) {
+              return arguments.length ? (c = t, a) : c
+            }, a["domain"] = function(t) {
+              return arguments.length ? (o = null == t ? t : d3.functor(t), a) : o
+            }, a["count"] = function(t) {
+              return arguments.length ? (s = t, a) : s
+            }, a["x"] = function(t) {
+              return arguments.length ? (l = t, a) : l
+            }, a["y"] = function(t) {
+              return arguments.length ? (d = t, a) : d
+            }, a["tickFormat"] = function(t) {
+              return arguments.length ? (u = t, a) : u
+            }, a
+          }
+
+          ctrl.qqJSPlotIsRendered = true;
+
+        });
+
+      });
+  }
+
   // helper function for graphs
-  processData(jsonObject, outerKey, xAttribute, yAttribute) {
+  process_data(jsonObject, outerKey, xAttribute, yAttribute, scale): Array<number> {
+    const ctrl = this;
     try {
       if (jsonObject !== undefined && jsonObject.hasOwnProperty(outerKey)) {
         const processedData = [];
@@ -662,11 +936,21 @@ export class ShowExperimentsComponent implements OnInit {
             if (xAttribute !== null && yAttribute !== null) {
               const newElement = {};
               newElement[xAttribute] = element["created"];
+              if (scale === "Log") {
+                element["payload"]["overhead"] = Math.log(element["payload"]["overhead"]);
+              }
               newElement[yAttribute] = element["payload"]["overhead"];
               processedData.push(newElement);
             } else {
-              // this is for plotting qq plot with JS side, as it only requires raw data in log scale
-              processedData.push(Math.log(element["payload"]["overhead"]));
+              // this is for plotting qq plot with JS, as it only requires raw data in log or normal scale
+              if (scale === "Log") {
+                processedData.push(Math.log(element["payload"]["overhead"]));
+              } else if (scale === "Normal") {
+                processedData.push(element["payload"]["overhead"]);
+              } else {
+                ctrl.notify.error("Error", "Please provide a valid scale");
+                return;
+              }
             }
           }
         });
@@ -679,9 +963,9 @@ export class ShowExperimentsComponent implements OnInit {
     }
   }
 
-  getTransformedData(data, isLogSelected) {
+  get_transformed_data(data, scale) {
     const loggedData = [];
-    if (isLogSelected) {
+    if (scale === "Log") {
       for (const number of data) {
         if (number > 0)
           loggedData.push(Math.log(number));
@@ -691,12 +975,12 @@ export class ShowExperimentsComponent implements OnInit {
     return data;
   }
 
-  getMaximumValueFromArray(array) {
+  get_maximum_value_from_array(array) {
     const max_of_array = Math.max.apply(Math, array);
     return max_of_array;
   }
 
-  extractValuesFromArray(array, attribute) {
+  extract_values_from_array(array, attribute) {
     const retVal = [];
     for (let i = 0; i < array.length; i++) {
       retVal.push(array[i][attribute]);
@@ -704,265 +988,105 @@ export class ShowExperimentsComponent implements OnInit {
     return retVal;
   }
 
-  calculateThresholdForGivenPercentile(data, percentile) {
+  calculate_threshold_for_given_percentile(data, percentile) {
     const sortedData = data.sort(this.sort_by('value', true, parseFloat));
     const index = Math.floor(sortedData.length * percentile / 100 - 1);
     const result = sortedData[index]["value"];
     return +result.toFixed(2);
   }
 
-  // helper function that filters out data above the given threshold
-  filterOutliers(event) {
-    const target = event.target || event.srcElement || event.currentTarget;
-    const idAttr = target.attributes.id;
-    const value = idAttr.nodeValue;
-    console.log(target);
-    console.log(idAttr);
-    console.log(value);
-  }
-
-  drawQQJS() {
-    const ctrl = this;
-    if (ctrl.selectedStageNoForQQJS === "Select a stage") {
-      alert("Please select a stage first");
-      return;
-    }
-
-    if (ctrl.selectedScaleForQQJS === "Select a scale") {
-      alert("Please select a scale");
-      return;
-    }
-
-    // clear svg data, so that two different plots should not overlap with each other upon several rendering
-    // https://stackoverflow.com/questions/3674265/is-there-an-easy-way-to-clear-an-svg-elements-contents
-    d3.select("#" + ctrl.qqPlotDivIdJS).selectAll("*").remove();
-
-    if (ctrl.processedDataForQQPlotJS !== null && ctrl.selectedStageNoForQQJS !== null) {
-      // first retrieve data for the selected experiment run
-      ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selectedStageNoForQQJS).subscribe(data => {
-        const expRes = JSON.parse(data["ExperimentResults"]);
-        let dataForYAxis = ctrl.processData(data, "ExperimentResults", null, null);
-
-        function t(t,n){var r=n.length-1;return n=n.slice().sort(d3.ascending),d3.range(t).map(function(a){return n[~~(a*r/t)]})}
-        function n(t){return t.x}
-        function r(t){return t.y}
-
-        var width = 400,
-          height = 400,
-          margin = {top: 20, right: 10, bottom: 20, left: 35},
-          n1 = 500; // number of samples to generate TODO: should be equal to the number of points retrieved from DB
-
-        var chart = (qq() as any)
-          .width(width)
-          .height(height)
-          .domain([-.1, 1.1])
-          .tickFormat(function(d) { return ~~(d * 100); });
-
-        var vis = d3.select("#" + ctrl.qqPlotDivIdJS)
-          .attr("width", width + margin.right + margin.left)
-          .attr("height", height + margin.top + margin.bottom)
-          .append("g")
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        let dataForXAxis = <Array<number>> ctrl.processedDataForQQPlotJS;
-        dataForXAxis = dataForXAxis.sort( function(a,b){return a - b; } );
-        dataForYAxis = dataForYAxis.sort(function(a,b){return a - b; } );
-
-        if (ctrl.selectedScaleForQQJS === "Log") {
-          dataForXAxis = ctrl.getTransformedData(dataForXAxis, true);
-          dataForYAxis = ctrl.getTransformedData(dataForYAxis, true);
-        }
-
-        var tm = mean(dataForXAxis);
-        var td = Math.sqrt(variance(dataForXAxis));
-
-        var g = vis.selectAll("g")
-          .data([{
-            x: dataForXAxis,
-            y: dataForYAxis,
-            label: "Distribution of Two Experiment Runs"
-          }])
-          .enter().append("g")
-          .attr("class", "qq")
-          .attr("transform", function(d, i) { return "translate(" + (width + margin.right + margin.left) * i + ")"; });
-        g.append("rect")
-          .attr("class", "box")
-          .attr("width", width)
-          .attr("height", height);
-        g.call(chart);
-        g.append("text")
-          .attr("dy", "1.3em")
-          .attr("dx", ".6em")
-          .text(function(d) { return d.label; });
-        chart.duration(1000);
-        window['transition'] = function() {
-          g.datum(randomize).call(chart);
-        };
-
-        ctrl.qqJSPlotIsRendered = true;
-
-        function randomize(d) {
-          d.y = d3.range(n).map(Math.random);
-          return d;
-        }
-
-        // Sample from a normal distribution with mean 0, stddev 1.
-        function normal() {
-          var x = 0, y = 0, rds, c;
-          do {
-            x = Math.random() * 2 - 1;
-            y = Math.random() * 2 - 1;
-            rds = x * x + y * y;
-          } while (rds === 0 || rds > 1);
-          c = Math.sqrt(-2 * Math.log(rds) / rds); // Box-Muller transform
-          return x * c; // throw away extra sample y * c
-        }
-
-        // Simple 1D Gaussian (normal) distribution
-        function normal1(mean, deviation) {
-          return function() {
-            return mean + deviation * normal();
-          };
-        }
-
-        // Welford's algorithm.
-        function mean(x) {
-          var n = x.length;
-          if (n === 0) return NaN;
-          var m = 0,
-            i = -1;
-          while (++i < n) m += (x[i] - m) / (i + 1);
-          return m;
-        }
-
-        // Unbiased estimate of a sample's variance.
-        // Also known as the sample variance, where the denominator is n - 1.
-        function variance(x) {
-          var n = x.length;
-          if (n < 1) return NaN;
-          if (n === 1) return 0;
-          var m = mean(x),
-            i = -1,
-            s = 0;
-          while (++i < n) {
-            var v = x[i] - m;
-            s += v * v;
-          }
-          return s / (n - 1);
-        }
-
-        function qq() {
-          function a(n) {
-            n.each(function(n, r) {
-              var a, y, g = d3.select(this),
-                f = t(s, l.call(this, n, r)),
-                m = t(s, d.call(this, n, r)),
-                x = o && o.call(this, n, r) || [d3.min(f), d3.max(f)],
-                h = o && o.call(this, n, r) || [d3.min(m), d3.max(m)],
-                p = d3.scale.linear().domain(x).range([0, e]),
-                v = d3.scale.linear().domain(h).range([i, 0]);
-              this.__chart__ ? (a = this.__chart__.x, y = this.__chart__.y) : (a = d3.scale.linear().domain([0, 1 / 0]).range(p.range()), y = d3.scale.linear().domain([0, 1 / 0]).range(v.range())), this.__chart__ = {
-                x: p,
-                y: v
-              };
-              var _ = g.selectAll("line.diagonal").data([null]);
-              _.enter().append("svg:line").attr("class", "diagonal").attr("x1", p(h[0])).attr("y1", v(x[0])).attr("x2", p(h[1])).attr("y2", v(x[1])), _.transition().duration(c).attr("x1", p(h[0])).attr("y1", v(x[0])).attr("x2", p(h[1])).attr("y2", v(x[1]));
-              var k = g.selectAll("circle").data(d3.range(s).map(function(t) {
-                return {
-                  x: f[t],
-                  y: m[t]
-                }
-              }));
-              k.enter().append("svg:circle").attr("class", "quantile").attr("r", 4.5).attr("cx", function(t) {
-                return a(t.x)
-              }).attr("cy", function(t) {
-                return y(t.y)
-              }).style("opacity", 1e-6).transition().duration(c).attr("cx", function(t) {
-                return p(t.x)
-              }).attr("cy", function(t) {
-                return v(t.y)
-              }).style("opacity", 1), k.transition().duration(c).attr("cx", function(t) {
-                return p(t.x)
-              }).attr("cy", function(t) {
-                return v(t.y)
-              }).style("opacity", 1), k.exit().transition().duration(c).attr("cx", function(t) {
-                return p(t.x)
-              }).attr("cy", function(t) {
-                return v(t.y)
-              }).style("opacity", 1e-6).remove();
-              var A = u || p.tickFormat(4),
-                q = u || v.tickFormat(4),
-                F = function(t) {
-                  return "translate(" + p(t) + "," + i + ")"
-                },
-                C = function(t) {
-                  return "translate(0," + v(t) + ")"
-                },
-                w = g.selectAll("g.x.tick").data(p.ticks(4), function(t) {
-                  return this.textContent || A(t)
-                }),
-                b = w.enter().append("svg:g").attr("class", "x tick").attr("transform", function(t) {
-                  return "translate(" + a(t) + "," + i + ")"
-                }).style("opacity", 1e-6);
-              b.append("svg:line").attr("y1", 0).attr("y2", -6), b.append("svg:text").attr("text-anchor", "middle").attr("dy", "1em").text(A), b.transition().duration(c).attr("transform", F).style("opacity", 1), w.transition().duration(c).attr("transform", F).style("opacity", 1), w.exit().transition().duration(c).attr("transform", F).style("opacity", 1e-6).remove();
-              var j = g.selectAll("g.y.tick").data(v.ticks(4), function(t) {
-                  return this.textContent || q(t)
-                }),
-                z = j.enter().append("svg:g").attr("class", "y tick").attr("transform", function(t) {
-                  return "translate(0," + y(t) + ")"
-                }).style("opacity", 1e-6);
-              z.append("svg:line").attr("x1", 0).attr("x2", 6), z.append("svg:text").attr("text-anchor", "end").attr("dx", "-.5em").attr("dy", ".3em").text(q), z.transition().duration(c).attr("transform", C).style("opacity", 1), j.transition().duration(c).attr("transform", C).style("opacity", 1), j.exit().transition().duration(c).attr("transform", C).style("opacity", 1e-6).remove()
-            })
-          }
-          var e = 1,
-            i = 1,
-            c = 0,
-            o = null,
-            u = null,
-            s = 100,
-            l = n,
-            d = r;
-          return a["width"] = function(t) {
-            return arguments.length ? (e = t, a) : e
-          }, a["height"] = function(t) {
-            return arguments.length ? (i = t, a) : i
-          }, a["duration"] = function(t) {
-            return arguments.length ? (c = t, a) : c
-          }, a["domain"] = function(t) {
-            return arguments.length ? (o = null == t ? t : d3.functor(t), a) : o
-          }, a["count"] = function(t) {
-            return arguments.length ? (s = t, a) : s
-          }, a["x"] = function(t) {
-            return arguments.length ? (l = t, a) : l
-          }, a["y"] = function(t) {
-            return arguments.length ? (d = t, a) : d
-          }, a["tickFormat"] = function(t) {
-            return arguments.length ? (u = t, a) : u
-          }, a
-        }
-
-
-      });
-    } else {
-      alert("An error occurred, please refresh the web-page");
-    }
-
-  }
-
-  selectStageNoForQQJS(selectedStageNo) {
-    this.selectedStageNoForQQJS = selectedStageNo;
-  }
-
-  selectScaleForQQJS(selectedScaleForQQJS) {
-    this.selectedScaleForQQJS = selectedScaleForQQJS;
+  selectStageNoForQQJS(selected_stage_for_qq_js) {
+    console.log("selected_stage_for_qq_js", selected_stage_for_qq_js);
+    this.selected_stage_for_qq_js = selected_stage_for_qq_js;
+    this.draw_qq_js(this.selected_stage_for_qq_js);
   }
 
   selectDistribution(distName) {
     this.distribution = distName;
+    this.draw_qq_plot();
   }
 
-  selectScale(scaleName) {
-    this.scale = scaleName;
+
+// https://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects
+  sort_by(field, reverse, primer) {
+    const key = function (x) {return primer ? primer(x[field]) : x[field]};
+    return function (a, b) {
+      const A = key(a), B = key(b);
+      return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1, 1][+!!reverse];
+    }
+  }
+
+  get_bin_width(array) {
+    return 2 * this.iqr(array) * Math.pow(array.length, -1 / 3);
+  }
+
+  // metric = array of real numbers (like > 100 or something)
+  // IQR = inter-quaartile-range
+  determine_nr_of_bins_for_histogram(array, defaultBins) {
+    const h = this.get_bin_width(array), ulim = Math.max.apply(Math, array), llim = Math.min.apply(Math, array);
+    if (h <= (ulim - llim) / array.length) {
+      return defaultBins || 10; // Fix num bins if binWidth yields too small a value.
+    }
+    return Math.ceil((ulim - llim) / h);
+  }
+
+  iqr(array) {
+    const sorted = array.slice(0).sort(function (a, b) { return a - b; });
+    const q1 = sorted[Math.floor(sorted.length / 4)];
+    const q3 = sorted[Math.floor(sorted.length * 3 / 4)];
+    return q3 - q1;
+  }
+
+  stage_changed(stage_no: any) {
+    const ctrl = this;
+
+    if (isNullOrUndefined(ctrl.scale)) {
+      this.notify.error("Error", "Scale is null or undefined, please try again");
+      return;
+    }
+
+    if (!isNullOrUndefined(stage_no)) {
+
+      if (stage_no === "All Stages") {
+        stage_no = -1;
+      }
+      ctrl.selected_stage_no = stage_no;
+      /*
+        Draw plots for the selected stage
+        If "All Stages" is selected, concat every stage data
+      */
+
+      if (ctrl.selected_stage_no === -1) {
+        ctrl.apiService.loadDataPointsOfExperiment(ctrl.experiment_id).subscribe(
+          data => {
+            if (isNullOrUndefined(data)) {
+              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+              return;
+            }
+            ctrl.draw_all_plots(ctrl.selected_stage_no, data, ctrl.scale);
+          }
+        );
+      } else {
+        ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selected_stage_no).subscribe(
+          data => {
+            if (isNullOrUndefined(data)) {
+              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+              return;
+            }
+            ctrl.draw_all_plots(ctrl.selected_stage_no, data, ctrl.scale);
+          }
+        );
+      }
+    } else {
+      this.notify.error("Error", "Stage number is null or undefined, please try again");
+      return;
+    }
+  }
+
+  scale_changed(scale: string) {
+    this.scale = scale;
+    // TODO: shortcut for now
+    this.stage_changed(this.selected_stage_no);
   }
 
   drawScatterChart(divID, processedData) {
@@ -1084,81 +1208,14 @@ export class ShowExperimentsComponent implements OnInit {
     }
   }
 
-  firstDropDownChanged(stage_no: any) {
-    if (!isNullOrUndefined(stage_no)) {
-      const ctrl = this;
-      ctrl.selected_stage_no = stage_no;
-      /*
-        Draw plots for the selected stage
-      */
-
-      ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selected_stage_no).subscribe(
-        data => {
-          const expRes = JSON.parse(data["ExperimentResults"]);
-          if (expRes !== undefined && expRes.length !== 0) {
-           ctrl.is_enough_data_for_plots = true;
-
-            // ctrl.singleExperimentResult = expRes[id];
-            ctrl.divId = "chartdiv" + ctrl.selected_stage_no;
-            ctrl.histogramDivId = "histogram" + ctrl.selected_stage_no;
-            ctrl.histogramLogDivId = ctrl.histogramDivId + "_log";
-            ctrl.filterSummaryId = "filterSummary" + ctrl.selected_stage_no;
-
-            ctrl.qqPlotDivId = "qqPlot" + ctrl.selected_stage_no;
-            ctrl.qqPlotDivIdJS = "qqPlotJS" + ctrl.selected_stage_no;
-            ctrl.processedData = ctrl.processData(data, "ExperimentResults", "timestamp", "value");
-
-            ctrl.processedDataForQQPlotJS = ctrl.processData(data, "ExperimentResults", null, null);
-
-            // // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
-            const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
-            ctrl.initialThresholdForSmoothLineChart = ctrl.calculateThresholdForGivenPercentile(clonedData, 95);
-
-            ctrl.drawSmoothLineChart( ctrl.divId,  ctrl.filterSummaryId,  ctrl.processedData);
-            ctrl.drawHistogram( ctrl.histogramDivId,  ctrl.processedData, false);
-            ctrl.drawHistogram( ctrl.histogramLogDivId, ctrl.processedData, true);
-          } else {
-            ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
-          }
-        });
-
-
-
-    } else {
-      this.notify.error("Error", "Stage number is null or undefined, please try again");
-      return;
-    }
+  // helper function that filters out data above the given threshold
+  filter_outliers(event) {
+    const target = event.target || event.srcElement || event.currentTarget;
+    const idAttr = target.attributes.id;
+    const value = idAttr.nodeValue;
+    console.log(target);
+    console.log(idAttr);
+    console.log(value);
   }
-
-  // https://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects
-  sort_by(field, reverse, primer) {
-    const key = function (x) {return primer ? primer(x[field]) : x[field]};
-    return function (a, b) {
-      const A = key(a), B = key(b);
-      return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1, 1][+!!reverse];
-    }
-  }
-
-  getBinWidth(array) {
-    return 2 * this.iqr(array) * Math.pow(array.length, -1 / 3);
-  }
-
-  // metric = array of real numbers (like > 100 or something)
-  // IQR = inter-quaartile-range
-  determineNumberOfBinsForHistogram(array, defaultBins) {
-    const h = this.getBinWidth(array), ulim = Math.max.apply(Math, array), llim = Math.min.apply(Math, array);
-    if (h <= (ulim - llim) / array.length) {
-      return defaultBins || 10; // Fix num bins if binWidth yields too small a value.
-    }
-    return Math.ceil((ulim - llim) / h);
-  }
-
-  iqr(array) {
-    const sorted = array.slice(0).sort(function (a, b) { return a - b; });
-    const q1 = sorted[Math.floor(sorted.length / 4)];
-    const q3 = sorted[Math.floor(sorted.length * 3 / 4)];
-    return q3 - q1;
-  }
-
 
 }
