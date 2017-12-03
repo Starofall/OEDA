@@ -411,7 +411,6 @@ export class ShowExperimentsComponent implements OnInit {
     // set it to false in case a new scale is selected
     ctrl.is_enough_data_for_plots = false;
     const expRes = JSON.parse(data["ExperimentResults"]);
-    console.log(expRes);
     if (expRes !== undefined && expRes.length !== 0) {
       ctrl.divId = "chartdiv" + selected_stage_no;
       ctrl.histogramDivId = "histogram" + selected_stage_no;
@@ -689,8 +688,6 @@ export class ShowExperimentsComponent implements OnInit {
 
   draw_qq_js(other_stage_no) {
     const ctrl = this;
-    console.log("selected_stage_no", ctrl.selected_stage_no);
-    console.log("other_stage_no", other_stage_no);
     // clear svg data, so that two different plots should not overlap with each other upon several rendering
     // https://stackoverflow.com/questions/3674265/is-there-an-easy-way-to-clear-an-svg-elements-contents
     d3.select("#" + ctrl.qqPlotDivIdJS).selectAll("*").remove();
@@ -996,7 +993,6 @@ export class ShowExperimentsComponent implements OnInit {
   }
 
   selectStageNoForQQJS(selected_stage_for_qq_js) {
-    console.log("selected_stage_for_qq_js", selected_stage_for_qq_js);
     this.selected_stage_for_qq_js = selected_stage_for_qq_js;
     this.draw_qq_js(this.selected_stage_for_qq_js);
   }
