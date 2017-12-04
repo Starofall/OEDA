@@ -121,9 +121,9 @@ class ElasticSearchDb(Database):
         except ConnectionError:
             error("Error while updating target system in_use flag in elasticsearch. Check connection to elasticsearch.")
 
-    def save_data_point(self, exp_run, knobs, payload, data_point_count, experiment_id, stage_no):
-        data_point_id = experiment_id + "#" + str(stage_no) + "_" + str(data_point_count)
-        stage_id = experiment_id + "#" + str(stage_no)
+    def save_data_point(self, payload, data_point_count, experiment_id, stage_no):
+        data_point_id = Database.create_experiment_id(experiment_id, stage_no, data_point_count)
+        stage_id = Database.create_stage_id(experiment_id, stage_no)
         body = dict()
         body["payload"] = payload
         body["created"] = datetime.now()
@@ -134,7 +134,7 @@ class ElasticSearchDb(Database):
 
     # returns data_points whose parent is the concatenated stage_id
     def get_data_points(self, experiment_id, stage_no):
-        stage_id = experiment_id + "#" + str(stage_no)
+        stage_id = Database.create_stage_id(experiment_id, stage_no)
         query = {
             "query": {
                 "has_parent": {
@@ -160,7 +160,7 @@ class ElasticSearchDb(Database):
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
 
     def save_stage(self, stage_no, knobs, experiment_id):
-        stage_id = experiment_id + "#" + str(stage_no)
+        stage_id = self.create_stage_id(experiment_id, str(stage_no))
         body = dict()
         body["number"] = stage_no
         body["knobs"] = knobs

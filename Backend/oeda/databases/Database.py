@@ -51,6 +51,14 @@ class Database:
     def update_target_system_status(self, target_system_id, status):
         pass
 
+    @staticmethod
+    def create_stage_id(experiment_id, stage_no):
+        return experiment_id + "#" + str(stage_no)
+
+    @staticmethod
+    def create_experiment_id(experiment_id, stage_no, data_point_count):
+        return experiment_id + "#" + str(stage_no) + "_" + str(data_point_count)
+
 class TargetSystemNotFoundException(Exception):
     pass
 
