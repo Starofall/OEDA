@@ -3,7 +3,8 @@ from oeda.databases import db
 
 class StageController(Resource):
 
-    def get(self, experiment_id):
+    @staticmethod
+    def get(experiment_id):
         stage_ids, stages = db().get_stages(experiment_id)
         new_stages = stages
         i = 0

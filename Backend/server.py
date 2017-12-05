@@ -1,4 +1,5 @@
 #!flask/bin/python
+import sys
 from flask import Flask, request
 from flask_restful import Resource, Api
 
@@ -75,7 +76,7 @@ api.add_resource(TargetController, '/api/targets/<string:target_id>')
 
 api.add_resource(StageResultsWithExperimentIdController, '/api/experimentResults/<string:experiment_id>/<string:stage_no>')
 api.add_resource(AllStageResultsWithExperimentIdController, '/api/experimentResults/<string:experiment_id>')
-api.add_resource(QQPlotController, '/api/qqPlot/<string:distribution>/<string:scale>')
+api.add_resource(QQPlotController, '/api/qqPlot/<string:experiment_id>/<string:stage_no>/<string:distribution>/<string:scale>')
 api.add_resource(StageController, '/api/stages/<string:experiment_id>')
 
 if __name__ == '__main__':
@@ -85,6 +86,9 @@ if __name__ == '__main__':
     from tornado.log import enable_pretty_logging
     from flask_cors import CORS
     from oeda.databases import setup_database
+    import sys
+    reload(sys)  # Reload does the trick! #see:https://github.com/flask-restful/flask-restful/issues/552
+    sys.setdefaultencoding('UTF8')
     cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(5000)

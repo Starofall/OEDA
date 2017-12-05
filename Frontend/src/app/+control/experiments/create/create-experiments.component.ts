@@ -1,11 +1,11 @@
 import {OnInit, Component, EventEmitter} from "@angular/core";
 import {NotificationsService} from "angular2-notifications";
-import {ActivatedRoute, Params, Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {LayoutService} from "../../../shared/modules/helper/layout.service";
 import {OEDAApiService, Experiment, Target, ExecutionStrategy} from "../../../shared/modules/api/oeda-api.service";
 import * as _ from "lodash";
 import {UUID} from "angular2-uuid";
-import {isNullOrUndefined, isNull, isUndefined} from "util";
+import {isNullOrUndefined} from "util";
 
 
 @Component({
@@ -126,7 +126,7 @@ export class CreateExperimentsComponent implements OnInit {
       if (ctrl.experiment.changeableVariable.some(item => item.name === variable.name) ) {
         ctrl.notify.error("Error", "This variable is already added");
       } else {
-        ctrl.experiment.changeableVariable.push(variable);
+        ctrl.experiment.changeableVariable.push(_.cloneDeep(variable));
       }
     }
   }
@@ -137,7 +137,7 @@ export class CreateExperimentsComponent implements OnInit {
     for (let i = 0; i < ctrl.targetSystem.changeableVariable.length; i++) {
       if (ctrl.experiment.changeableVariable.filter(item => item.name === ctrl.targetSystem.changeableVariable[i].name).length === 0) {
         /* vendor does not contain the element we're looking for */
-        ctrl.experiment.changeableVariable.push(ctrl.targetSystem.changeableVariable[i]);
+        ctrl.experiment.changeableVariable.push(_.cloneDeep(ctrl.targetSystem.changeableVariable[i]));
       }
     }
   }
@@ -219,6 +219,7 @@ export class CreateExperimentsComponent implements OnInit {
     const cond7 = this.experiment.description === null;
     const cond8 = this.experiment.description.length === 0;
 
+    console.log()
     // const cond5 = this.experiment.executionStrategy.knobs.x.step == null;
     //
     // const cond6 = this.experiment.executionStrategy.knobs.y.min == null;

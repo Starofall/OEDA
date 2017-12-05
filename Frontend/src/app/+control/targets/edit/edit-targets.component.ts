@@ -105,7 +105,7 @@ export class EditTargetsComponent implements OnInit {
     const ctrl = this;
     if (!ctrl.hasErrors()) {
 
-      console.log("router value: ", this.router.url.indexOf("/create"));
+
       ctrl.target.name = ctrl.target.name.trim();
       if (ctrl.router.url.indexOf("/create") !== -1) {
 

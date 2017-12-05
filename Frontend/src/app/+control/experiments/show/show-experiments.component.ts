@@ -1,5 +1,5 @@
-import {Component, OnInit, AfterViewInit} from '@angular/core';
-import {ActivatedRoute, Params} from '@angular/router';
+import {Component, OnInit, OnDestroy} from '@angular/core';
+import {ActivatedRoute, Params, Router} from '@angular/router';
 import {NotificationsService} from "angular2-notifications";
 import {LayoutService} from "../../../shared/modules/helper/layout.service";
 import {Experiment, Target, OEDAApiService} from "../../../shared/modules/api/oeda-api.service";
@@ -15,12 +15,14 @@ import {Observable} from "rxjs/Observable";
 
 // QQ plot reference: https://gist.github.com/mbostock/4349187
 
-export class ShowExperimentsComponent implements OnInit {
-  private chart1: AmChart;
-  private chart2: AmChart;
-  private chart3: AmChart;
+export class ShowExperimentsComponent implements OnInit, OnDestroy {
+  private chart1: AmChart; // smooth line
+  private chart2: AmChart; // scatter chart
+  private chart3: AmChart; // line chart
+  private chart4: AmChart; // histogram
 
   public dataAvailable: boolean;
+  public is_collapsed: boolean;
 
   private divId: string;
   private histogramDivId: string;
@@ -29,6 +31,9 @@ export class ShowExperimentsComponent implements OnInit {
   private filterSummaryId: string;
   private histogramLogDivId: string;
   private processedData: object;
+  private timer: any;
+  private subscription: any;
+  private first_render_of_page: boolean;
 
   public experiment_id: string;
   public experiment: Experiment;
@@ -42,21 +47,21 @@ export class ShowExperimentsComponent implements OnInit {
   public scale: string;
   public is_qq_plot_rendered: boolean;
 
-  // following attributes are used for QQ plotting in JavaScript
-  public availableStageNosForQQJS: any;
-
   public selected_stage_for_qq_js: string;
   public qqJSPlotIsRendered: boolean;
   public is_enough_data_for_plots: boolean;
   public is_all_stages_selected: boolean;
 
   public availableStages = [];
+  public availableStagesForQQJS = [];
+
   public selected_stage_no: any;
 
   constructor(private layout: LayoutService,
               private apiService: OEDAApiService,
               private AmCharts: AmChartsService,
               private activated_route: ActivatedRoute,
+              private router: Router,
               private notify: NotificationsService) {
 
     this.layout.setHeader("Experiment Results", "");
@@ -65,6 +70,9 @@ export class ShowExperimentsComponent implements OnInit {
     this.is_qq_plot_rendered = false;
     this.qqJSPlotIsRendered = false;
     this.is_enough_data_for_plots = false;
+    this.is_collapsed = true;
+    this.first_render_of_page = true;
+
 
     this.scale = "Normal";
 
@@ -73,14 +81,12 @@ export class ShowExperimentsComponent implements OnInit {
 
     this.selected_stage_for_qq_js = "Select a stage";
 
-    this.availableStageNosForQQJS = [];
-
-
     // subscribe to router event
     this.activated_route.params.subscribe((params: Params) => {
       // id is retrieved from URI
-      this.experiment_id = params["id"];
-
+      if (params["id"] && this.router.url.toString().includes("/control/experiments/show")) {
+        this.experiment_id = params["id"];
+      }
     });
   }
 
@@ -189,18 +195,12 @@ export class ShowExperimentsComponent implements OnInit {
     }
   }*/
 
+  /* tslint:disable */
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
   ngOnInit() {
-    /*
-    const timer = Observable.timer(1000, 2000);
-    timer.subscribe(t => {
-      this.chartLastValue = this.chartLastValue * (Math.random() + 0.55)
-      this.chart1Data[0].values = this.chart1Data[0].values.concat([{x: this.chartIndex, y: this.chartLastValue}])
-      // this.nvd3.chart.update();
-      this.nvd32.chart.update();
-      // this.nvd33.chart.update();
-      this.chartIndex += 1
-    });
-    */
 
     /*
     {
@@ -367,7 +367,6 @@ export class ShowExperimentsComponent implements OnInit {
       };
       window["Plotly"].newPlot('heat2', data, layout);
     }*/
-    console.log("ngOnInit works");
     if (!isNullOrUndefined(this.experiment_id)) {
       this.apiService.loadExperimentById(this.experiment_id).subscribe(experiment => {
 
@@ -390,7 +389,34 @@ export class ShowExperimentsComponent implements OnInit {
                     for (let j = 0; j < stages.length; j++) {
                       this.availableStages.push(stages[j]);
                     }
+                    // prepare available stages for qq js that does not include all stages
+                    this.availableStagesForQQJS = this.availableStages.slice(1);
+
                     this.dataAvailable = true;
+
+                    // initially selected stage is "All Stages"
+                    this.selected_stage_no = -1;
+
+                    // polling using Timer (4 sec interval) for real-time data visualization
+                    this.timer = Observable.timer(2000, 2000);
+                    this.subscription = this.timer.subscribe(t => {
+
+                      if(this.first_render_of_page) {
+                        this.poll_data();
+                        this.first_render_of_page = false;
+                      }
+                      else {
+                        this.remove_all_plots();
+                        this.poll_data();
+                      }
+                      // this.chartLastValue = this.chartLastValue * (Math.random() + 0.55)
+                      // this.chart1Data[0].values = this.chart1Data[0].values.concat([{x: this.chartIndex, y: this.chartLastValue}])
+                      // // this.nvd3.chart.update();
+                      // this.nvd32.chart.update();
+                      // // this.nvd33.chart.update();
+                      // this.chartIndex += 1
+                    });
+
                   }
                 });
               }
@@ -404,6 +430,22 @@ export class ShowExperimentsComponent implements OnInit {
       this.notify.error("Error", "Failed retrieving experiment id, please check URI");
     }
 
+  }
+
+  // remove qq plot retrieved from server otherwise memory will build up
+  remove_all_plots() {
+    // for (let j = 0; j < this.chart1.graphs.length; j++) {
+    //   var graph = this.chart1.graphs.pop();
+    //   this.chart1.removeGraph(graph);
+    // }
+    // for (let k = 0; k < this.chart4.graphs.length; k++) {
+    //   var graph = this.chart4.graphs.pop();
+    //   this.chart4.removeGraph(graph);
+    // }
+    if (document.getElementById(this.qqPlotDivId).hasAttribute('src')) {
+      var image_qq_plot = document.getElementById(this.qqPlotDivId);
+      image_qq_plot.removeAttribute('src');
+    }
   }
 
   draw_all_plots(selected_stage_no, data, scale) {
@@ -424,21 +466,21 @@ export class ShowExperimentsComponent implements OnInit {
 
       // // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
       const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
-      ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95);
+      ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
 
       ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
       ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData, scale);
       ctrl.draw_qq_plot();
 
       // initial case when page is rendered, check if next stage exists
-      if (ctrl.selected_stage_no !== -1 && ctrl.selected_stage_for_qq_js === "Select a stage") {
+      if (ctrl.selected_stage_no.toString() !== "-1") {
         // check if next stage exists
-        ctrl.availableStages.some(function(element) {
+        ctrl.availableStagesForQQJS.some(function(element) {
           if (Number(element.number) === Number(ctrl.selected_stage_no) + 1) {
             // TODO: ensure that next stage has enough data?
             ctrl.selected_stage_for_qq_js = (Number(ctrl.selected_stage_no) + 1).toString();
             ctrl.draw_qq_js(ctrl.selected_stage_for_qq_js);
-            return true;
+            return true; // required as a callback for .some function
           }
         });
       }
@@ -450,7 +492,7 @@ export class ShowExperimentsComponent implements OnInit {
 
   draw_histogram(divID, processedData, scale) {
     const AmCharts = this.AmCharts;
-    const histogram = AmCharts.makeChart(divID, {
+    this.chart4 = AmCharts.makeChart(divID, {
       "type": "serial",
       "theme": "light",
       "responsive": {
@@ -475,7 +517,7 @@ export class ShowExperimentsComponent implements OnInit {
         "title": "Percentage"
       }]
     });
-    return histogram;
+    return this.chart4;
   }
 
   // helper function to distribute overheads in the given data to fixed-size bins (i.e. by 0.33 increment)
@@ -668,18 +710,13 @@ export class ShowExperimentsComponent implements OnInit {
 
   draw_qq_plot() {
     const ctrl = this;
-    if (ctrl.distribution === "Select a distribution") {
-      alert("Please select a distribution");
-      return;
-    }
 
     if (ctrl.processedData !== null) {
-      const pngFile = ctrl.apiService.getQQPlot(ctrl.distribution, ctrl.scale, ctrl.processedData).subscribe(
+      const pngFile = ctrl.apiService.getQQPlot(ctrl.experiment_id, ctrl.selected_stage_no, ctrl.distribution, ctrl.scale).subscribe(
         response => {
-          const obj = JSON.parse(response._body);
-          const imageSrc = 'data:image/jpg;base64,' + obj;
-          ctrl.is_qq_plot_rendered = true;
+          const imageSrc = 'data:image/jpg;base64,' + response;
           document.getElementById(ctrl.qqPlotDivId).setAttribute( 'src', imageSrc);
+          ctrl.is_qq_plot_rendered = true;
         });
     } else {
       alert("Error occurred, please refresh the page.");
@@ -692,10 +729,7 @@ export class ShowExperimentsComponent implements OnInit {
     // https://stackoverflow.com/questions/3674265/is-there-an-easy-way-to-clear-an-svg-elements-contents
     d3.select("#" + ctrl.qqPlotDivIdJS).selectAll("*").remove();
 
-    let data_for_x_axis: number[];
-    data_for_x_axis = Array<number>();
-    let data_for_y_axis: number[];
-    data_for_y_axis = Array<number>();
+
 
     // TODO: how to guarantee that retrieval operations for both stages have same number of data points for an ongoing experiment?
     // retrieve data for the initially selected stage
@@ -705,7 +739,7 @@ export class ShowExperimentsComponent implements OnInit {
           this.notify.error("Error", "Cannot retrieve data for stage " + ctrl.selected_stage_no + " from DB, please try again");
           return;
         }
-        data_for_x_axis = ctrl.process_data(data, "ExperimentResults", null, null, ctrl.scale);
+        let data_for_x_axis = ctrl.process_data(data, "ExperimentResults", null, null, ctrl.scale);
         // retrieve data for the newly selected stage
         ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, other_stage_no).subscribe(
         data2 => {
@@ -713,21 +747,42 @@ export class ShowExperimentsComponent implements OnInit {
             this.notify.error("Error", "Cannot retrieve data for stage " + other_stage_no + " from DB, please try again");
             return;
           }
-          data_for_y_axis = ctrl.process_data(data2, "ExperimentResults", null, null, ctrl.scale);
+          let data_for_y_axis = ctrl.process_data(data2, "ExperimentResults", null, null, ctrl.scale);
+
+          var tm = mean(data_for_x_axis);
+          var td = Math.sqrt(variance(data_for_x_axis));
 
           function t(t,n){var r=n.length-1;return n=n.slice().sort(d3.ascending),d3.range(t).map(function(a){return n[~~(a*r/t)]})}
           function n(t){return t.x}
           function r(t){return t.y}
 
-          var width = 450,
-            height = 450,
+          var width = 400,
+            height = 400,
             margin = {top: 20, right: 10, bottom: 20, left: 35},
-            n1 = data_for_y_axis.length; // number of samples to generate
+            n1 = data_for_y_axis.length, // number of samples to generate
+            padding = 50;
+
+
+          // now determine domain of the graph by simply calculating the 95-th percentile of values
+          // also p.ticks functions (in qq()) can be changed accordingly.
+          const percentile_for_data_x = ctrl.calculate_threshold_for_given_percentile(data_for_x_axis, 95,  null);
+          const percentile_for_data_y = ctrl.calculate_threshold_for_given_percentile(data_for_y_axis, 95,  null);
+
+          let scale_upper_bound = percentile_for_data_x;
+          if (scale_upper_bound < percentile_for_data_y)
+            scale_upper_bound = percentile_for_data_y;
+
+          const min_x = data_for_x_axis.sort(this.sort_by(null, true, parseFloat))[0];
+          const min_y = data_for_y_axis.sort(this.sort_by(null, true, parseFloat))[0];
+
+          let scale_lower_bound = min_x;
+          if (scale_lower_bound < min_y)
+            scale_lower_bound = min_y;
 
           var chart = (qq() as any)
             .width(width)
             .height(height)
-            .domain([-.1, 1.1])
+            .domain([scale_lower_bound - tm, scale_upper_bound]) // tm or td can also be subtracted from lower bound
             .tickFormat(function(d) { return ~~(d * 100); });
 
           var vis = d3.select("#" + ctrl.qqPlotDivIdJS)
@@ -736,24 +791,11 @@ export class ShowExperimentsComponent implements OnInit {
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-          // let dataForXAxis = <Array<number>> data_for_x_axis;
-          // dataForXAxis = dataForXAxis.sort( function(a,b){return a - b; } );
-          // let dataForYAxis = <Array<number>> data_for_y_axis;
-          // dataForYAxis = dataForYAxis.sort(function(a,b){return a - b; } );
-
-          //if (ctrl.scale === "Log") {
-          //	dataForXAxis = ctrl.get_transformed_data(dataForXAxis, ctrl.scale);
-          //	dataForYAxis = ctrl.get_transformed_data(dataForYAxis, ctrl.scale);
-          //}
-
-          var tm = mean(data_for_x_axis);
-          var td = Math.sqrt(variance(data_for_x_axis));
-
           var g = vis.selectAll("g")
             .data([{
               x: data_for_x_axis,
               y: data_for_y_axis,
-              label: "Distribution of Stages"
+              // label: "Distribution of Stage Data"
             }])
             .enter().append("g")
             .attr("class", "qq")
@@ -768,11 +810,22 @@ export class ShowExperimentsComponent implements OnInit {
             .attr("dx", ".6em")
             .text(function(d) { return d.label; });
           chart.duration(1000);
+
+          // y-axis title
+          vis.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate(" + (padding / 2) + "," + (height / 2) + ")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+            .text("Stage " + other_stage_no + " data");
+
+          // x-axis title
+          vis.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate(" + (width / 2) + "," + (height - (padding / 3) ) + ")" )  // centre below axis
+            .text("Stage " + ctrl.selected_stage_no + " data");
+
           window['transition'] = function() {
             g.datum(randomize).call(chart);
           };
-
-
 
           function randomize(d) {
             d.y = d3.range(n).map(Math.random);
@@ -846,7 +899,9 @@ export class ShowExperimentsComponent implements OnInit {
                     y: m[t]
                   }
                 }));
-                k.enter().append("svg:circle").attr("class", "quantile").attr("r", 4.5).attr("cx", function(t) {
+                k.enter().append("svg:circle").attr("class", "quantile")
+                  .attr("r", 4)
+                  .attr("cx", function(t) {
                   return a(t.x)
                 }).attr("cy", function(t) {
                   return y(t.y)
@@ -863,22 +918,22 @@ export class ShowExperimentsComponent implements OnInit {
                 }).attr("cy", function(t) {
                   return v(t.y)
                 }).style("opacity", 1e-6).remove();
-                var A = u || p.tickFormat(4),
-                  q = u || v.tickFormat(4),
+                var A = u || p.tickFormat(5),
+                  q = u || v.tickFormat(5),
                   F = function(t) {
                     return "translate(" + p(t) + "," + i + ")"
                   },
                   C = function(t) {
                     return "translate(0," + v(t) + ")"
                   },
-                  w = g.selectAll("g.x.tick").data(p.ticks(4), function(t) {
+                  w = g.selectAll("g.x.tick").data(p.ticks(5), function(t) {
                     return this.textContent || A(t)
                   }),
                   b = w.enter().append("svg:g").attr("class", "x tick").attr("transform", function(t) {
                     return "translate(" + a(t) + "," + i + ")"
                   }).style("opacity", 1e-6);
                 b.append("svg:line").attr("y1", 0).attr("y2", -6), b.append("svg:text").attr("text-anchor", "middle").attr("dy", "1em").text(A), b.transition().duration(c).attr("transform", F).style("opacity", 1), w.transition().duration(c).attr("transform", F).style("opacity", 1), w.exit().transition().duration(c).attr("transform", F).style("opacity", 1e-6).remove();
-                var j = g.selectAll("g.y.tick").data(v.ticks(4), function(t) {
+                var j = g.selectAll("g.y.tick").data(v.ticks(5), function(t) {
                     return this.textContent || q(t)
                   }),
                   z = j.enter().append("svg:g").attr("class", "y tick").attr("transform", function(t) {
@@ -919,6 +974,18 @@ export class ShowExperimentsComponent implements OnInit {
         });
 
       });
+  }
+
+  getTransformedData(data, isLogSelected) {
+    const loggedData = [];
+    if (isLogSelected) {
+      for (const number of data) {
+        if (number > 0)
+          loggedData.push(Math.log(number));
+      }
+      return loggedData;
+    }
+    return data;
   }
 
   // helper function for graphs
@@ -985,10 +1052,16 @@ export class ShowExperimentsComponent implements OnInit {
     return retVal;
   }
 
-  calculate_threshold_for_given_percentile(data, percentile) {
-    const sortedData = data.sort(this.sort_by('value', true, parseFloat));
+  // if data_field is null, then it is same to first sorting an array of float/int values, then finding the percentile
+  calculate_threshold_for_given_percentile(data, percentile, data_field) {
+    const sortedData = data.sort(this.sort_by(data_field, true, parseFloat));
     const index = Math.floor(sortedData.length * percentile / 100 - 1);
-    const result = sortedData[index]["value"];
+
+    if (data_field !== null) {
+      const result = sortedData[index][data_field];
+      return +result.toFixed(2);
+    }
+    const result = sortedData[index];
     return +result.toFixed(2);
   }
 
@@ -1002,14 +1075,19 @@ export class ShowExperimentsComponent implements OnInit {
     this.draw_qq_plot();
   }
 
-
 // https://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects
   sort_by(field, reverse, primer) {
-    const key = function (x) {return primer ? primer(x[field]) : x[field]};
-    return function (a, b) {
-      const A = key(a), B = key(b);
-      return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1, 1][+!!reverse];
+    if (field !== null) {
+      const key = function (x) {return primer ? primer(x[field]) : x[field]};
+      return function (a, b) {
+        const A = key(a), B = key(b);
+        return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1, 1][+!!reverse];
+      }
     }
+    return function (a, b) {
+      return ( (a < b) ? -1 : ((a > b) ? 1 : 0) ) * [-1, 1][+!!reverse];
+    }
+
   }
 
   get_bin_width(array) {
@@ -1042,7 +1120,6 @@ export class ShowExperimentsComponent implements OnInit {
     }
 
     if (!isNullOrUndefined(stage_no)) {
-
       if (stage_no === "All Stages") {
         stage_no = -1;
       }
@@ -1051,31 +1128,35 @@ export class ShowExperimentsComponent implements OnInit {
         Draw plots for the selected stage
         If "All Stages" is selected, concat every stage data
       */
-
-      if (ctrl.selected_stage_no === -1) {
-        ctrl.apiService.loadDataPointsOfExperiment(ctrl.experiment_id).subscribe(
-          data => {
-            if (isNullOrUndefined(data)) {
-              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
-              return;
-            }
-            ctrl.draw_all_plots(ctrl.selected_stage_no, data, ctrl.scale);
-          }
-        );
-      } else {
-        ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selected_stage_no).subscribe(
-          data => {
-            if (isNullOrUndefined(data)) {
-              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
-              return;
-            }
-            ctrl.draw_all_plots(ctrl.selected_stage_no, data, ctrl.scale);
-          }
-        );
-      }
+      this.poll_data();
     } else {
       this.notify.error("Error", "Stage number is null or undefined, please try again");
       return;
+    }
+  }
+
+  private poll_data() {
+    const ctrl = this;
+    if (ctrl.selected_stage_no === -1) {
+      ctrl.apiService.loadDataPointsOfExperiment(ctrl.experiment_id).subscribe(
+        data => {
+          if (isNullOrUndefined(data)) {
+            this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+            return;
+          }
+          ctrl.draw_all_plots(ctrl.selected_stage_no, data, ctrl.scale);
+        }
+      );
+    } else {
+      ctrl.apiService.loadDataPointsOfStage(ctrl.experiment_id, ctrl.selected_stage_no).subscribe(
+        data => {
+          if (isNullOrUndefined(data)) {
+            this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+            return;
+          }
+          ctrl.draw_all_plots(ctrl.selected_stage_no, data, ctrl.scale);
+        }
+      );
     }
   }
 
