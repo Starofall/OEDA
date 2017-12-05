@@ -68,6 +68,26 @@ def rtx_execution(experiment, targetSystem):
 
     # we create a custom callback that RTX is calling-this allows us to update the progress percentage on an experiment
     def oeda_callback(dict):
+
+        # do something like:
+        # sys.stdout.write('\r')
+        # sys.stdout.flush()
+        # size_str = Fore.YELLOW + "> " + preText + "["
+
+        # BASICALLY something THIS:
+        # percentage = 30 * i / total
+
+        # for j in range(0, percentage):
+        #     size_str += "#"
+        # for k in range(percentage, 30):
+        #     size_str += "."
+        # size_str += "] Target: " + str(total) + " | Done: " + str(i) + Fore.RESET
+        # sys.stdout.write('%s\r' % size_str)
+        # sys.stdout.flush()
+
+
+        # ProgressCounter.set(dict["i"], dict(["total"]))
+        # the progress counter has to be behind an API that is periodically called
         info(str(dict))
 
     try:
