@@ -6,7 +6,8 @@ import {TargetsComponent} from "./targets/targets.component";
 import {ConfigurationComponent} from "./configuration/configuration.component";
 import {EditTargetsComponent} from "./targets/edit/edit-targets.component";
 import {ExperimentsComponent} from "./experiments/experiments.component";
-import {ShowExperimentsComponent} from "./experiments/show/show-experiments.component";
+import {ShowRunningExperimentComponent} from "./experiments/show/running/show-running-experiment.component";
+import {ShowSuccessfulExperimentComponent} from "./experiments/show/successful/show-successful-experiment.component";
 import {CreateExperimentsComponent} from "./experiments/create/create-experiments.component";
 
 export const routes: Routes = [
@@ -37,8 +38,12 @@ export const routes: Routes = [
         component: CreateExperimentsComponent,
       },
       {
-        path: 'experiments/show/:id',
-        component: ShowExperimentsComponent,
+        path: 'experiments/show/:id/running',
+        component: ShowRunningExperimentComponent,
+      },
+      {
+        path: 'experiments/show/:id/success',
+        component: ShowSuccessfulExperimentComponent,
       },
       {
         path: 'targets',

@@ -1,0 +1,393 @@
+<div class="row" *ngIf="dataAvailable">
+
+  <!-- Experiment Details -->
+  <div class="col-sm-12 col-xs-12">
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <button type="button" class="btn btn-orange"
+                (click)="is_collapsed = !is_collapsed">Experiment Details
+          <i *ngIf="is_collapsed" class="fa fa-angle-double-down" aria-hidden="true"></i>
+          <i *ngIf="!is_collapsed" class="fa fa-angle-double-up" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="panel-body" [hidden]="is_collapsed">
+        <div class="row">
+          <labeled-input name="Experiment Name" [model]="experiment" key="name" [colSize]="6" [disabled]="true"></labeled-input>
+          <labeled-input name="Experiment Description" [model]="experiment" key="description" [colSize]="6" [disabled]="true"></labeled-input>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Primary Data Provider & Change Provider -->
+  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''" [hidden]="is_collapsed" >
+
+    <!-- Primary Data Provider-->
+    <div class="col-sm-6 col-xs-12" style="padding-left: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left">Primary Data Provider</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+
+          <div class="row" *ngIf="targetSystem.primaryDataProvider.type == 'http_request'">
+            <div class="col-md-6">
+              <div class="sub-title">URL</div>
+              <span>{{targetSystem.primaryDataProvider.url}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.primaryDataProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.primaryDataProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.primaryDataProvider.type == 'kafka_consumer'">
+            <div class="col-md-6">
+              <div class="sub-title">Kafka URI</div>
+              <span>{{targetSystem.primaryDataProvider.kafka_uri}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.primaryDataProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.primaryDataProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.primaryDataProvider.type == 'mqtt_listener'">
+            <div class="col-md-6">
+              <div class="sub-title">Host</div>
+              <span>{{targetSystem.primaryDataProvider.host}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.primaryDataProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.primaryDataProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.primaryDataProvider.serializer}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change Provider -->
+    <div class="col-sm-6 col-xs-12" style="padding-right: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left">Change Provider</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+
+          <div class="row" *ngIf="targetSystem.changeProvider.type == 'http_request'">
+            <div class="col-md-6">
+              <div class="sub-title">URL</div>
+              <span>{{targetSystem.changeProvider.url}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.changeProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.changeProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.changeProvider.type == 'kafka_producer'">
+            <div class="col-md-6">
+              <div class="sub-title">Kafka URI</div>
+              <span>{{targetSystem.changeProvider.kafka_uri}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.changeProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.changeProvider.serializer}}</span>
+            </div>
+          </div>
+
+          <div class="row" *ngIf="targetSystem.changeProvider.type == 'mqtt_listener'">
+            <div class="col-md-6">
+              <div class="sub-title">Host</div>
+              <span>{{targetSystem.changeProvider.host}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Port</div>
+              <span>{{targetSystem.changeProvider.port}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Topic</div>
+              <span>{{targetSystem.changeProvider.topic}}</span>
+            </div>
+            <div class="col-md-6">
+              <div class="sub-title">Serializer</div>
+              <span>{{targetSystem.changeProvider.serializer}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Incoming Data Types, Experiment variables, Execution strategy -->
+  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''" [hidden]="is_collapsed" >
+
+    <!-- Incoming Data Types -->
+    <div class="col-sm-6 col-xs-12" style="padding-left: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left">Incoming Data Types</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+          <div class="table-responsive" style="padding-top: 20px">
+            <table>
+              <thead>
+              <th style="width: 5%">Name</th>
+              <th style="width: 5%">Scale</th>
+              <th style="width: 5%">Description</th>
+              </thead>
+              <tbody>
+              <tr *ngFor="let dataType of targetSystem.incomingDataTypes" style="padding-top: 1%">
+                <td style="padding-top: 1%">{{dataType.name}}</td>
+                <td>{{dataType.scale}}</td>
+                <td>{{dataType.description}}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Experiment variables previously added at Experiment creation stage -->
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title"><div class="title pull-left">Experiment Variables</div></div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+          <div class="table-responsive" style="padding-top: 20px">
+            <table>
+              <thead>
+              <th style="width: 5%">Name</th>
+              <th style="width: 5%">Min</th>
+              <th style="width: 5%">Max</th>
+              <th style="width: 5%">Step Size</th>
+              </thead>
+              <tbody>
+              <tr *ngFor="let input of experiment.changeableVariable" style="padding-top: 1%">
+                <td style="padding-top: 1%">{{input.name}}</td>
+                <td>{{input.min}}</td>
+                <td>{{input.max}}</td>
+                <td>{{input.step}}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Execution Strategy -->
+    <div class="col-sm-6 col-xs-12" style="padding-right: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left">Execution Strategy</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+          <div class="table-responsive" style="padding-top: 20px">
+            <table>
+              <thead>
+              <th style="width: 5%">Type</th>
+              <th style="width: 5%">Ignore First N Results</th>
+              <th style="width: 5%">Sample Size</th>
+              </thead>
+              <tbody>
+              <td style="padding-top: 1%">{{experiment.executionStrategy.type}}</td>
+              <td>{{experiment.executionStrategy.ignore_first_n_results}}</td>
+              <td>{{experiment.executionStrategy.sample_size}}</td>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-sm-12 col-xs-12">
+
+    <div class="panel panel-default chartJs">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="col-md-6">
+            <div class="title pull-left">Stages of Experiment</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="title pull-left">Scale of Results</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding-top: 20px">
+        <div class="row">
+          <div class="col-md-6">
+            <div>
+              <select class="form-control" required (change)="stage_changed($event.target.value)">
+                <option *ngFor="let i of availableStages;" [ngValue]="i">{{ i.number }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card-title">
+              <select class="form-control" required (change)="scale_changed($event.target.value)">
+                <option [selected]="true">Normal</option>
+                <option>Log</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''"
+  [hidden]="is_enough_data_for_plots" style="width: 750px; height: 600px;">
+    <div class="col-sm-6 col-xs-12" style="padding-left: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-body" style="padding-top: 20px">
+        <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+        <h4>Drawing graphs...</h4>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smooth-Line Chart -->
+  <div class="col-sm-12 col-xs-12" [hidden]="!is_enough_data_for_plots">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Smooth-Line Chart with {{scale}} Scale</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="col-md-12" id="chartdiv" style="width: 100%; height: 400px"></div>
+      </div>
+      <div class="panel-footer">
+        <p id="filterSummary">Initial threshold for 95-percentile: <b>{{initialThresholdForSmoothLineChart}}</b></p>
+        <!--<button id="filterButton{{selected_stage_no}}" type="button" class="btn btn-primary" (click)="filter_outliers($event)">Filter</button>-->
+      </div>
+    </div>
+  </div>
+
+  <!-- Histogram -->
+  <div class="col-sm-12 col-xs-12" [hidden]="!is_enough_data_for_plots">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <div class="card-title">
+          <div class="title pull-left">Histogram with {{scale}} Scale</div>
+        </div>
+      </div>
+      <div class="panel-body" >
+        <div class="col-md-12" id="histogram" style="width: 100%; height: 400px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QQ graphs -->
+  <!--<div class="col-sm-12 col-xs-12" [hidden]="!is_enough_data_for_plots">-->
+  <div class="col-sm-12 col-xs-12" [hidden]="!is_enough_data_for_plots" >
+    <!-- QQ graph 1 -->
+    <div class="col-sm-6 col-xs-12" *ngIf="selected_stage_no === -1">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="col-md-6">
+              <div class="title pull-left">Quantile Quantile (QQ) Plot against Theoretical Data with {{scale}} Scale &nbsp;</div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="title">Theoretical Data Distribution</div>
+                <select class="form-control"
+                        [(ngModel)]="distribution" (ngModelChange)="selectDistribution($event)" size="1">
+                  <option *ngFor="let dist of available_distributions" value="{{dist}}">{{dist}}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div [hidden]="!is_qq_plot_rendered">
+            <!--additional css for centering the img-->
+            <img class="col-md-6" id="qqPlot" class="img-thumbnail">
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- QQ graph 2 -->
+    <div class="col-sm-6 col-xs-12" [hidden]="selected_stage_no === -1">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="col-md-6">
+              <div class="title pull-left">Quantile Quantile (QQ) Plot against Other Stage Data with {{scale}} Scale &nbsp;</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="title">Other  Stage</div>
+              <select class="form-control"
+                      [(ngModel)]="selected_stage_for_qq_js" (ngModelChange)="selectStageNoForQQJS($event)" size="1">
+                <option *ngFor="let stage_no of availableStagesForQQJS" value="{{stage_no.number}}">{{stage_no.number}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="col-md-6">
+            <div class="panel-body" style="padding-top: 20px">
+              <!--<div [hidden]="!qqJSPlotIsRendered" class="svg-container">-->
+                <!--<svg id="qqPlotJS" viewBox="0 0 700 700" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>-->
+              <!--</div>-->
+              <!--ref: https://css-tricks.com/scale-svg/-->
+              <div class="scaling-svg-container"
+                   style="padding-bottom: 100% /* 100% * 55/60 */">
+                <svg class="scaling-svg" viewBox="0 0 400 400" id="qqPlotJS">
+                  <!-- SVG content -->
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

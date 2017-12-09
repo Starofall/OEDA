@@ -31,7 +31,8 @@
       "_parent":    { "type": "experiment"},
       "properties": {
         "number":       { "type": "integer" },
-        "knobs":    { "type": "object"  }
+        "knobs":    { "type": "object"  },
+        "created":                    { "type": "date"    }
       }
     }
   },

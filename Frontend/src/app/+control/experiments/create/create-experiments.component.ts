@@ -197,7 +197,8 @@ export class CreateExperimentsComponent implements OnInit {
         (success) => {
           console.log("success: ", success);
           this.notify.success("Success", "Experiment saved");
-          this.router.navigate(["control/experiments"]).then(() => {
+          this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
+            console.log("navigated to newly created experiment running page");
           });
         }, (error) => {
           console.log("error: ", error);
@@ -219,7 +220,6 @@ export class CreateExperimentsComponent implements OnInit {
     const cond7 = this.experiment.description === null;
     const cond8 = this.experiment.description.length === 0;
 
-    console.log()
     // const cond5 = this.experiment.executionStrategy.knobs.x.step == null;
     //
     // const cond6 = this.experiment.executionStrategy.knobs.y.min == null;

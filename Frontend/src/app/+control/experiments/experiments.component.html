@@ -39,8 +39,12 @@
             <tbody class="bigTable">
             <tr *ngFor="let item of mf.data">
               <td style="padding-right: 0px">
-                <a class="btn btn-xs btn-orange" type="button"
-                   routerLink="/control/experiments/show/{{item.id}}"><i class="fa fa-search"></i> Results</a>
+                <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status == 'SUCCESS'"
+                   routerLink="/control/experiments/show/{{item.id}}/success"><i class="fa fa-search"></i> Results
+                </a>
+                <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status == 'RUNNING'"
+                   routerLink="/control/experiments/show/{{item.id}}/running"><i class="fa fa-search"></i> Results
+                </a>
               </td>
               <td>
                 <label *ngIf="item.status == 'SUCCESS'" class="label label-success">SUCCESS</label>

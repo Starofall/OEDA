@@ -4,6 +4,7 @@ import {AuthHttp} from "angular2-jwt";
 import {Http} from "@angular/http";
 import {RESTService} from "../../util/rest-service";
 import {LoggerService} from "../helper/logger.service";
+import {URLSearchParams} from "@angular/http";
 import {environment} from "../../../../environments/environment";
 import {Observable} from "rxjs/Observable";
 
@@ -24,11 +25,19 @@ export class OEDAApiService extends RESTService {
   }
 
   public loadDataPointsOfStage(experiment_id: string, stage_no: string): Observable<any> {
-    return this.doGETPublicRequest("/experimentResults/" + experiment_id + "/" + stage_no)
+    return this.doGETPublicRequest("/experiment_results/" + experiment_id + "/" + stage_no)
   }
 
-  public loadDataPointsOfExperiment(experiment_id: string): Observable<any> {
-    return this.doGETPublicRequest("/experimentResults/" + experiment_id)
+  public loadAllDataPointsOfExperiment(experiment_id: string): Observable<any> {
+    return this.doGETPublicRequest("/experiment_results/" + experiment_id)
+  }
+
+  public loadAllDataPointsOfRunningStage(experiment_id: string, stage_no: string, timestamp: string): Observable<any> {
+    return this.doGETPublicRequest("/running_experiment_results/" + experiment_id + "/" + stage_no + "/" + timestamp)
+  }
+
+  public loadAllDataPointsOfRunningExperiment(experiment_id: string, timestamp: string): Observable<any> {
+    return this.doGETPublicRequest("/running_experiment_results/" + experiment_id + "/" + timestamp)
   }
 
   public loadAvailableStagesWithExperimentId(experiment_id: string): Observable<any> {
@@ -86,6 +95,11 @@ export interface Experiment {
   targetSystemId: string,
   changeableVariable: any,
   executionStrategy: ExecutionStrategy,
+}
+
+export interface Entity {
+  stage_number: string;
+  values: object[];
 }
 
 

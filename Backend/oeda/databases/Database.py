@@ -39,6 +39,9 @@ class Database:
     def get_stages(self, experiment_id):
         pass
 
+    def get_stages_after(self, experiment_id, timestamp):
+        pass
+
     def save_data_point(self, payload, data_point_count, experiment_id, stage_no):
         pass
 

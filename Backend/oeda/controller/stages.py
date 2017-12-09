@@ -12,3 +12,13 @@ class StageController(Resource):
             new_stages[i]["id"] = stage_ids[i]
             i += 1
         return new_stages
+
+    @staticmethod
+    def get_stages_after(experiment_id, timestamp):
+        stage_ids, stages = db().get_stages_after(experiment_id, timestamp)
+        new_stages = stages
+        i = 0
+        for stage in stages:
+            new_stages[i]["id"] = stage_ids[i]
+            i += 1
+        return new_stages

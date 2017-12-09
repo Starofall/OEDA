@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory, make_response
 from flask_restful import Resource, Api
 from oeda.databases import db
-from oeda.controller.experimentResults import get_all_stage_data
+from oeda.controller.experiment_results import get_all_stage_data
 import matplotlib.pyplot as plt
 
 import traceback
@@ -23,22 +23,24 @@ class QQPlotController(Resource):
             if str(scale).lower() not in self.availableScales:
                 return {"error": "Provided scale is not supported"}, 404
 
+            pts = []
             # this case corresponds to all stage data
             if int(stage_no) == -1:
-                data_points = get_all_stage_data(experiment_id=experiment_id)
+                stages_and_data_points = get_all_stage_data(experiment_id=experiment_id)
+                if stages_and_data_points is None:
+                    return {"error": "Data points cannot be retrieved for given experiment and/or stage"}, 404
+                for entity in stages_and_data_points:
+                    entity = json.loads(entity)
+                    if len(entity['values']) == 0:
+                        pass
+                    for data_point in entity['values']:
+                        pts.append(data_point["payload"]["overhead"])
             else:
                 data_points = self.get_data_points(experiment_id, stage_no)
-
-            if len(data_points) is 0 or data_points is None:
-                return {"error": "Data points cannot be retrieved for given experiment and/or stage"}, 404
-
-            pts = []
-            for point in data_points:
-                pts.append(point["payload"]["overhead"])
-            # resp = jsonify(pts=json.dumps(pts), distribution=distribution, scale=scale)
-            # resp.status_code = 200
-            # return resp
-
+                if data_points is None:
+                    return {"error": "Data points cannot be retrieved for given experiment and/or stage"}, 404
+                for data_point in data_points:
+                    pts.append(data_point["payload"]["overhead"])
 
             # create the qq plot based on the retrieved data against normal distribution
             array = np.asarray(pts)

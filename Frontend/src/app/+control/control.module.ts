@@ -10,7 +10,8 @@ import {DashboardComponent} from "./dashboard/dashboard.component";
 import {TargetsComponent} from "./targets/targets.component";
 import {ConfigurationComponent} from "./configuration/configuration.component";
 import {ExperimentsComponent} from "./experiments/experiments.component";
-import {ShowExperimentsComponent} from "./experiments/show/show-experiments.component";
+import {ShowRunningExperimentComponent} from "./experiments/show/running/show-running-experiment.component";
+import {ShowSuccessfulExperimentComponent} from "./experiments/show/successful/show-successful-experiment.component";
 import {GraphsModule} from "../shared/modules/graphs/graphs.module";
 import {EditTargetsComponent} from "./targets/edit/edit-targets.component";
 import {CreateExperimentsComponent} from "./experiments/create/create-experiments.component";
@@ -32,7 +33,8 @@ import {CreateExperimentsComponent} from "./experiments/create/create-experiment
     TargetsComponent,
     ExperimentsComponent,
     CreateExperimentsComponent,
-    ShowExperimentsComponent,
+    ShowRunningExperimentComponent,
+    ShowSuccessfulExperimentComponent,
     EditTargetsComponent
   ]
 })

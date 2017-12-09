@@ -113,7 +113,8 @@ export class EditTargetsComponent implements OnInit {
           (success) => {
             ctrl.notify.success("Success", "Target saved");
             // this.router.navigate(["control/targets/edit", this.target.id]);
-            ctrl.router.navigate(["control/targets"]).then(() => {
+            ctrl.router.navigate(["control/experiments"]).then(() => {
+              console.log("navigated to experiments page");
             });
           }
         )
@@ -124,7 +125,8 @@ export class EditTargetsComponent implements OnInit {
         ctrl.api.saveTarget(this.target).subscribe(
           (success) => {
             ctrl.notify.success("Success", "Target saved");
-            ctrl.router.navigate(["control/targets"]).then(() => {
+            ctrl.router.navigate(["control/experiments"]).then(() => {
+              console.log("navigated to experiments page");
             });
           }
         );

@@ -62,12 +62,15 @@ class ElasticSearchDb(Database):
 
     def save_target(self, target_system_id, target_system_data):
         #        target_system_data["in_use"] = False
-        target_system_data["created"] = datetime.now()
+        target_system_data["created"] = datetime.now().isoformat(' ')
         del target_system_data["id"]
         try:
             self.es.index(self.index, self.target_system_type_name, target_system_data, target_system_id)
         except ConnectionError:
             error("Error while saving rtx_run data in elasticsearch. Check connection to elasticsearch and restart.")
+        except TransportError:
+            error("Error while creating elasticsearch. Check type mappings in config.json.")
+            print(traceback.format_exc())
 
     def get_target(self, target_system_id):
         res = self.es.get(self.index, target_system_id, self.target_system_type_name)
@@ -85,7 +88,7 @@ class ElasticSearchDb(Database):
 
     def save_experiment(self, experiment_id, experiment_data):
         experiment_data["status"] = "OPEN"
-        experiment_data["created"] = datetime.now()
+        experiment_data["created"] = datetime.now().isoformat(' ')
         del experiment_data["id"]
         try:
             self.es.index(self.index, self.experiment_type_name, experiment_data, experiment_id)
@@ -126,7 +129,7 @@ class ElasticSearchDb(Database):
         stage_id = Database.create_stage_id(experiment_id, stage_no)
         body = dict()
         body["payload"] = payload
-        body["created"] = datetime.now()
+        body["created"] = datetime.now().isoformat(' ') # used to replace 'T' with ' '
         try:
             self.es.index(self.index, self.data_point_type_name, body, data_point_id, parent=stage_id)
         except ConnectionError:
@@ -148,9 +151,9 @@ class ElasticSearchDb(Database):
             }
         }
         try:
-            res1 = self.es.search(self.index, self.data_point_type_name, query)
+            res1 = self.es.count(self.index, self.data_point_type_name, query)
             # first determine size, otherwise it returns only 10 data (by default)
-            size = res1['hits']['total']
+            size = res1['count']
 
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
@@ -161,38 +164,47 @@ class ElasticSearchDb(Database):
 
     def get_data_points_after(self, experiment_id, stage_no, timestamp):
         stage_id = Database.create_stage_id(experiment_id, stage_no)
-        print "timestamp: " + str(timestamp)
-        query = {
+        query1 = {
             "query": {
-
                 "has_parent": {
-                    "type": "stage",
+                    "parent_type": "stage",
                     "query": {
                         "match": {
                             "_id": str(stage_id)
                         }
-
                     }
                 }
+            }
+        }
 
+        query2 = {
+            "query": {
+                "has_parent": {
+                    "parent_type": "stage",
+                    "query": {
+                        "match": {
+                            "_id": str(stage_id)
+                        }
+                    }
+                }
             },
             "post_filter": {
-                "range" : {
-                    "created" : {
-                        "gte" : timestamp,
-                        "format": "yyyy-MM-dd HH:mm:ss"
+                "range": {
+                    "created": {
+                        "gt": timestamp,
+                        "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"
                     }
                 }
             }
         }
         try:
-            res1 = self.es.search(self.index, self.data_point_type_name, query)
+            res1 = self.es.count(self.index, self.data_point_type_name, query1)
             # first determine size, otherwise it returns only 10 data (by default)
-            size = res1['hits']['total']
+            size = res1['count']
 
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
-            res2 = self.es.search(self.index, body=query, size=size, sort='created')
+            res2 = self.es.search(self.index, self.data_point_type_name, body=query2, size=size, sort='created')
             return res2
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
@@ -202,18 +214,17 @@ class ElasticSearchDb(Database):
         body = dict()
         body["number"] = stage_no
         body["knobs"] = knobs
-        body["created"] = datetime.now()
+        body["created"] = datetime.now().isoformat(' ')
         try:
             self.es.index(self.index, self.stage_type_name, body, stage_id, parent=experiment_id)
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
 
     def get_stages(self, experiment_id):
-
         query = {
             "query": {
                 "has_parent": {
-                    "type": "experiment",
+                    "parent_type": "experiment",
                     "query": {
                         "match": {
                             "_id": str(experiment_id)
@@ -225,6 +236,34 @@ class ElasticSearchDb(Database):
 
         try:
             res = self.es.search(self.index, self.stage_type_name, query)
+            return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
+        except ConnectionError:
+            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+
+    def get_stages_after(self, experiment_id, timestamp):
+        query = {
+            "query": {
+                "has_parent": {
+                    "parent_type": "experiment",
+                    "query": {
+                        "match": {
+                            "_id": str(experiment_id)
+                        }
+                    }
+                }
+            },
+            "post_filter": {
+                "range": {
+                    "created": {
+                        "gt": timestamp,
+                        "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"
+                    }
+                }
+            }
+        }
+
+        try:
+            res = self.es.search(self.index, self.stage_type_name, query, sort='created')
             return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")

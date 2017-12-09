@@ -1,15 +1,16 @@
 #!flask/bin/python
 import sys
 from flask import Flask, request
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, reqparse
 
 from oeda.controller.targets import TargetController, TargetsListController
 from oeda.controller.configuration import ConfigurationController
 
 from oeda.service.execution_scheduler import initialize_execution_scheduler
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
-from oeda.controller.experimentResults import StageResultsWithExperimentIdController, AllStageResultsWithExperimentIdController
-from oeda.controller.StageController import StageController
+from oeda.controller.experiment_results import StageResultsWithExperimentIdController, AllStageResultsWithExperimentIdController
+from oeda.controller.running_experiment_results import RunningStageResultsWithExperimentIdController, RunningAllStageResultsWithExperimentIdController
+from oeda.controller.stages import StageController
 from oeda.controller.plotting import QQPlotController
 
 app = Flask(__name__, static_folder="assets")
@@ -74,10 +75,13 @@ api.add_resource(ExperimentController, '/api/experiments/<string:experiment_id>'
 api.add_resource(TargetsListController, '/api/targets')
 api.add_resource(TargetController, '/api/targets/<string:target_id>')
 
-api.add_resource(StageResultsWithExperimentIdController, '/api/experimentResults/<string:experiment_id>/<string:stage_no>')
-api.add_resource(AllStageResultsWithExperimentIdController, '/api/experimentResults/<string:experiment_id>')
+api.add_resource(StageResultsWithExperimentIdController, '/api/experiment_results/<string:experiment_id>/<string:stage_no>')
+api.add_resource(AllStageResultsWithExperimentIdController, '/api/experiment_results/<string:experiment_id>')
 api.add_resource(QQPlotController, '/api/qqPlot/<string:experiment_id>/<string:stage_no>/<string:distribution>/<string:scale>')
 api.add_resource(StageController, '/api/stages/<string:experiment_id>')
+
+api.add_resource(RunningStageResultsWithExperimentIdController, '/api/running_experiment_results/<string:experiment_id>/<string:stage_no>/<string:timestamp>')
+api.add_resource(RunningAllStageResultsWithExperimentIdController, '/api/running_experiment_results/<string:experiment_id>/<string:timestamp>')
 
 if __name__ == '__main__':
     from tornado.wsgi import WSGIContainer

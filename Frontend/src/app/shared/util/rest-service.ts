@@ -17,9 +17,9 @@ export abstract class RESTService {
               public log: LoggerService) {
   }
 
-  baseURL = environment.backendURL
+  baseURL = environment.backendURL;
 
-  requestHeader = new RequestOptions({
+  requestOptions = new RequestOptions({
     headers: new Headers({
       'Content-Type': 'application/json'
     })
@@ -35,7 +35,7 @@ export abstract class RESTService {
 
   /** does a authed http get request to the given URL and returns type T */
   public doGETRequest<T>(url: string): Observable<T> {
-    return this.authHttp.get(this.baseURL + url, this.requestHeader)
+    return this.authHttp.get(this.baseURL + url, this.requestOptions)
       .map((res: Response) => res.json())
       .catch((error: any) => {
         // @todo add reroute if login failed
@@ -47,7 +47,7 @@ export abstract class RESTService {
 
   /** does a authed http post request to the given URL with payload and returns type T */
   public doPOSTRequest<T>(url: string, object: any): Observable<T> {
-    return this.authHttp.post(this.baseURL + url, this.createCleanJSON(object), this.requestHeader)
+    return this.authHttp.post(this.baseURL + url, this.createCleanJSON(object), this.requestOptions)
       .map((res: Response) => Try(() => res.json()).getOrElse(() => {
       }))
       .catch((error: any) => {
@@ -59,7 +59,7 @@ export abstract class RESTService {
   }
 
   public doPUTRequest<T>(url: string, object: any): Observable<T> {
-    return this.authHttp.put(this.baseURL + url, this.createCleanJSON(object), this.requestHeader)
+    return this.authHttp.put(this.baseURL + url, this.createCleanJSON(object), this.requestOptions)
       .catch((error: any) => {
         this.notify.error("Server Error", "Action did not work")
         error.object = object // add post object to error
@@ -69,9 +69,9 @@ export abstract class RESTService {
   }
 
 
-  /** does a authed http get request to the given URL and returns type T */
+  /** does a public http get request to the given URL and returns type T */
   public doGETPublicRequest<T>(url: string): Observable<T> {
-    return this.http.get(this.baseURL + url, this.requestHeader)
+    return this.http.get(this.baseURL + url, this.requestOptions)
       .map((res: Response) => res.json())
       .catch((error: any) => {
         this.notify.error("Server Error", "Action did not work")
@@ -82,7 +82,7 @@ export abstract class RESTService {
 
   /** does a authed http post request to the given URL with payload and returns type T */
   public doPOSTPublicRequest<T>(url: string, object: any): Observable<T> {
-    return this.http.post(this.baseURL + url, this.createCleanJSON(object), this.requestHeader)
+    return this.http.post(this.baseURL + url, this.createCleanJSON(object), this.requestOptions)
       .catch((error: any) => {
         this.notify.error("Server Error", "Action did not work")
         error.object = object // add post object to error
@@ -92,7 +92,7 @@ export abstract class RESTService {
   }
 
   public doPUTPublicRequest<T>(url: string, object: any): Observable<T> {
-    return this.http.put(this.baseURL + url, this.createCleanJSON(object), this.requestHeader)
+    return this.http.put(this.baseURL + url, this.createCleanJSON(object), this.requestOptions)
       .catch((error: any) => {
         this.notify.error("Server Error", "Action did not work")
         error.object = object // add post object to error
