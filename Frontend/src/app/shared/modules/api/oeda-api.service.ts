@@ -44,6 +44,10 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/stages/" + experiment_id)
   }
 
+  public getOedaCallback(experiment_id: string): Observable<any> {
+    return this.doGETPublicRequest("/running_experiment_results/oeda_callback/" + experiment_id)
+  }
+
   public getQQPlot(experiment_id: string, stage_no: string, distribution: string, scale: string): Observable<any> {
     return this.doGETPublicRequest("/qqPlot/" + experiment_id + "/" + stage_no + "/" + distribution + "/" + scale)
   }
@@ -125,6 +129,16 @@ export interface ExecutionStrategy {
   ignore_first_n_results: number,
   sample_size: number,
   knobs: any
+}
+
+export interface OedaCallbackEntity {
+  status: string,
+  message: string,
+  index: number,
+  size: number,
+  complete: number,
+  experiment_counter: number,
+  total_experiments: number,
 }
 
 export interface Configuration {

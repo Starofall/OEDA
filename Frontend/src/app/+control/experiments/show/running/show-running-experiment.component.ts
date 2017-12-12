@@ -1,15 +1,12 @@
 import {Component, OnInit, OnDestroy} from '@angular/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
-import {URLSearchParams} from "@angular/http";
 import {NotificationsService} from "angular2-notifications";
 import {LayoutService} from "../../../../shared/modules/helper/layout.service";
-import {Experiment, Target, OEDAApiService, Entity} from "../../../../shared/modules/api/oeda-api.service";
+import {Experiment, Target, OEDAApiService, Entity, OedaCallbackEntity} from "../../../../shared/modules/api/oeda-api.service";
 import {AmChartsService, AmChart} from "@amcharts/amcharts3-angular";
-import * as d3 from "d3";
 import {isNullOrUndefined} from "util";
 import {Observable} from "rxjs/Observable";
-import {QueryEncoder} from "@angular/http";
-import {forEach} from "@angular/router/src/utils/collection";
+
 
 @Component({
   selector: 'show-running-experiment',
@@ -63,6 +60,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   public availableStagesForQQJS = [];
 
   public selected_stage_no: any;
+  public oedaCallback: OedaCallbackEntity;
 
 
   constructor(private layout: LayoutService,
@@ -87,6 +85,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.available_distributions = ['Norm', 'Gamma', 'Logistic', 'T', 'Uniform', 'Lognorm', 'Loggamma'];
 
     this.selected_stage_for_qq_js = "Select a stage";
+    this.oedaCallback = this.create_oeda_callback_entity();
 
     // subscribe to router event
     this.activated_route.params.subscribe((params: Params) => {
@@ -179,16 +178,10 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                     // initially selected stage is "All Stages"
                     this.selected_stage_no = -1;
 
-                    // polling using Timer (5 sec interval) for real-time data visualization
-                    this.timer = Observable.timer(10000, 5000);
+                    // polling using Timer (3 sec interval) for real-time data visualization
+                    this.timer = Observable.timer(2000, 3000);
                     this.subscription = this.timer.subscribe(t => {
-                      this.poll_data();
-                      // this.chartLastValue = this.chartLastValue * (Math.random() + 0.55)
-                      // this.chart1Data[0].values = this.chart1Data[0].values.concat([{x: this.chartIndex, y: this.chartLastValue}])
-                      // // this.nvd3.chart.update();
-                      // this.nvd32.chart.update();
-                      // // this.nvd33.chart.update();
-                      // this.chartIndex += 1
+                      this.fetch_oeda_callback();
                     });
 
                   }
@@ -226,9 +219,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           if (response.hasOwnProperty(index)) {
             let parsed_json_object = JSON.parse(response[index]);
 
-            //
+            /*
             // distribute data points to empty bins
-            let new_entity = ctrl.createEntity();
+            let new_entity = ctrl.create_entity();
             new_entity.stage_number = parsed_json_object['stage_number'].toString();
             new_entity.values = parsed_json_object['values'];
             // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
@@ -240,15 +233,14 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               let data_point_length = new_entity.values.length;
               ctrl.timestamp = new_entity.values[data_point_length - 1]['created'];
               //ctrl.timestamp = "2017-12-07 00:24:40.524000";
-            }
+            }*/
           }
         }
       } else {
-        if (json_obj.values[length - 1]['created'].toString() === ctrl.timestamp) {
-          ctrl.notify.success("", "All data have been fetched successfully, stopped polling");
-          ctrl.subscription.unsubscribe();
-          return;
-        }
+        // if (json_obj.values[length - 1]['created'].toString() === ctrl.timestamp) {
+        //   this.disable_polling("Success", "All data have been fetched successfully, stopped polling");
+        //   return;
+        // }
         // iterate the json objects in response and concat their data_points with existing data_points
         for (let index in response) {
           if (response.hasOwnProperty(index)) {
@@ -265,7 +257,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             } else {
               // a new stage has been fetched, create a new bin for it, and push to all_data
               console.log("new stage:", parsed_json_object.stage_number);
-              let new_entity = ctrl.createEntity();
+              let new_entity = ctrl.create_entity();
               new_entity.stage_number = parsed_json_object['stage_number'].toString();
               new_entity.values = parsed_json_object['values'];
               ctrl.all_data.push(new_entity);
@@ -275,62 +267,30 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             if (Number(index) == response.length - 1) {
               let data_point_length = parsed_json_object['values'].length;
               ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
-              // ctrl.timestamp = "2017-12-07 00:25:40.524000";
             }
           }
         }
       }
-    } else {
-      ctrl.subscription.unsubscribe();
-      ctrl.notify.success("", "Number of data points retrieved is 0, stopped polling");
-      return;
+    } else if (length === 0) {
+      // here, we cannot fetch any more data
+      // so the object that will  be retrieved from DB will be sth like this
+      // {stage_number: 5, values: Array(0)}
+      // stop polling here
+      // this.disable_polling("Success", "All data have been fetched successfully, stopped polling");
     }
 
     // check experiment status to stop timer or continue polling data
     ctrl.apiService.loadExperimentById(ctrl.experiment_id).subscribe(experiment => {
       const experiment_status = experiment.status.toString();
-      if (experiment_status === "SUCCESS" || experiment_status === "ERROR") {
-        ctrl.subscription.unsubscribe();
+      if (experiment_status === "ERROR") {
+        ctrl.disable_polling("Error", "Experiment cannot be done, stopped polling");
+      } else if (experiment_status === "SUCCESS") {
+        ctrl.disable_polling("Success", "Experiment is done, stopped polling");
       }
     });
   }
 
-  private poll_data() {
-    const ctrl = this;
-    if (ctrl.first_render_of_page) {
-      ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-        ctrl.process_response(response, ctrl.first_render_of_page);
-        ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
-        ctrl.first_render_of_page = false;
-      });
-    } else {
-      if (ctrl.timestamp !== undefined) {
-        ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
-          ctrl.process_response(response, ctrl.first_render_of_page);
-          ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
-        });
-      }
-
-    }
-  }
-
-  // remove qq plot retrieved from server otherwise memory will build up
-  remove_all_plots() {
-    // for (let j = 0; j < this.chart1.graphs.length; j++) {
-    //   var graph = this.chart1.graphs.pop();
-    //   this.chart1.removeGraph(graph);
-    // }
-    // for (let k = 0; k < this.chart4.graphs.length; k++) {
-    //   var graph = this.chart4.graphs.pop();
-    //   this.chart4.removeGraph(graph);
-    // }
-    if (document.getElementById(this.qqPlotDivId).hasAttribute('src')) {
-      var image_qq_plot = document.getElementById(this.qqPlotDivId);
-      image_qq_plot.removeAttribute('src');
-    }
-  }
-
-  draw_all_plots(selected_stage_no, jsonArray) {
+  private draw_all_plots(selected_stage_no, jsonArray) {
     const ctrl = this;
     // set it to false in case a new scale is selected
     ctrl.is_enough_data_for_plots = false;
@@ -354,7 +314,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
         ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData);
         // ctrl.draw_qq_plot();
-        console.log("first render bitti, chart1: ", ctrl.chart1);
       } else {
         // now create a new graph with updated values
         ctrl.chart1.dataProvider = ctrl.processedData;
@@ -377,6 +336,147 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.is_enough_data_for_plots = true;
     } else {
       ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
+    }
+  }
+
+  private fetch_oeda_callback() {
+    const ctrl = this;
+
+    ctrl.apiService.getOedaCallback(ctrl.experiment_id).subscribe(oedaCallback => {
+      if(!isNullOrUndefined(oedaCallback)) {
+        console.log(oedaCallback);
+        ctrl.oedaCallback["status"] = oedaCallback.status;
+        // keywords (index, size) are same for the first two cases, but they indicate different things
+        if (oedaCallback.status.toString() === "PROCESSING") {
+          ctrl.oedaCallback["message"] = oedaCallback.message;
+        } else if (oedaCallback.status.toString() === "IGNORING_SAMPLES") {
+          ctrl.oedaCallback["index"] = oedaCallback.index;
+          ctrl.oedaCallback["size"] = oedaCallback.size;
+          ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
+        } else if (oedaCallback.status.toString() === "COLLECTING_DATA") {
+          ctrl.oedaCallback["index"] = oedaCallback.index;
+          ctrl.oedaCallback["size"] = oedaCallback.size;
+          ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
+
+          // TODO: there is a bug in the timestamp logic, data does not get updated after a while
+          // because fetched entity does not contain any data. how could that be possible? try to find out...
+
+          // if (ctrl.first_render_of_page) {
+          //   ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
+          //     console.log("response in first if, should be rendered data", response);
+          //     ctrl.process_response(response, ctrl.first_render_of_page);
+          //     ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
+          //     ctrl.first_render_of_page = false;
+          //   });
+          // } else {
+          //   if (ctrl.timestamp !== undefined) {
+          //     ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
+          //       console.log("response in second if, should be rendered data", response);
+          //       ctrl.process_response(response, ctrl.first_render_of_page);
+          //       ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
+          //     });
+          //   }
+          // }
+
+          // set all_data to empty, poll every data and plot accordingly for now
+          // TODO: remove it, this is just for prototype
+          ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(data => {
+            if (isNullOrUndefined(data)) {
+              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+              return;
+            }
+            ctrl.all_data = [];
+            ctrl.all_data = ctrl.process_response_new(data);
+            ctrl.draw_all_plots_new(ctrl.all_data);
+          });
+
+
+        } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
+          ctrl.oedaCallback["experiment_counter"] = oedaCallback.experiment_counter;
+          ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments;
+          // if these two are equal, then there is no need to poll data
+          if (ctrl.oedaCallback["total_experiments"] == ctrl.oedaCallback["experiment_counter"]) {
+            this.disable_polling("Success", "Data is up-to date, stopped polling.");
+          }
+          // set all_data to empty, fetch all data again, and plot it
+          ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
+            if (isNullOrUndefined(response)) {
+              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+              return;
+            }
+            ctrl.all_data = [];
+            ctrl.all_data = ctrl.process_response_new(response);
+            ctrl.draw_all_plots_new(ctrl.all_data);
+          });
+        }
+
+      }
+    });
+  }
+
+  // TODO: remove it, this is just for prototype
+  private process_response_new(response): Entity[] {
+    const ctrl = this;
+
+    if (isNullOrUndefined(response)) {
+      ctrl.notify.error("Error", "Cannot retrieve data from DB, please try again");
+      return;
+    }
+    // we can retrieve more than one array of stages and data points
+    for (let index in response) {
+      if (response.hasOwnProperty(index)) {
+        let parsed_json_object = JSON.parse(response[index]);
+        // distribute data points to empty bins
+        let new_entity = ctrl.createEntity_new();
+        new_entity.stage_number = parsed_json_object['stage_number'].toString();
+        new_entity.values = parsed_json_object['values'];
+        // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
+        // thus, pushed new_entity will have a key of its "stage_number" with this assumption
+        // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
+        ctrl.all_data.push(new_entity);
+      }
+    }
+    return ctrl.all_data;
+  }
+
+  // TODO: remove it, this is just for prototype
+  private draw_all_plots_new(stage_object) {
+    const ctrl = this;
+
+    if (stage_object !== undefined && stage_object.length !== 0) {
+
+      // draw graphs for all_data
+      if (ctrl.selected_stage_no === -1) {
+        let processedData: any;
+        processedData = ctrl.process_data(stage_object, "timestamp", "value", ctrl.scale);
+        console.log("processed data", processedData);
+        // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
+        const clonedData = JSON.parse(JSON.stringify(processedData));
+        ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
+
+        ctrl.draw_smooth_line_chart("chartdiv", "filterSummary", processedData);
+        ctrl.draw_histogram("histogram", processedData);
+      }
+      ctrl.is_enough_data_for_plots = true;
+    } else {
+      ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
+      return;
+    }
+  }
+
+  // remove qq plot retrieved from server otherwise memory will build up
+  remove_all_plots() {
+    // for (let j = 0; j < this.chart1.graphs.length; j++) {
+    //   var graph = this.chart1.graphs.pop();
+    //   this.chart1.removeGraph(graph);
+    // }
+    // for (let k = 0; k < this.chart4.graphs.length; k++) {
+    //   var graph = this.chart4.graphs.pop();
+    //   this.chart4.removeGraph(graph);
+    // }
+    if (document.getElementById(this.qqPlotDivId).hasAttribute('src')) {
+      var image_qq_plot = document.getElementById(this.qqPlotDivId);
+      image_qq_plot.removeAttribute('src');
     }
   }
 
@@ -588,6 +688,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     });
   }
 
+  // TODO: remove it because this is just for prototype
   // helper function for graphs
   process_data(jsonArray, xAttribute, yAttribute, scale): Array<number> {
     const ctrl = this;
@@ -651,8 +752,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   calculate_threshold_for_given_percentile(data, percentile, data_field) {
     const sortedData = data.sort(this.sort_by(data_field, true, parseFloat));
     const index = Math.floor(sortedData.length * percentile / 100 - 1);
-
-    if (data_field !== null) {
+    if (!isNullOrUndefined(data_field)) {
       const result = sortedData[index][data_field];
       return +result.toFixed(2);
     }
@@ -713,7 +813,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         Draw plots for the selected stage
         If "All Stages" is selected, concat every stage data
       */
-      this.poll_data();
+      this.fetch_oeda_callback();
     } else {
       this.notify.error("Error", "Stage number is null or undefined, please try again");
       return;
@@ -725,11 +825,43 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.stage_changed(this.selected_stage_no);
   }
 
-  private createEntity(): Entity {
+  disable_polling(status: string, content: string) {
+    document.getElementById("polling_off_button").setAttribute('class', 'btn btn-primary active');
+    document.getElementById("polling_on_button").setAttribute('class', 'btn btn-default');
+    this.subscription.unsubscribe();
+    if (status !== null && content !== null) {
+      this.notify.success(status, content);
+    } else {
+      this.notify.success("Success", "Polling disabled");
+    }
+  }
+
+  enable_polling() {
+    document.getElementById("polling_on_button").setAttribute('class', 'btn btn-primary active');
+    document.getElementById("polling_off_button").setAttribute('class', 'btn btn-default');
+    this.subscription = this.timer.subscribe(t => {
+      this.fetch_oeda_callback();
+    });
+    this.notify.success("Success", "Polling enabled");
+  }
+
+  private create_entity(): Entity {
     return {
       stage_number: "",
       values: []
     }
+  }
+
+  private create_oeda_callback_entity(): OedaCallbackEntity {
+    return {
+      status: "Initializing...",
+      message: "",
+      index: 0,
+      size: 0,
+      complete: 0,
+      experiment_counter: 0,
+      total_experiments: 0
+    };
   }
 
   // helper function that filters out data above the given threshold
@@ -740,5 +872,12 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     console.log(target);
     console.log(idAttr);
     console.log(value);
+  }
+
+  private createEntity_new(): Entity {
+    return {
+      stage_number: "",
+      values: []
+    }
   }
 }

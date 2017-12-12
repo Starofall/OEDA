@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, request
-from flask_restful import Resource, Api, reqparse
+from flask import jsonify
+from flask_restful import Resource
 from elasticsearch import Elasticsearch
 from datetime import datetime
 import oeda.controller.stages as sc
@@ -9,12 +9,10 @@ from oeda.databases import db
 import json as json
 import traceback
 
-
 # TODO: retrieve these hard-coded values from respective configuration files
 elastic_search_index = "rtx"
 
-# class NonLocal: last_timestamp = '2017-12-04 16:59:46.154913'
-# class NonLocal: last_timestamp = '2017-12-04 16:59:46.154913'
+globalDict = None
 
 class RunningStageResultsWithExperimentIdController(Resource):
     def get(self, experiment_id, stage_no, timestamp):
@@ -142,3 +140,34 @@ def searchWithQuery(experiment_id, stage_id):
     # sorting is required for proper visualization of data
     res2 = es.search(index=elastic_search_index, body=query, size=size, sort='created')
     return res2
+
+# TODO: both set_dict and get function in OEDACallbackController should be called with experiment_id
+# otherwise how should we determine the correct experiment running in background?
+def set_dict(dictionary):
+    global globalDict
+    globalDict = dictionary
+
+# returns _oedaCallback as an API
+class OEDACallbackController(Resource):
+
+    def get(self, experiment_id):
+        try:
+            if experiment_id is None:
+                return {"error": "experiment_id should not be null"}, 404
+
+            global globalDict
+            if globalDict is None:
+                resp = jsonify({"status": "PROCESSING", "message": "OEDA callback has not been processed yet..."})
+            else:
+                # should return the dict to user after callback is received
+                resp = jsonify(globalDict)
+
+            resp.status_code = 200
+            return resp
+
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(tb)
+            return {"error": e.message}, 404
+
+

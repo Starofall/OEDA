@@ -9,7 +9,7 @@ from oeda.controller.configuration import ConfigurationController
 from oeda.service.execution_scheduler import initialize_execution_scheduler
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
 from oeda.controller.experiment_results import StageResultsWithExperimentIdController, AllStageResultsWithExperimentIdController
-from oeda.controller.running_experiment_results import RunningStageResultsWithExperimentIdController, RunningAllStageResultsWithExperimentIdController
+from oeda.controller.running_experiment_results import RunningStageResultsWithExperimentIdController, RunningAllStageResultsWithExperimentIdController, OEDACallbackController
 from oeda.controller.stages import StageController
 from oeda.controller.plotting import QQPlotController
 
@@ -82,6 +82,7 @@ api.add_resource(StageController, '/api/stages/<string:experiment_id>')
 
 api.add_resource(RunningStageResultsWithExperimentIdController, '/api/running_experiment_results/<string:experiment_id>/<string:stage_no>/<string:timestamp>')
 api.add_resource(RunningAllStageResultsWithExperimentIdController, '/api/running_experiment_results/<string:experiment_id>/<string:timestamp>')
+api.add_resource(OEDACallbackController, '/api/running_experiment_results/oeda_callback/<string:experiment_id>')
 
 if __name__ == '__main__':
     from tornado.wsgi import WSGIContainer

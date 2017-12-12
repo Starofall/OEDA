@@ -246,9 +246,14 @@
                 <div class="title pull-left">Stages of Experiment</div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="title pull-left">Scale of Results</div>
               </div>
+
+              <div class="col-md-2">
+                <div class="title pull-left">Polling</div>
+              </div>
+
             </div>
           </div>
           <div class="panel-body" style="padding-top: 20px">
@@ -260,7 +265,7 @@
                   </select>
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="card-title">
                   <select class="form-control" required (change)="scale_changed($event.target.value)">
                     <option [selected]="true">Normal</option>
@@ -268,18 +273,63 @@
                   </select>
                 </div>
               </div>
+              <div class="col-md-2">
+                <div class="card-title">
+                  <div class="btn-group btn-toggle">
+                    <button class="btn btn-primary active" id="polling_on_button" (click)="enable_polling()">ON</button>
+                    <button class="btn btn-default" id="polling_off_button" (click)="disable_polling()">OFF</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
     </div>
 
-    <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''"
-         [hidden]="is_enough_data_for_plots" style="width: 750px; height: 600px;">
+    <!--<div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''"-->
+         <!--[hidden]="is_enough_data_for_plots" style="width: 750px; height: 600px;">-->
+  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''">
       <div class="col-sm-6 col-xs-12" style="padding-left: 0">
         <div class="panel panel-default chartJs">
           <div class="panel-body" style="padding-top: 20px">
-            <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
-            <h4>Drawing graphs...</h4>
+            <h4>Current Status of Experiment</h4>
+
+            <div *ngIf="oedaCallback['status'] === 'PROCESSING'">
+              <p>
+                {{oedaCallback['message']}} Please wait
+              </p>
+            </div>
+
+
+            <div *ngIf="oedaCallback['status'] === 'IGNORING_SAMPLES'">
+              <p>
+                Ignoring some of the sampled data...
+              </p>
+              <p>
+                Number of ignored samples: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
+              </p>
+              <progressbar [value]="oedaCallback['complete']*100"></progressbar>
+            </div>
+
+            <div *ngIf="oedaCallback['status'] === 'COLLECTING_DATA'">
+              <p>
+                Collecting data...
+              </p>
+              <p>
+                Number of collected data: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
+              </p>
+              <progressbar [value]="oedaCallback['complete']*100"></progressbar>
+            </div>
+
+            <div *ngIf="oedaCallback['status'] === 'EXPERIMENT_STAGE_DONE'">
+              <p>
+                Experiment stage is completed...
+              </p>
+              <p>
+                Experiment counter: {{oedaCallback['experiment_counter']}} , total size: {{oedaCallback['total_experiments']}}
+              </p>
+            </div>
+
           </div>
         </div>
       </div>
@@ -294,10 +344,10 @@
           </div>
         </div>
         <div class="panel-body">
-          <div class="col-md-12" id="chartdiv{{selected_stage_no}}" style="width: 100%; height: 400px"></div>
+          <div class="col-md-12" id="chartdiv" style="width: 100%; height: 400px"></div>
         </div>
         <div class="panel-footer">
-          <p id="filterSummary{{selected_stage_no}}">Initial threshold for 95-percentile: <b>{{initialThresholdForSmoothLineChart}}</b></p>
+          <p id="filterSummary">Initial threshold for 95-percentile: <b>{{initialThresholdForSmoothLineChart}}</b></p>
           <!--<button id="filterButton{{selected_stage_no}}" type="button" class="btn btn-primary" (click)="filter_outliers($event)">Filter</button>-->
         </div>
       </div>
@@ -312,7 +362,7 @@
           </div>
         </div>
         <div class="panel-body" >
-          <div class="col-md-12" id="histogram{{selected_stage_no}}" style="width: 100%; height: 400px"></div>
+          <div class="col-md-12" id="histogram" style="width: 100%; height: 400px"></div>
           <!--<div class="col-md-12" id="histogram{{selected_stage_no}}_log" [hidden]="{{scale}}!='Log'" style="width: 100%; height: 400px"></div>-->
         </div>
       </div>

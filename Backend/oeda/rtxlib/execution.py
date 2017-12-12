@@ -1,7 +1,7 @@
 from oeda.log import *
 
 def _defaultChangeProvider(variables,wf):
-    """ by default we just forword the message to the change provider """
+    """ by default we just forward the message to the change provider """
     return variables
 
 
@@ -22,11 +22,11 @@ def experimentFunction(wf, exp):
     info(">")
     info("> KnobValues     | " + str(exp["knobs"]))
     # create new state
-    exp["state"] = wf.state_initializer(dict(),wf)
+    exp["state"] = wf.state_initializer(dict(), wf)
 
     # apply changes to system
     try:
-        wf.change_provider["instance"].applyChange(change_creator(exp["knobs"],wf))
+        wf.change_provider["instance"].applyChange(change_creator(exp["knobs"], wf))
     except:
         error("apply changes did not work")
 
@@ -38,6 +38,8 @@ def experimentFunction(wf, exp):
             new_data = wf.primary_data_provider["instance"].returnData()
             if new_data is not None:
                 i += 1
+                # NEW - we call back to oeda and give us infos there
+                wf.run_oeda_callback({"experiment": exp, "status": "IGNORING_SAMPLES", "index": i, "size": to_ignore})
                 process("IgnoreSamples  | ", i, to_ignore)
         print("")
 
@@ -46,14 +48,14 @@ def experimentFunction(wf, exp):
     i = 0
     try:
         while i < sample_size:
-            # NEW - we call back to oeda and give us infos there
-            wf.run_oeda_callback({"i":i, "size":sample_size})
             # we start with the primary data provider using blocking returnData
             new_data = wf.primary_data_provider["instance"].returnData()
             if new_data is not None:
                 try:
                     # print(new_data)
-                    exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], new_data,wf)
+                    # NEW - we call back to oeda and give us infos there
+                    wf.run_oeda_callback({"experiment": exp, "status": "COLLECTING_DATA", "index": i, "size": sample_size})
+                    exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], new_data, wf)
                 except StopIteration:
                     raise StopIteration()  # just fwd
                 except RuntimeError:
@@ -89,6 +91,7 @@ def experimentFunction(wf, exp):
         wf.experimentCounter += 1
     else:
         wf.experimentCounter = 1
+    wf.run_oeda_callback({"experiment": exp, "status": "EXPERIMENT_STAGE_DONE", "experiment_counter": wf.experimentCounter, "total_experiments": wf.totalExperiments})
     # print the results
     duration = current_milli_time() - start_time
     # do not show stats for forever strategy

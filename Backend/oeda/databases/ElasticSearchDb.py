@@ -101,7 +101,7 @@ class ElasticSearchDb(Database):
 
     def get_experiments(self):
         query = {
-            "size" : 1000,
+            "size": 1000,
             "query": {
                 "match_all": {}
             }

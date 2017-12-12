@@ -5,6 +5,7 @@ from oeda.rtxlib.workflow import execute_workflow
 from oeda.service.rtx_definition import *
 from oeda.databases import db
 
+from oeda.controller.running_experiment_results import set_dict as set_dict
 
 def find_open_experiments():
     ids, experiments = db().get_experiments()
@@ -67,7 +68,9 @@ def fork_and_run_experiment(experiment):
 def rtx_execution(experiment, targetSystem):
 
     # we create a custom callback that RTX is calling-this allows us to update the progress percentage on an experiment
-    def oeda_callback(dict):
+    # TODO: related with associating experimetn id in oedaController: rtx_execution's experiment can be attached to dictionary and set accordingly
+    def oeda_callback(dictionary):
+        set_dict(dictionary)
 
         # do something like:
         # sys.stdout.write('\r')
@@ -88,7 +91,6 @@ def rtx_execution(experiment, targetSystem):
 
         # ProgressCounter.set(dict["i"], dict(["total"]))
         # the progress counter has to be behind an API that is periodically called
-        info(str(dict))
 
     try:
         set_experiment_status(experiment["id"], "RUNNING")

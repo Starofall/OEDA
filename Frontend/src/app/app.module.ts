@@ -8,6 +8,8 @@ import {routes} from "./app.routes";
 import {SharedModule} from "./shared/shared.module";
 import {GlobalModule} from "./global.module";
 import {SimpleNotificationsModule} from "angular2-notifications";
+import {JWBootstrapSwitchModule} from 'jw-bootstrap-switch-ng2';
+
 
 @NgModule({
   declarations: [
@@ -20,6 +22,7 @@ import {SimpleNotificationsModule} from "angular2-notifications";
     BrowserModule,
     GlobalModule,
     AmChartsModule,
+    JWBootstrapSwitchModule,
     SharedModule.forRoot(),
     SimpleNotificationsModule.forRoot()
   ],
