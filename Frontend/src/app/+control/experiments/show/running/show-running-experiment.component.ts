@@ -88,6 +88,14 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.selected_stage_for_qq_js = "Select a stage";
     this.oedaCallback = this.create_oeda_callback_entity();
 
+
+    this.divId = "chartdiv";
+    this.histogramDivId = "histogram";
+    this.histogramLogDivId = "histogram_log";
+    this.filterSummaryId = "filterSummary";
+    this.qqPlotDivId = "qqPlot";
+    this.qqPlotDivIdJS = "qqPlotJS";
+
     // subscribe to router event
     this.activated_route.params.subscribe((params: Params) => {
       // id is retrieved from URI
@@ -96,51 +104,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  /*
-  @ViewChild('nvd3') nvd3;
-  @ViewChild('nvd32') nvd32;
-  @ViewChild('nvd33') nvd33;
-
-  chartIndex = 0
-  chartLastValue = 10
-
-  chart1Data = [{
-    "key": "Data Collections / min",
-    "bar": true,
-    "values": []
-  }]
-
-  chart1Options = {
-    chart: {
-      type: 'lineChart',
-      height: 300,
-      margin: {
-        top: 30,
-        right: 20,
-        bottom: 30,
-        left: 45
-      },
-      clipEdge: true,
-      duration: 500,
-      stacked: true,
-      xAxis: {
-        showMaxMin: false,
-        tickFormat: function (d) {
-          return d;
-          // return d3.time.format('%x')(new Date(d));
-        }
-      },
-      yAxis: {
-        axisLabel: 'Entries',
-        axisLabelDistance: -20,
-        tickFormat: function (d) {
-          return d3.format(',f')(d);
-        }
-      }
-    }
-  }
-  */
 
   /* tslint:disable */
 
@@ -164,7 +127,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
-                    console.log("stages in ngOnInit", stages);
                     stages.sort(this.sort_by('number', true, parseInt));
 
                     const all_stages = {"number": "All Stages"};
@@ -208,21 +170,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // check if last data's timestamp is equal to the local timestamp, if so there's no more data, stop polling
-    let data_string = response[response.length - 1];
-    let json_obj = JSON.parse(data_string);
-    console.log("json_obj!!!!!!!!!!", json_obj);
-    let length = json_obj['values'].length;
-
-    // we can retrieve no entity from DB, for this case, just keep polling until you get a timestamp
-    // if (length == 0) {
-    //   console.log("no data is retrieved first_render, length = 0, will keep polling");
-    //   return false;
-    // }
-
     if (ctrl.first_render_of_page) {
       // we can retrieve one or more stages at first render
-      console.log("we have some data first_render, details:", response );
       for (let index in response) {
         if (response.hasOwnProperty(index)) {
           let parsed_json_object = JSON.parse(response[index]);
@@ -235,17 +184,17 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
           if (new_entity.values.length != 0) {
             ctrl.all_data.push(new_entity);
-          };
+          }
 
-          // also push stage to the dropdown
+          // as a guard against stage duplications
           const new_stage = {"number": parsed_json_object['stage_number']};
-          this.availableStages.push(new_stage);
-
-          // if (Number(index) == response.length - 1) {
-          //   let data_point_length = new_entity.values.length;
-          //   ctrl.timestamp = new_entity.values[data_point_length - 1]['created'];
-          //   return true;
-          // }
+          let existing_stage_length_initial = ctrl.availableStages.filter(entity => entity.number.toString() === parsed_json_object['stage_number'].toString()).length;
+          // we have found an existing stage
+          if (existing_stage_length_initial == 0) {
+            ctrl.availableStages.push(new_stage);
+          }
+          // do not update timestamp here if we cant retrieve any data, just keep fetching with timestamp "-1"
+          // because is also updated according to it, i.e. it fetches all data if timestamp is -1
         }
       }
       ctrl.first_render_of_page = false;
@@ -253,52 +202,51 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     } else {
       // we can retrieve one or more stages upon other polls
       // so, iterate the these stages and concat their data_points with existing data_points
-      console.log("we have some data NOT_first_render:", response);
       for (let index in response) {
         if (response.hasOwnProperty(index)) {
           let parsed_json_object = JSON.parse(response[index]);
-          console.log("parsed_json_object in else case (not first_render):", parsed_json_object);
 
           let existing_stage_len = ctrl.all_data.filter(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString()).length;
           // we have found an existing stage
           if (existing_stage_len > 0) {
-            console.log("found an existing stage:", parsed_json_object.stage_number);
-            // retieve bin by using above-mentioned assumption
-            let stage_index = parsed_json_object['stage_number']-1;
-            ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
+            // retieve bin by using above-mentioned assumption, updated according to the new logic
+            let stage_index = parsed_json_object['stage_number'] - 1;
 
+            if (parsed_json_object.hasOwnProperty("values") && parsed_json_object.hasOwnProperty("stage_number")) {
+              if (parsed_json_object['values'].length > 0) {
+                ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
+              }
+            }
           } else if (existing_stage_len == 0) {
             // a new stage has been fetched, create a new bin for it, and push all the values to the bin, also push bin to all_data
-            console.log("new stage:", parsed_json_object.stage_number);
+            const stage_number = parsed_json_object['stage_number'].toString();
+            const values = parsed_json_object['values'];
+            const new_stage = {"number": stage_number};
+            ctrl.availableStages.push(new_stage);
+
             let new_entity = ctrl.create_entity();
-            new_entity.stage_number = parsed_json_object['stage_number'].toString();
-            new_entity.values = parsed_json_object['values'];
+            new_entity.stage_number = stage_number;
+            new_entity.values = values;
             ctrl.all_data.push(new_entity);
           }
-
-          // update timestamp
+          // update timestamp if we have retrieved a data
           if (Number(index) == response.length - 1) {
             let data_point_length = parsed_json_object['values'].length;
-            ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
-            return true;
+            if (data_point_length > 0) {
+              ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
+              return true;
+            }
           }
         }
       }
     }
   }
 
-  private draw_all_plots(selected_stage_no, jsonArray) {
+  private draw_all_plots(jsonArray) {
     const ctrl = this;
     // set it to false in case a new scale is selected
     ctrl.is_enough_data_for_plots = false;
     if (jsonArray !== undefined && jsonArray.length !== 0) {
-      ctrl.divId = "chartdiv" + selected_stage_no;
-      ctrl.histogramDivId = "histogram" + selected_stage_no;
-      ctrl.histogramLogDivId = ctrl.histogramDivId + "_log";
-      ctrl.filterSummaryId = "filterSummary" + selected_stage_no;
-
-      ctrl.qqPlotDivId = "qqPlot" + selected_stage_no;
-      ctrl.qqPlotDivIdJS = "qqPlotJS" + selected_stage_no;
 
       ctrl.processedData = ctrl.process_data(jsonArray,"timestamp", "value", ctrl.scale);
 
@@ -307,7 +255,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
 
       if (ctrl.first_render_of_plots) {
-        console.log("processed data before drawing charts at initial phase", ctrl.processedData);
         ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
         ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData);
         // ctrl.draw_qq_plot();
@@ -344,7 +291,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       if(!isNullOrUndefined(oedaCallback)) {
         console.log(oedaCallback);
         ctrl.oedaCallback["status"] = oedaCallback.status;
-        ctrl.oedaCallback["stage_counter"] = oedaCallback.stage_counter;
+        ctrl.oedaCallback["stage_counter"] = oedaCallback.stage_counter - 1;
         // keywords (index, size) are same for the first two cases, but they indicate different things
         if (oedaCallback.status.toString() === "PROCESSING") {
           ctrl.oedaCallback["message"] = oedaCallback.message;
@@ -359,27 +306,33 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
           if (ctrl.first_render_of_page) {
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-              console.log("response when page is first rendered, should be rendered data", response);
               let is_successful_fetch = ctrl.process_response(response);
               if (is_successful_fetch)
-                ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
+                ctrl.draw_all_plots(ctrl.all_data);
             });
           } else {
             if (ctrl.timestamp == undefined) {
               ctrl.timestamp = "-1";
             }
             ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
-              console.log("response when timestamp is not undefined:", response);
               ctrl.process_response(response);
-              ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
+              ctrl.draw_all_plots(ctrl.all_data);
             });
           }
         } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
           ctrl.oedaCallback["experiment_counter"] = oedaCallback.experiment_counter;
-          ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments;
+          ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments - 1; // updated according to the new logic
           // if these two are equal, then there is no need to poll data
           if (ctrl.oedaCallback["total_experiments"] == ctrl.oedaCallback["experiment_counter"]) {
             this.disable_polling("Success", "Data is up-to date, stopped polling.");
+            // just to make sure that, all data is rendered at the end. Can be removed? To discuss
+            // TODO: also, another option would be updating the experiment status and target system status manually
+            // normally they get updated at the end of execution, but there's a bug there for now.
+            ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
+              let is_successful_fetch = ctrl.process_response(response);
+              if (is_successful_fetch)
+                ctrl.draw_all_plots(ctrl.all_data);
+            });
           }
         }
       }
@@ -735,7 +688,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         Draw plots for the selected stage
         If "All Stages" is selected, concat every stage data
       */
-      this.fetch_oeda_callback();
+      // this.fetch_oeda_callback();
     } else {
       this.notify.error("Error", "Stage number is null or undefined, please try again");
       return;

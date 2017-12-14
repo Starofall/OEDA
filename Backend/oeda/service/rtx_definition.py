@@ -30,8 +30,6 @@ class RTXDefinition:
         for knob_key, knob_value in oedaExperiment["executionStrategy"]["knobs"].iteritems():
             new_knobs[knob_key] = ([knob_value[0], knob_value[1]], knob_value[2])
 
-        print "new_knobs"
-        print new_knobs
         execution_strategy["knobs"] = new_knobs
         self.execution_strategy = execution_strategy
         self.state_initializer = RTXDefinition.state_initializer

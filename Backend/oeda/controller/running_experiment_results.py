@@ -30,7 +30,6 @@ class RunningAllStageResultsWithExperimentIdController(Resource):
     # first gets all stages of given experiment, then concats all data to a single tuple
     def get(self, experiment_id, timestamp):
         try:
-            print "timestamp! " + timestamp
             if timestamp == "-1":
                 resp = jsonify(get_all_stage_data(experiment_id))
                 resp.status_code = 200
@@ -39,7 +38,7 @@ class RunningAllStageResultsWithExperimentIdController(Resource):
 
             all_stage_data = get_all_stage_data_after(experiment_id, timestamp)
 
-            print "running experiment results - all_stage_data: " + str(all_stage_data)
+            # print "running experiment results - all_stage_data: " + str(all_stage_data)
 
             resp = jsonify(all_stage_data)
             resp.status_code = 200
@@ -53,8 +52,8 @@ def get_all_stage_data_after(experiment_id, timestamp):
     all_stage_data = []
     # new_stages = sc.StageController.get_stages_after(experiment_id=experiment_id, timestamp=timestamp)
     new_stages = sc.StageController.get(experiment_id=experiment_id)
-    print "running experiment results - ALL stages: " + str(new_stages)
-    print "running experiment results - " + str(timestamp)
+    # print "running experiment results - ALL stages: " + str(new_stages)
+    # print "running experiment results - " + str(timestamp)
 
     for stage in new_stages:
         data = get_data_points_after(experiment_id, stage['number'], timestamp)

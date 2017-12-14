@@ -46,11 +46,11 @@ class AllStageResultsWithExperimentIdController(Resource):
 def get_all_stage_data(experiment_id):
     all_stage_data = []
     new_stages = sc.StageController.get(experiment_id=experiment_id)
-    print "new_stages ", new_stages
+    # print "new_stages ", new_stages
 
 
     for stage in new_stages:
-        print "stage: ", stage
+        # print "stage: ", stage
         data = get_data_points(experiment_id, stage['number'])
         # wrap the stage data with stage number
         stage_and_data = {
@@ -59,7 +59,7 @@ def get_all_stage_data(experiment_id):
         }
         json_data = json.dumps(stage_and_data)
         all_stage_data.append(json_data)
-    print "ALL STAGE DATA ", all_stage_data
+    # print "ALL STAGE DATA ", all_stage_data
 
     return all_stage_data
 
