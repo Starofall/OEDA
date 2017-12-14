@@ -124,8 +124,66 @@ class ElasticSearchDb(Database):
         except ConnectionError:
             error("Error while updating target system in_use flag in elasticsearch. Check connection to elasticsearch.")
 
+    def save_stage(self, stage_no, knobs, experiment_id):
+        stage_id = self.create_stage_id(experiment_id, str(stage_no))
+        body = dict()
+        body["number"] = stage_no
+        body["knobs"] = knobs
+        body["created"] = datetime.now().isoformat(' ')
+        try:
+            self.es.index(self.index, self.stage_type_name, body, stage_id, parent=experiment_id)
+        except ConnectionError:
+            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+
+    def get_stages(self, experiment_id):
+        query = {
+            "query": {
+                "has_parent": {
+                    "parent_type": "experiment",
+                    "query": {
+                        "match": {
+                            "_id": str(experiment_id)
+                        }
+                    }
+                }
+            }
+        }
+
+        try:
+            res = self.es.search(self.index, self.stage_type_name, query)
+            return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
+        except ConnectionError:
+            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+
+    def get_stages_after(self, experiment_id, timestamp):
+        query = {
+            "query": {
+                "has_parent": {
+                    "parent_type": "experiment",
+                    "query": {
+                        "match": {
+                            "_id": str(experiment_id)
+                        }
+                    }
+                }
+            },
+            "post_filter": {
+                "range": {
+                    "created": {
+                        "gt": timestamp,
+                        "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"
+                    }
+                }
+            }
+        }
+
+        try:
+            res = self.es.search(self.index, self.stage_type_name, query, sort='created')
+            return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
+        except ConnectionError:
+            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+
     def save_data_point(self, payload, data_point_count, experiment_id, stage_no):
-        # TODO: THIS IS THE F****ING BUG
         data_point_id = Database.create_data_point_id(experiment_id, stage_no, data_point_count)
         stage_id = Database.create_stage_id(experiment_id, stage_no)
         body = dict()
@@ -206,62 +264,3 @@ class ElasticSearchDb(Database):
             return res2
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
-
-    def save_stage(self, stage_no, knobs, experiment_id):
-        stage_id = self.create_stage_id(experiment_id, str(stage_no))
-        body = dict()
-        body["number"] = stage_no
-        body["knobs"] = knobs
-        body["created"] = datetime.now().isoformat(' ')
-        try:
-            self.es.index(self.index, self.stage_type_name, body, stage_id, parent=experiment_id)
-        except ConnectionError:
-            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
-
-    def get_stages(self, experiment_id):
-        query = {
-            "query": {
-                "has_parent": {
-                    "parent_type": "experiment",
-                    "query": {
-                        "match": {
-                            "_id": str(experiment_id)
-                        }
-                    }
-                }
-            }
-        }
-
-        try:
-            res = self.es.search(self.index, self.stage_type_name, query)
-            return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
-        except ConnectionError:
-            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
-
-    def get_stages_after(self, experiment_id, timestamp):
-        query = {
-            "query": {
-                "has_parent": {
-                    "parent_type": "experiment",
-                    "query": {
-                        "match": {
-                            "_id": str(experiment_id)
-                        }
-                    }
-                }
-            },
-            "post_filter": {
-                "range": {
-                    "created": {
-                        "gt": timestamp,
-                        "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"
-                    }
-                }
-            }
-        }
-
-        try:
-            res = self.es.search(self.index, self.stage_type_name, query, sort='created')
-            return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
-        except ConnectionError:
-            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")

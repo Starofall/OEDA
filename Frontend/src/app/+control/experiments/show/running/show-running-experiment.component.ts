@@ -199,7 +199,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
   }
 
-  private process_response(response, first_render) {
+  private process_response(response) {
     const ctrl = this;
     if (isNullOrUndefined(response)) {
       ctrl.notify.error("Error", "Cannot retrieve data from DB, please try again");
@@ -218,7 +218,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    if (first_render) {
+    if (ctrl.first_render_of_page) {
       // we can retrieve one or more stages at first render
       console.log("we have some data first_render, details:", response );
       for (let index in response) {
@@ -352,13 +352,10 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           ctrl.oedaCallback["size"] = oedaCallback.size;
           ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
 
-          // TODO: there is a bug in the timestamp logic, data does not get updated after a while
-          // because fetched entity does not contain any data. how could that be possible? try to find out...
-
           if (ctrl.first_render_of_page) {
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
               console.log("response when page is first rendered, should be rendered data", response);
-              let is_successful_fetch = ctrl.process_response(response, ctrl.first_render_of_page);
+              let is_successful_fetch = ctrl.process_response(response);
               if (is_successful_fetch)
                 ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
             });
@@ -366,25 +363,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             if (ctrl.timestamp !== undefined) {
               ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
                 console.log("response when timestamp is not undefined:", response);
-                ctrl.process_response(response, ctrl.first_render_of_page);
+                ctrl.process_response(response);
                 ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
               });
             }
           }
-
-          // set all_data to empty, poll every data and plot accordingly for now
-          // TODO: remove it, this is just for prototype
-          // ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(data => {
-          //   if (isNullOrUndefined(data)) {
-          //     this.notify.error("Error", "Cannot retrieve data from DB, please try again");
-          //     return;
-          //   }
-          //   ctrl.all_data = [];
-          //   ctrl.all_data = ctrl.process_response_new(data);
-          //   ctrl.draw_all_plots_new(ctrl.all_data);
-          // });
-
-
         } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
           ctrl.oedaCallback["experiment_counter"] = oedaCallback.experiment_counter;
           ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments;
@@ -392,70 +375,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           if (ctrl.oedaCallback["total_experiments"] == ctrl.oedaCallback["experiment_counter"]) {
             this.disable_polling("Success", "Data is up-to date, stopped polling.");
           }
-          // set all_data to empty, fetch all data again, and plot it
-          // ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-          //   if (isNullOrUndefined(response)) {
-          //     this.notify.error("Error", "Cannot retrieve data from DB, please try again");
-          //     return;
-          //   }
-          //   ctrl.all_data = [];
-          //   ctrl.all_data = ctrl.process_response_new(response);
-          //   ctrl.draw_all_plots_new(ctrl.all_data);
-          // });
         }
-
       }
     });
-  }
-
-  // TODO: remove it, this is just for prototype
-  private process_response_new(response): Entity[] {
-    const ctrl = this;
-
-    if (isNullOrUndefined(response)) {
-      ctrl.notify.error("Error", "Cannot retrieve data from DB, please try again");
-      return;
-    }
-    // we can retrieve more than one array of stages and data points
-    for (let index in response) {
-      if (response.hasOwnProperty(index)) {
-        let parsed_json_object = JSON.parse(response[index]);
-        // distribute data points to empty bins
-        let new_entity = ctrl.create_entity();
-        new_entity.stage_number = parsed_json_object['stage_number'].toString();
-        new_entity.values = parsed_json_object['values'];
-        // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
-        // thus, pushed new_entity will have a key of its "stage_number" with this assumption
-        // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
-        ctrl.all_data.push(new_entity);
-      }
-    }
-    return ctrl.all_data;
-  }
-
-  // TODO: remove it, this is just for prototype
-  private draw_all_plots_new(stage_object) {
-    const ctrl = this;
-
-    if (stage_object !== undefined && stage_object.length !== 0) {
-
-      // draw graphs for all_data
-      if (ctrl.selected_stage_no === -1) {
-        let processedData: any;
-        processedData = ctrl.process_data(stage_object, "timestamp", "value", ctrl.scale);
-        console.log("processed data", processedData);
-        // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
-        const clonedData = JSON.parse(JSON.stringify(processedData));
-        ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
-
-        ctrl.draw_smooth_line_chart("chartdiv", "filterSummary", processedData);
-        ctrl.draw_histogram("histogram", processedData);
-      }
-      ctrl.is_enough_data_for_plots = true;
-    } else {
-      ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
-      return;
-    }
   }
 
   // remove qq plot retrieved from server otherwise memory will build up

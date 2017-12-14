@@ -89,58 +89,6 @@ def parse_date(source):
         except:
             pass
 
-# Helper function for finding out available stage ids in the ES
-def get_stages_from_db(experiment_id):
-    try:
-        query = {
-            "query": {
-                "parent_id": {
-                    "type": "experiment",
-                    "id": str(experiment_id)
-                }
-            },
-            "size": 0,
-            "aggs": {
-                "stage_aggregation": {
-                    "terms": {
-                        "field": "number"
-                    }
-                }
-            }
-        }
-        es = Elasticsearch()
-        es.indices.refresh(index=elastic_search_index)
-        res1 = es.search(index=elastic_search_index, body=query)
-        buckets = res1["aggregations"]["stage_aggregation"]["buckets"]
-        return buckets
-
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(tb)
-        return e.message
-
-def searchWithQuery(experiment_id, stage_id):
-    query = {
-        "query": {
-            "parent_id": {
-                "type": "experiment",
-                "id": str(experiment_id)
-            }
-        },
-        "post_filter": {
-            "term": {"stage": int(stage_id)}
-        }
-    }
-    es = Elasticsearch()
-    es.indices.refresh(index=elastic_search_index)
-    res1 = es.search(index=elastic_search_index, body=query)
-    # first determine size, otherwise it returns only 10 data (by default)
-    size = res1['hits']['total']
-    # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
-    # sorting is required for proper visualization of data
-    res2 = es.search(index=elastic_search_index, body=query, size=size, sort='created')
-    return res2
-
 # TODO: both set_dict and get function in OEDACallbackController should be called with experiment_id
 # otherwise how should we determine the correct experiment running in background?
 def set_dict(dictionary):
