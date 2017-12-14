@@ -213,7 +213,7 @@ class ElasticSearchDb(Database):
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
             res2 = self.es.search(self.index, body=query, size=10000, sort='created')
-            print "res2 of get_data_points in elasticsearchdb: ", res2
+            # print "res2 of get_data_points in elasticsearchdb: ", res2
             return res2
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")

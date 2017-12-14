@@ -8,9 +8,7 @@ import oeda.controller.stages as sc
 from oeda.databases import db
 import json as json
 import traceback
-
-# TODO: retrieve these hard-coded values from respective configuration files
-elastic_search_index = "rtx"
+from oeda.controller.experiment_results import get_all_stage_data
 
 globalDict = None
 
@@ -32,10 +30,17 @@ class RunningAllStageResultsWithExperimentIdController(Resource):
     # first gets all stages of given experiment, then concats all data to a single tuple
     def get(self, experiment_id, timestamp):
         try:
-            if timestamp is None:
-                return {"error": "timestamp should not be null"}, 404
+            print "timestamp! " + timestamp
+            if timestamp == "-1":
+                resp = jsonify(get_all_stage_data(experiment_id))
+                resp.status_code = 200
+                return resp
+                # return {"error": "timestamp should not be null"}, 404
 
             all_stage_data = get_all_stage_data_after(experiment_id, timestamp)
+
+            print "running experiment results - all_stage_data: " + str(all_stage_data)
+
             resp = jsonify(all_stage_data)
             resp.status_code = 200
             return resp
@@ -46,7 +51,10 @@ class RunningAllStageResultsWithExperimentIdController(Resource):
 
 def get_all_stage_data_after(experiment_id, timestamp):
     all_stage_data = []
-    new_stages = sc.StageController.get_stages_after(experiment_id=experiment_id, timestamp=timestamp)
+    # new_stages = sc.StageController.get_stages_after(experiment_id=experiment_id, timestamp=timestamp)
+    new_stages = sc.StageController.get(experiment_id=experiment_id)
+    print "running experiment results - ALL stages: " + str(new_stages)
+    print "running experiment results - " + str(timestamp)
 
     for stage in new_stages:
         data = get_data_points_after(experiment_id, stage['number'], timestamp)

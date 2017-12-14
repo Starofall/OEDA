@@ -34,6 +34,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   private timer: any;
   private subscription: any;
   private first_render_of_page: boolean;
+  private first_render_of_plots: boolean;
   private timestamp: string;
 
   private all_data: Entity[];
@@ -79,6 +80,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.first_render_of_page = true;
     this.all_data = [];
     this.scale = "Normal";
+    this.first_render_of_plots = true;
 
     this.distribution = "Norm";
     this.available_distributions = ['Norm', 'Gamma', 'Logistic', 'T', 'Uniform', 'Lognorm', 'Loggamma'];
@@ -213,10 +215,10 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     let length = json_obj['values'].length;
 
     // we can retrieve no entity from DB, for this case, just keep polling until you get a timestamp
-    if (length == 0) {
-      console.log("no data is retrieved first_render, length = 0, will keep polling");
-      return false;
-    }
+    // if (length == 0) {
+    //   console.log("no data is retrieved first_render, length = 0, will keep polling");
+    //   return false;
+    // }
 
     if (ctrl.first_render_of_page) {
       // we can retrieve one or more stages at first render
@@ -231,21 +233,23 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
           // thus, pushed new_entity will have a key of its "stage_number" with this assumption
           // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
-          ctrl.all_data.push(new_entity);
+          if (new_entity.values.length != 0) {
+            ctrl.all_data.push(new_entity);
+          };
 
           // also push stage to the dropdown
           const new_stage = {"number": parsed_json_object['stage_number']};
           this.availableStages.push(new_stage);
 
-          // update timestamp
-          if (Number(index) == response.length - 1) {
-            let data_point_length = new_entity.values.length;
-            ctrl.timestamp = new_entity.values[data_point_length - 1]['created'];
-            ctrl.first_render_of_page = false;
-            return true;
-          }
+          // if (Number(index) == response.length - 1) {
+          //   let data_point_length = new_entity.values.length;
+          //   ctrl.timestamp = new_entity.values[data_point_length - 1]['created'];
+          //   return true;
+          // }
         }
       }
+      ctrl.first_render_of_page = false;
+      return true;
     } else {
       // we can retrieve one or more stages upon other polls
       // so, iterate the these stages and concat their data_points with existing data_points
@@ -260,7 +264,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           if (existing_stage_len > 0) {
             console.log("found an existing stage:", parsed_json_object.stage_number);
             // retieve bin by using above-mentioned assumption
-            let stage_index = parsed_json_object['stage_number'];
+            let stage_index = parsed_json_object['stage_number']-1;
             ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
 
           } else if (existing_stage_len == 0) {
@@ -302,11 +306,12 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
       ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
 
-      if (ctrl.first_render_of_page) {
+      if (ctrl.first_render_of_plots) {
         console.log("processed data before drawing charts at initial phase", ctrl.processedData);
         ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
         ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData);
         // ctrl.draw_qq_plot();
+        ctrl.first_render_of_plots = false;
       } else {
         // now create a new graph with updated values
         ctrl.chart1.dataProvider = ctrl.processedData;
@@ -360,13 +365,14 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                 ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
             });
           } else {
-            if (ctrl.timestamp !== undefined) {
-              ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
-                console.log("response when timestamp is not undefined:", response);
-                ctrl.process_response(response);
-                ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
-              });
+            if (ctrl.timestamp == undefined) {
+              ctrl.timestamp = "-1";
             }
+            ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
+              console.log("response when timestamp is not undefined:", response);
+              ctrl.process_response(response);
+              ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
+            });
           }
         } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
           ctrl.oedaCallback["experiment_counter"] = oedaCallback.experiment_counter;

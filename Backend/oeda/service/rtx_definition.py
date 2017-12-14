@@ -20,7 +20,7 @@ class RTXDefinition:
         self._oedaCallback = oedaCallback 
         self.name = oedaExperiment["name"]
         self.id = oedaExperiment["id"]
-        self.stage_counter = 0
+        self.stage_counter = 1
         primary_data_provider = oedaTarget["primaryDataProvider"]
         primary_data_provider["data_reducer"] = RTXDefinition.primary_data_reducer
         self.primary_data_provider = primary_data_provider
@@ -70,10 +70,10 @@ class RTXDefinition:
     @staticmethod
     def setup_stage(wf):
         db().save_stage(wf.stage_counter, wf.all_knobs[wf.stage_counter], wf.id)
-        wf.stage_counter += 1
 
     @staticmethod
     def evaluator(resultState, wf):
+        wf.stage_counter += 1
         return 0
 
 
