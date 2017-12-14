@@ -37,7 +37,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   private timestamp: string;
 
   private all_data: Entity[];
-  private last_data_point: object;
 
   public experiment_id: string;
   public experiment: Experiment;
@@ -78,7 +77,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.is_enough_data_for_plots = false;
     this.is_collapsed = true;
     this.first_render_of_page = true;
-    this.all_data = new Array<Entity>();
+    this.all_data = [];
     this.scale = "Normal";
 
     this.distribution = "Norm";
@@ -163,6 +162,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
+                    console.log("stages in ngOnInit", stages);
                     stages.sort(this.sort_by('number', true, parseInt));
 
                     const all_stages = {"number": "All Stages"};
@@ -211,83 +211,76 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     let json_obj = JSON.parse(data_string);
     console.log("json_obj!!!!!!!!!!", json_obj);
     let length = json_obj['values'].length;
-    console.log("len: ", length);
-    if (length > 0) {
-      if (first_render) {
-        // we can retrieve more than one array of stages and data points
-        for (let index in response) {
-          if (response.hasOwnProperty(index)) {
-            let parsed_json_object = JSON.parse(response[index]);
 
-            /*
-            // distribute data points to empty bins
+    // we can retrieve no entity from DB, for this case, just keep polling until you get a timestamp
+    if (length == 0) {
+      console.log("no data is retrieved first_render, length = 0, will keep polling");
+      return false;
+    }
+
+    if (first_render) {
+      // we can retrieve one or more stages at first render
+      console.log("we have some data first_render, details:", response );
+      for (let index in response) {
+        if (response.hasOwnProperty(index)) {
+          let parsed_json_object = JSON.parse(response[index]);
+          // distribute data points to empty bins
+          let new_entity = ctrl.create_entity();
+          new_entity.stage_number = parsed_json_object['stage_number'].toString();
+          new_entity.values = parsed_json_object['values'];
+          // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
+          // thus, pushed new_entity will have a key of its "stage_number" with this assumption
+          // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
+          ctrl.all_data.push(new_entity);
+
+          // also push stage to the dropdown
+          const new_stage = {"number": parsed_json_object['stage_number']};
+          this.availableStages.push(new_stage);
+
+          // update timestamp
+          if (Number(index) == response.length - 1) {
+            let data_point_length = new_entity.values.length;
+            ctrl.timestamp = new_entity.values[data_point_length - 1]['created'];
+            ctrl.first_render_of_page = false;
+            return true;
+          }
+        }
+      }
+    } else {
+      // we can retrieve one or more stages upon other polls
+      // so, iterate the these stages and concat their data_points with existing data_points
+      console.log("we have some data NOT_first_render:", response);
+      for (let index in response) {
+        if (response.hasOwnProperty(index)) {
+          let parsed_json_object = JSON.parse(response[index]);
+          console.log("parsed_json_object in else case (not first_render):", parsed_json_object);
+
+          let existing_stage_len = ctrl.all_data.filter(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString()).length;
+          // we have found an existing stage
+          if (existing_stage_len > 0) {
+            console.log("found an existing stage:", parsed_json_object.stage_number);
+            // retieve bin by using above-mentioned assumption
+            let stage_index = parsed_json_object['stage_number'];
+            ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
+
+          } else if (existing_stage_len == 0) {
+            // a new stage has been fetched, create a new bin for it, and push all the values to the bin, also push bin to all_data
+            console.log("new stage:", parsed_json_object.stage_number);
             let new_entity = ctrl.create_entity();
             new_entity.stage_number = parsed_json_object['stage_number'].toString();
             new_entity.values = parsed_json_object['values'];
-            // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
-            // thus, pushed new_entity will have a key of its "stage_number" with this assumption
-            // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
             ctrl.all_data.push(new_entity);
-            // update timestamp
-            if (Number(index) == response.length - 1) {
-              let data_point_length = new_entity.values.length;
-              ctrl.timestamp = new_entity.values[data_point_length - 1]['created'];
-              //ctrl.timestamp = "2017-12-07 00:24:40.524000";
-            }*/
           }
-        }
-      } else {
-        // if (json_obj.values[length - 1]['created'].toString() === ctrl.timestamp) {
-        //   this.disable_polling("Success", "All data have been fetched successfully, stopped polling");
-        //   return;
-        // }
-        // iterate the json objects in response and concat their data_points with existing data_points
-        for (let index in response) {
-          if (response.hasOwnProperty(index)) {
-            let parsed_json_object = JSON.parse(response[index]);
-            console.log("parsed_json_object poller:", parsed_json_object);
 
-            if (ctrl.all_data.some(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString()) ) {
-              console.log("found a stage:", parsed_json_object.stage_number);
-              // retieve bin by using above-mentioned assumption
-              //if (parsed_json_object['values'].length > 0)
-              ctrl.all_data[parsed_json_object['stage_number']].values = ctrl.all_data[parsed_json_object['stage_number']].values.concat(parsed_json_object['values']);
-
-              //}
-            } else {
-              // a new stage has been fetched, create a new bin for it, and push to all_data
-              console.log("new stage:", parsed_json_object.stage_number);
-              let new_entity = ctrl.create_entity();
-              new_entity.stage_number = parsed_json_object['stage_number'].toString();
-              new_entity.values = parsed_json_object['values'];
-              ctrl.all_data.push(new_entity);
-            }
-
-            // update timestamp
-            if (Number(index) == response.length - 1) {
-              let data_point_length = parsed_json_object['values'].length;
-              ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
-            }
+          // update timestamp
+          if (Number(index) == response.length - 1) {
+            let data_point_length = parsed_json_object['values'].length;
+            ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
+            return true;
           }
         }
       }
-    } else if (length === 0) {
-      // here, we cannot fetch any more data
-      // so the object that will  be retrieved from DB will be sth like this
-      // {stage_number: 5, values: Array(0)}
-      // stop polling here
-      // this.disable_polling("Success", "All data have been fetched successfully, stopped polling");
     }
-
-    // check experiment status to stop timer or continue polling data
-    ctrl.apiService.loadExperimentById(ctrl.experiment_id).subscribe(experiment => {
-      const experiment_status = experiment.status.toString();
-      if (experiment_status === "ERROR") {
-        ctrl.disable_polling("Error", "Experiment cannot be done, stopped polling");
-      } else if (experiment_status === "SUCCESS") {
-        ctrl.disable_polling("Success", "Experiment is done, stopped polling");
-      }
-    });
   }
 
   private draw_all_plots(selected_stage_no, jsonArray) {
@@ -346,6 +339,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       if(!isNullOrUndefined(oedaCallback)) {
         console.log(oedaCallback);
         ctrl.oedaCallback["status"] = oedaCallback.status;
+        ctrl.oedaCallback["stage_counter"] = oedaCallback.stage_counter;
         // keywords (index, size) are same for the first two cases, but they indicate different things
         if (oedaCallback.status.toString() === "PROCESSING") {
           ctrl.oedaCallback["message"] = oedaCallback.message;
@@ -361,34 +355,34 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           // TODO: there is a bug in the timestamp logic, data does not get updated after a while
           // because fetched entity does not contain any data. how could that be possible? try to find out...
 
-          // if (ctrl.first_render_of_page) {
-          //   ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-          //     console.log("response in first if, should be rendered data", response);
-          //     ctrl.process_response(response, ctrl.first_render_of_page);
-          //     ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
-          //     ctrl.first_render_of_page = false;
-          //   });
-          // } else {
-          //   if (ctrl.timestamp !== undefined) {
-          //     ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
-          //       console.log("response in second if, should be rendered data", response);
-          //       ctrl.process_response(response, ctrl.first_render_of_page);
-          //       ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
-          //     });
-          //   }
-          // }
+          if (ctrl.first_render_of_page) {
+            ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
+              console.log("response when page is first rendered, should be rendered data", response);
+              let is_successful_fetch = ctrl.process_response(response, ctrl.first_render_of_page);
+              if (is_successful_fetch)
+                ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
+            });
+          } else {
+            if (ctrl.timestamp !== undefined) {
+              ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
+                console.log("response when timestamp is not undefined:", response);
+                ctrl.process_response(response, ctrl.first_render_of_page);
+                ctrl.draw_all_plots(ctrl.selected_stage_no, ctrl.all_data);
+              });
+            }
+          }
 
           // set all_data to empty, poll every data and plot accordingly for now
           // TODO: remove it, this is just for prototype
-          ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(data => {
-            if (isNullOrUndefined(data)) {
-              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
-              return;
-            }
-            ctrl.all_data = [];
-            ctrl.all_data = ctrl.process_response_new(data);
-            ctrl.draw_all_plots_new(ctrl.all_data);
-          });
+          // ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(data => {
+          //   if (isNullOrUndefined(data)) {
+          //     this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+          //     return;
+          //   }
+          //   ctrl.all_data = [];
+          //   ctrl.all_data = ctrl.process_response_new(data);
+          //   ctrl.draw_all_plots_new(ctrl.all_data);
+          // });
 
 
         } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
@@ -399,15 +393,15 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             this.disable_polling("Success", "Data is up-to date, stopped polling.");
           }
           // set all_data to empty, fetch all data again, and plot it
-          ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-            if (isNullOrUndefined(response)) {
-              this.notify.error("Error", "Cannot retrieve data from DB, please try again");
-              return;
-            }
-            ctrl.all_data = [];
-            ctrl.all_data = ctrl.process_response_new(response);
-            ctrl.draw_all_plots_new(ctrl.all_data);
-          });
+          // ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
+          //   if (isNullOrUndefined(response)) {
+          //     this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+          //     return;
+          //   }
+          //   ctrl.all_data = [];
+          //   ctrl.all_data = ctrl.process_response_new(response);
+          //   ctrl.draw_all_plots_new(ctrl.all_data);
+          // });
         }
 
       }
@@ -427,7 +421,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       if (response.hasOwnProperty(index)) {
         let parsed_json_object = JSON.parse(response[index]);
         // distribute data points to empty bins
-        let new_entity = ctrl.createEntity_new();
+        let new_entity = ctrl.create_entity();
         new_entity.stage_number = parsed_json_object['stage_number'].toString();
         new_entity.values = parsed_json_object['values'];
         // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
@@ -860,7 +854,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       size: 0,
       complete: 0,
       experiment_counter: 0,
-      total_experiments: 0
+      total_experiments: 0,
+      stage_counter: null
     };
   }
 
@@ -872,12 +867,5 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     console.log(target);
     console.log(idAttr);
     console.log(value);
-  }
-
-  private createEntity_new(): Entity {
-    return {
-      stage_number: "",
-      values: []
-    }
   }
 }

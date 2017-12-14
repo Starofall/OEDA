@@ -139,6 +139,7 @@ export interface OedaCallbackEntity {
   complete: number,
   experiment_counter: number,
   total_experiments: number,
+  stage_counter: number
 }
 
 export interface Configuration {

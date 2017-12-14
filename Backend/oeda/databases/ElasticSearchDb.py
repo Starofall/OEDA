@@ -125,13 +125,14 @@ class ElasticSearchDb(Database):
             error("Error while updating target system in_use flag in elasticsearch. Check connection to elasticsearch.")
 
     def save_data_point(self, payload, data_point_count, experiment_id, stage_no):
-        data_point_id = Database.create_experiment_id(experiment_id, stage_no, data_point_count)
+        # TODO: THIS IS THE F****ING BUG
+        data_point_id = Database.create_data_point_id(experiment_id, stage_no, data_point_count)
         stage_id = Database.create_stage_id(experiment_id, stage_no)
         body = dict()
         body["payload"] = payload
         body["created"] = datetime.now().isoformat(' ') # used to replace 'T' with ' '
         try:
-            self.es.index(self.index, self.data_point_type_name, body, data_point_id, parent=stage_id)
+            res = self.es.index(index=self.index, doc_type=self.data_point_type_name, body=body, id=data_point_id, parent=stage_id)
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
 
@@ -151,13 +152,10 @@ class ElasticSearchDb(Database):
             }
         }
         try:
-            res1 = self.es.count(self.index, self.data_point_type_name, query)
-            # first determine size, otherwise it returns only 10 data (by default)
-            size = res1['count']
-
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
-            res2 = self.es.search(self.index, body=query, size=size, sort='created')
+            res2 = self.es.search(self.index, body=query, size=10000, sort='created')
+            print "res2 of get_data_points in elasticsearchdb: ", res2
             return res2
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")

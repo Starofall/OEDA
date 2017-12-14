@@ -60,7 +60,8 @@ def experimentFunction(wf, exp):
                     raise StopIteration()  # just fwd
                 except RuntimeError:
                     raise RuntimeError()  # just fwd
-                except:
+                except Exception as e:
+                    error("Exception:", str(e))
                     error("could not reducing data set: " + str(new_data))
                 i += 1
                 process("CollectSamples | ", i, sample_size)

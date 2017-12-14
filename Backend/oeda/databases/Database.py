@@ -56,11 +56,11 @@ class Database:
 
     @staticmethod
     def create_stage_id(experiment_id, stage_no):
-        return experiment_id + "#" + str(stage_no)
+        return str(experiment_id) + "#" + str(stage_no)
 
     @staticmethod
-    def create_experiment_id(experiment_id, stage_no, data_point_count):
-        return experiment_id + "#" + str(stage_no) + "_" + str(data_point_count)
+    def create_data_point_id(experiment_id, stage_no, data_point_count):
+        return str(experiment_id) + "#" + str(stage_no) + "_" + str(data_point_count)
 
 class TargetSystemNotFoundException(Exception):
     pass

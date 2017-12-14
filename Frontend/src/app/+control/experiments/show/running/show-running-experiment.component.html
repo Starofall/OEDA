@@ -293,6 +293,7 @@
         <div class="panel panel-default chartJs">
           <div class="panel-body" style="padding-top: 20px">
             <h4>Current Status of Experiment</h4>
+            <h4>Current Stage: {{oedaCallback['stage_counter']}}</h4>
 
             <div *ngIf="oedaCallback['status'] === 'PROCESSING'">
               <p>
