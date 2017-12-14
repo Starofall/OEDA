@@ -67,7 +67,7 @@ class RTXDefinition:
 
     @staticmethod
     def setup_stage(wf):
-        db().save_stage(wf.stage_counter, wf.all_knobs[wf.stage_counter], wf.id)
+        db().save_stage(wf.stage_counter, wf.all_knobs[wf.stage_counter-1], wf.id)
 
     @staticmethod
     def evaluator(resultState, wf):
