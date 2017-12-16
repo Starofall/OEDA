@@ -1,10 +1,11 @@
 #!flask/bin/python
-import sys
-from flask import Flask, request
-from flask_restful import Resource, Api, reqparse
+import json
+
+from flask import Flask, jsonify
+from flask_restful import Api
 
 from oeda.controller.targets import TargetController, TargetsListController
-from oeda.controller.configuration import ConfigurationController
+from oeda.controller.configuration import ConfigurationController, OEDAConfigController
 
 from oeda.service.execution_scheduler import initialize_execution_scheduler
 from oeda.controller.experiments import ExperimentsListController, ExperimentController
@@ -66,7 +67,6 @@ def styles():
 def stylesJS():
     return app.send_static_file('styles.bundle.js')
 
-
 # Defining API Part
 api = Api(app)
 api.add_resource(ConfigurationController, '/api/configuration')
@@ -83,6 +83,8 @@ api.add_resource(StageController, '/api/stages/<string:experiment_id>')
 api.add_resource(RunningStageResultsWithExperimentIdController, '/api/running_experiment_results/<string:experiment_id>/<string:stage_no>/<string:timestamp>')
 api.add_resource(RunningAllStageResultsWithExperimentIdController, '/api/running_experiment_results/<string:experiment_id>/<string:timestamp>')
 api.add_resource(OEDACallbackController, '/api/running_experiment_results/oeda_callback/<string:experiment_id>')
+api.add_resource(OEDAConfigController, '/api/config/oeda')
+
 
 if __name__ == '__main__':
     from tornado.wsgi import WSGIContainer

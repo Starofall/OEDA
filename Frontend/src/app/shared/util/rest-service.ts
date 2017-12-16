@@ -18,6 +18,7 @@ export abstract class RESTService {
   }
 
   baseURL = environment.backendURL;
+  configBackendURL = environment.configBackendURL;
 
   requestOptions = new RequestOptions({
     headers: new Headers({
@@ -72,6 +73,17 @@ export abstract class RESTService {
   /** does a public http get request to the given URL and returns type T */
   public doGETPublicRequest<T>(url: string): Observable<T> {
     return this.http.get(this.baseURL + url, this.requestOptions)
+      .map((res: Response) => res.json())
+      .catch((error: any) => {
+        this.notify.error("Server Error", "Action did not work")
+        this.log.error("GET@" + url, error)
+        return Observable.throw(error || 'Server error')
+      })
+  }
+
+  /** does a public http get request to the given URL and returns type T */
+  public doGETPublicRequestForConfig<T>(url: string): Observable<T> {
+    return this.http.get(this.configBackendURL + url, this.requestOptions)
       .map((res: Response) => res.json())
       .catch((error: any) => {
         this.notify.error("Server Error", "Action did not work")

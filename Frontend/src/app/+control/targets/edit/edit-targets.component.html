@@ -1,4 +1,11 @@
 <div class="row" *ngIf="target != null">
+  <div class="col-sm-1" [hidden]="!configsAvailable">
+    <div class="panel panel-default chartJs" style="width: auto;">
+      <!-- Button to trigger opening modal -->
+      <button type="button" class="btn btn-primary" id="openModalButton" data-toggle="modal" data-target="#configModal">Available Configurations</button>
+    </div>
+  </div>
+
   <div class="col-sm-12 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
@@ -19,12 +26,13 @@
       </div>
       <div class="panel-body" style="padding-top: 20px">
         <div class="row">
-          <labeled-input name="Target Name" [model]="target" key="name"></labeled-input>
+          <labeled-input name="Target System Name" [model]="target" key="name"></labeled-input>
           <labeled-input name="Target Description" [model]="target" key="description"></labeled-input>
         </div>
       </div>
     </div>
   </div>
+
   <div class="col-sm-6 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
@@ -65,6 +73,7 @@
       </div>
     </div>
   </div>
+
   <div class="col-sm-6 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
@@ -110,7 +119,6 @@
     </div>
   </div>
 
-
   <div class="col-sm-6 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
@@ -125,17 +133,18 @@
       </div>
       <div class="panel-body" style="padding-top: 20px">
         <div class="row" *ngFor="let input of target.incomingDataTypes; let i = index">
-          <labeled-input name="Name" [model]="input" key="name" [colSize]="3"></labeled-input>
-          <labeled-input name="Description" [model]="input" key="description" [colSize]="3"></labeled-input>
-          <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
-                                [options]="[{key:'ORDINAL',label:'Ordinal'},
-                                {key:'METRIC',label:'Metric'},
-                                {key:'NOMINAL',label:'Nominal'}]"></labeled-input-select>
-          <div class="col-md-1" style="margin-top: 56px;color: #ef705d">
+          <labeled-input name="Name" [model]="input" key="name" [colSize]="6"></labeled-input>
+          <div class="col-md-1 pull-right" style="margin-top: 56px;color: #ef705d">
             <a (click)="removeIncoming(i)">
               <i class="fa fa-remove"></i>
             </a>
           </div>
+          <labeled-input name="Description" [model]="input" key="description" [colSize]="12"></labeled-input>
+          <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
+                                [options]="[{key:'ORDINAL',label:'Ordinal'},
+                                {key:'METRIC',label:'Metric'},
+                                {key:'NOMINAL',label:'Nominal'}]"></labeled-input-select>
+
         </div>
       </div>
     </div>
@@ -147,7 +156,7 @@
         <div class="card-title">
           <div class="title pull-left">Changeable Variables</div>
           <div class="pull-right">
-            <div (click)="addChangeableVariable()" class="btn btn-xs btn-orange"><i class="fa fa-plus push-5-r"></i> Add
+            <div (click)="addChangeableVariable(null)" class="btn btn-xs btn-orange"><i class="fa fa-plus push-5-r"></i> Add
             </div>
           </div>
 
@@ -155,21 +164,74 @@
       </div>
       <div class="panel-body" style="padding-top: 20px">
         <div class="row" *ngFor="let input of target.changeableVariable; let i = index">
-          <labeled-input name="Name" [model]="input" key="name" [colSize]="3"></labeled-input>
-          <labeled-input name="Description" [model]="input" key="description" [colSize]="3"></labeled-input>
-          <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
-                                [options]="[{key:'ORDINAL',label:'Ordinal'},
-                                {key:'METRIC',label:'Metric'},
-                                {key:'NOMINAL',label:'Nominal'}]"></labeled-input-select>
-          <div class="col-md-1" style="margin-top: 56px;color: #ef705d">
+          <labeled-input name="Name" [model]="input" key="name" [colSize]="6"></labeled-input>
+          <div class="col-md-1 pull-right" style="margin-top: 56px;color: #ef705d">
             <a (click)="removeChangeableVariable(i)">
               <i class="fa fa-remove"></i>
             </a>
           </div>
-
-          <labeled-input name="Minimum Value" inputType="number" [model]="input" key="min" [colSize]="4"></labeled-input>
-          <labeled-input name="Maximum Value" inputType="number" [model]="input" key="max" [colSize]="4"></labeled-input>
+          <labeled-input name="Description" [model]="input" key="description" [colSize]="12"></labeled-input>
+          <labeled-input name="Minimum Value" inputType="number" [model]="input" key="min" [colSize]="6"></labeled-input>
+          <labeled-input name="Maximum Value" inputType="number" [model]="input" key="max" [colSize]="6"></labeled-input>
+          <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
+                                [options]="[{key:'ORDINAL',label:'Ordinal'},
+                                {key:'METRIC',label:'Metric'},
+                                {key:'NOMINAL',label:'Nominal'}]">
+          </labeled-input-select>
           <hr class="col-md-12">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config Modal Large-->
+
+  <div class="modal fade bd-example-modal-lg" id="configModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="col-md-12">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="modalTitle">Available Configurations</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <select class="form-control" required (change)="configDropdownChanged($event.target.value)">
+              <option disabled>Select a configuration</option>
+              <option *ngFor="let i of availableConfigurations;" [ngValue]="i">{{ i.name }}</option>
+            </select>
+
+            <div *ngIf="selectedConfiguration !== undefined">
+              <div class="table-responsive">
+                <table style="margin-top: 5px" class="table table-striped">
+                  <thead>
+                  <tr>
+                    <th scope="col">Changeable Variable Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col"></th>
+                  </tr>
+                  </thead>
+                  <tbody class="bigTable">
+                    <tr *ngFor="let knob of selectedConfiguration.knobs; let i = index;">
+                      <td>{{knob.name}}</td>
+                      <td>{{knob.description}}</td>
+                      <!--<td> <label><input type="checkbox" value="{{i}}"></label></td>-->
+                      <td>
+                        <div class="btn btn-xs btn-orange" (click)="addChangeableVariable(knob)">
+                          <i class="fa fa-plus push-5-r"></i> Add
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="useConfiguration()">Use Configuration</button>
+          </div>
         </div>
       </div>
     </div>

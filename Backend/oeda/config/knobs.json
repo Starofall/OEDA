@@ -1,0 +1,28 @@
+[
+  {
+    "name": "route_random_sigma",
+    "description": "the randomization sigma of edge weights"
+  }, {
+    "name": "exploration_percentage",
+    "description": "the percentage of routes we want to use for exploration"
+  }, {
+    "name": "max_speed_and_length_factor",
+    "description": "how much the length/speed influences the routing"
+  }, {
+    "name": "average_edge_duration_factor",
+    "description": "how much the averageEdgeFactor influences the routing"
+  }, {
+    "name": "freshness_update_factor",
+    "description": "how much the freshnessUpdateFactor influences the routing"
+  }, {
+    "name": "freshness_cut_off_value",
+    "description": "if data is older than this we do not consider it in the algorithm"
+  }, {
+    "name": "average_edge_duration_factor",
+    "description": "how much the averageEdgeFactor influences the routing"
+  }, {
+    "name": "re_route_every_ticks_description",
+    "description": "check for a new route very x times after the car starts"
+  }
+]
+

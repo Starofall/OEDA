@@ -1,65 +1,69 @@
 <div class="row">
   <div class="col-sm-12 col-xs-12">
-    <div class="panel panel-default chartJs">
+    <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
           <div class="title pull-left">All Target Systems</div>
-          <div class="pull-right">
-            <a routerLink="/control/targets/create" class="btn btn-orange btn-sm">Create Target System</a>
-          </div>
         </div>
       </div>
       <div class="panel-body">
-        <table style="margin-top: 20px" class="table table-striped" [mfData]="targets" #mf="mfDataTable"
-               [mfRowsOnPage]="10">
-          <thead>
-          <tr>
-            <th style="width:1%">
-            </th>
-            <th style="width:1%">
-              <mfDefaultSorter by="status">Status</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="name">Name</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="description">Description</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="target">Primary Data Provider</mfDefaultSorter>
-            </th>
-            <th style="width: 20%">
-              <mfDefaultSorter by="creator">Change Provider</mfDefaultSorter>
-            </th>
-          </tr>
-          </thead>
-          <tbody class="bigTable">
-          <tr *ngFor="let item of mf.data">
-            <td style="padding-right: 0px">
-              <a class="btn btn-xs btn-orange" type="button"
-                 routerLink="/control/targets/edit/{{item.id}}"><i class="fa fa-search"></i></a>
-            </td>
-            <td>
-              <label *ngIf="item.status == 'READY'" class="label label-success">READY</label>
-              <label *ngIf="item.status == 'WORKING'" class="label label-info">WORKING</label>
-              <label *ngIf="item.status == 'ERROR'" class="label label-danger">ERROR</label>
-            </td>
-            <td>{{item.name}}</td>
-            <td>{{item.description}}</td>
-            <td>{{item.primaryDataProvider?.type}}</td>
-            <td>{{item.changeProvider?.type}}</td>
-          </tr>
-          </tbody>
-          <tfoot>
-          <tr>
-            <td colspan="4">
-              <mfBootstrapPaginator [rowsOnPageSet]="[10,25,100]"></mfBootstrapPaginator>
-            </td>
-          </tr>
-          </tfoot>
-        </table>
+        <div class="table-responsive">
+          <table style="margin-top: 20px" class="table table-striped" [mfData]="targets" #mf="mfDataTable"
+                 [mfRowsOnPage]="10" >
+            <thead>
+            <tr>
+              <th style="width:1%">
+              </th>
+              <th style="width:1%">
+                <mfDefaultSorter by="status">Status</mfDefaultSorter>
+              </th>
+              <th style="width: 20%">
+                <mfDefaultSorter by="name">Name</mfDefaultSorter>
+              </th>
+              <th style="width: 20%">
+                <mfDefaultSorter by="description">Description</mfDefaultSorter>
+              </th>
+              <th style="width: 10%">
+                <mfDefaultSorter by="target">Primary Data Provider</mfDefaultSorter>
+              </th>
+              <th style="width: 1%">
+                <mfDefaultSorter by="target">Change Provider</mfDefaultSorter>
+              </th>
+              <th style="width: 10%">
+                <div class="pull-right">
+                  <a routerLink="/control/targets/create" class="btn btn-orange btn-sm">Create Target System</a>
+                </div>
+              </th>
+            </tr>
+            </thead>
+            <tbody class="bigTable">
+            <tr *ngFor="let item of mf.data">
+              <td style="padding-right: 0px">
+                <a class="btn btn-xs btn-orange" type="button"
+                   routerLink="/control/targets/edit/{{item.id}}"><i class="fa fa-search"></i>
+                </a>
+              </td>
+              <td>
+                <label *ngIf="item.status == 'READY'" class="label label-success">READY</label>
+                <label *ngIf="item.status == 'WORKING'" class="label label-info">WORKING</label>
+                <label *ngIf="item.status == 'ERROR'" class="label label-danger">ERROR</label>
+              </td>
+              <td>{{item.name}}</td>
+              <td>{{item.description}}</td>
+              <td>{{item.primaryDataProvider?.type}}</td>
+              <td>{{item.changeProvider?.type}}</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+              <td colspan="4">
+                <mfBootstrapPaginator [rowsOnPageSet]="[10,25,100]"></mfBootstrapPaginator>
+              </td>
+            </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-  <debug-element [element]="targets"></debug-element>
 </div>

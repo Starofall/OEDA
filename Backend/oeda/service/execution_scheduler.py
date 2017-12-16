@@ -72,26 +72,6 @@ def rtx_execution(experiment, targetSystem):
     def oeda_callback(dictionary):
         set_dict(dictionary)
 
-        # do something like:
-        # sys.stdout.write('\r')
-        # sys.stdout.flush()
-        # size_str = Fore.YELLOW + "> " + preText + "["
-
-        # BASICALLY something THIS:
-        # percentage = 30 * i / total
-
-        # for j in range(0, percentage):
-        #     size_str += "#"
-        # for k in range(percentage, 30):
-        #     size_str += "."
-        # size_str += "] Target: " + str(total) + " | Done: " + str(i) + Fore.RESET
-        # sys.stdout.write('%s\r' % size_str)
-        # sys.stdout.flush()
-
-
-        # ProgressCounter.set(dict["i"], dict(["total"]))
-        # the progress counter has to be behind an API that is periodically called
-
     try:
         set_experiment_status(experiment["id"], "RUNNING")
         set_target_system_status(experiment["targetSystemId"], "WORKING")
