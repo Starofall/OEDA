@@ -48,6 +48,7 @@ def get_all_stage_data(experiment_id):
     new_stages = sc.StageController.get(experiment_id=experiment_id)
     # print "new_stages ", new_stages
 
+    print "new stages", new_stages
 
     for stage in new_stages:
         # print "stage: ", stage

@@ -445,7 +445,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
 
   private get_data_from_local_structure(stage_no) {
     const ctrl = this;
-    const retrieved_data = ctrl.all_data[stage_no];
+    const retrieved_data = ctrl.all_data[stage_no - 1];
     if (retrieved_data !== undefined) {
       if (retrieved_data['values'].length == 0) {
         this.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");

@@ -141,10 +141,10 @@
           </div>
           <labeled-input name="Description" [model]="input" key="description" [colSize]="12"></labeled-input>
           <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
-                                [options]="[{key:'ORDINAL',label:'Ordinal'},
-                                {key:'METRIC',label:'Metric'},
-                                {key:'NOMINAL',label:'Nominal'}]"></labeled-input-select>
-
+                                [options]="[{key:'Ordinal',label:'Ordinal'},
+                                {key:'Metric',label:'Metric'},
+                                {key:'Nominal',label:'Nominal'}]"></labeled-input-select>
+          <hr class="col-md-12">
         </div>
       </div>
     </div>
@@ -174,9 +174,9 @@
           <labeled-input name="Minimum Value" inputType="number" [model]="input" key="min" [colSize]="6"></labeled-input>
           <labeled-input name="Maximum Value" inputType="number" [model]="input" key="max" [colSize]="6"></labeled-input>
           <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
-                                [options]="[{key:'ORDINAL',label:'Ordinal'},
-                                {key:'METRIC',label:'Metric'},
-                                {key:'NOMINAL',label:'Nominal'}]">
+                                [options]="[{key:'Ordinal',label:'Ordinal'},
+                                {key:'Metric',label:'Metric'},
+                                {key:'Nominal',label:'Nominal'}]">
           </labeled-input-select>
           <hr class="col-md-12">
         </div>
@@ -226,11 +226,37 @@
                   </tbody>
                 </table>
               </div>
+
+
+
+              <div class="table-responsive">
+                <table style="margin-top: 5px" class="table table-striped">
+                  <thead>
+                  <tr>
+                    <th scope="col">Incoming Data Type</th>
+                    <th scope="col">Description</th>
+                    <th scope="col"></th>
+                  </tr>
+                  </thead>
+                  <tbody class="bigTable">
+                  <tr *ngFor="let output of selectedConfiguration.outputs; let i = index;">
+                    <td>{{output.name}}</td>
+                    <td>{{output.description}}</td>
+                    <!--<td> <label><input type="checkbox" value="{{i}}"></label></td>-->
+                    <td>
+                      <div class="btn btn-xs btn-orange" (click)="addIncomingDataType(output)">
+                        <i class="fa fa-plus push-5-r"></i> Add
+                      </div>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="useConfiguration()">Use Configuration</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" [disabled]="selectedConfiguration === undefined" (click)="useConfiguration()">Use Configuration</button>
           </div>
         </div>
       </div>

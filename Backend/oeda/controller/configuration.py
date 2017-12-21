@@ -1,7 +1,7 @@
 from flask import jsonify
 from flask import request
 from flask_restful import Resource
-from oeda.config import Config
+from oeda.crowdnav_config import Config
 import traceback
 import json
 
@@ -29,7 +29,8 @@ class OEDAConfigController(Resource):
 
     def get(self):
         try:
-            knobs = json.loads(open('oeda/config/knobs.json').read())
+            knobs = json.loads(open('oeda/crowdnav_config/knobs.json').read())
+            outputs = json.loads(open('oeda/crowdnav_config/outputs.json').read())
             data = {
                 "name": "CrowdNav",
                 "description": "Simulation based on SUMO",
@@ -38,7 +39,8 @@ class OEDAConfigController(Resource):
                 "kafkaTopicTrips": Config.kafkaTopicTrips,
                 "kafkaTopicPerformance": Config.kafkaTopicPerformance,
                 "kafkaCommandsTopic": Config.kafkaCommandsTopic,
-                "knobs": knobs
+                "knobs": knobs,
+                "outputs": outputs
             }
             resp = jsonify(data)
             resp.status_code = 200

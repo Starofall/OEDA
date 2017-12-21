@@ -114,8 +114,17 @@ export class EditTargetsComponent implements OnInit {
     this.target.changeableVariable.splice(index, 1)
   }
 
-  addIncomingDataType() {
-    this.target.incomingDataTypes.push({})
+  addIncomingDataType(incomingDataType) {
+    if (incomingDataType == null)
+      this.target.incomingDataTypes.push({}); // for usual case, without any configuration files
+    else {
+      // user should not be able to add already-added variable coming from config
+      if (this.target.incomingDataTypes.filter(variable => variable.name === incomingDataType.name).length === 0) {
+        this.target.incomingDataTypes.push(incomingDataType);
+      } else {
+        this.notify.error("", "Incoming data type is already added");
+      }
+    }
   }
 
   removeIncoming(index) {
@@ -135,7 +144,8 @@ export class EditTargetsComponent implements OnInit {
       if (ctrl.router.url.indexOf("/create") !== -1) {
 
         // check if user-added variable(s) are not same with the ones coming from configuration
-        if (!this.checkDuplicateInObject('name', this.target.changeableVariable)) {
+        if (!this.checkDuplicateInObject('name', this.target.changeableVariable)
+            && !this.checkDuplicateInObject('name', this.target.incomingDataTypes) ) {
           ctrl.api.saveTarget(this.target).subscribe(
             (success) => {
               ctrl.notify.success("Success", "Target saved");

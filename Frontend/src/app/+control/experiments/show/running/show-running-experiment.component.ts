@@ -307,6 +307,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           if (ctrl.first_render_of_page) {
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
               let is_successful_fetch = ctrl.process_response(response);
+
               if (is_successful_fetch)
                 ctrl.draw_all_plots(ctrl.all_data);
             });
@@ -324,12 +325,14 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments - 1; // updated according to the new logic
           // if these two are equal, then there is no need to poll data
           if (ctrl.oedaCallback["total_experiments"] == ctrl.oedaCallback["experiment_counter"]) {
-            this.disable_polling("Success", "Data is up-to date, stopped polling.");
+            this.disable_polling("Success", "Data is up-to-date, stopped polling.");
             // just to make sure that, all data is rendered at the end. Can be removed? To discuss
             // TODO: also, another option would be updating the experiment status and target system status manually
             // normally they get updated at the end of execution, but there's a bug there for now.
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
               let is_successful_fetch = ctrl.process_response(response);
+              console.log("is succ?", is_successful_fetch);
+              console.log("all data", ctrl.all_data);
               if (is_successful_fetch)
                 ctrl.draw_all_plots(ctrl.all_data);
             });
