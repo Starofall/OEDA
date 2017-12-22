@@ -35,6 +35,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   private subscription: any;
   private first_render_of_page: boolean;
   private first_render_of_plots: boolean;
+  private experiment_ended: boolean;
   private timestamp: string;
 
   private all_data: Entity[];
@@ -76,6 +77,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.is_qq_plot_rendered = false;
     this.qqJSPlotIsRendered = false;
     this.is_enough_data_for_plots = false;
+    this.experiment_ended = false;
     this.is_collapsed = true;
     this.first_render_of_page = true;
     this.all_data = [];
@@ -179,22 +181,22 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           let new_entity = ctrl.create_entity();
           new_entity.stage_number = parsed_json_object['stage_number'].toString();
           new_entity.values = parsed_json_object['values'];
-          // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
-          // thus, pushed new_entity will have a key of its "stage_number" with this assumption
-          // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
+          // we retrieve stages and data points in following format
+          // e.g. [ 0: {stage_number: 1, values: ...}, 1: {stage_number: 2, values: ...}...]
           if (new_entity.values.length != 0) {
             ctrl.all_data.push(new_entity);
           }
 
           // as a guard against stage duplications
           const new_stage = {"number": parsed_json_object['stage_number']};
-          let existing_stage_length_initial = ctrl.availableStages.filter(entity => entity.number.toString() === parsed_json_object['stage_number'].toString()).length;
-          // we have found an existing stage
-          if (existing_stage_length_initial == 0) {
+          let existing_stage = ctrl.availableStages.find(entity => entity.number.toString() === new_stage['number'].toString());
+          // stage does not exist yet
+          if (isNullOrUndefined(existing_stage)) {
             ctrl.availableStages.push(new_stage);
+            ctrl.availableStagesForQQJS.push(new_stage);
           }
-          // do not update timestamp here if we cant retrieve any data, just keep fetching with timestamp "-1"
-          // because is also updated according to it, i.e. it fetches all data if timestamp is -1
+          // do not update timestamp here if we can't retrieve any data, just keep fetching with timestamp "-1"
+          // because backend is also updated accordingly, i.e. it continues to fetch all data if timestamp is -1
         }
       }
       ctrl.first_render_of_page = false;
@@ -202,87 +204,105 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     } else {
       // we can retrieve one or more stages upon other polls
       // so, iterate the these stages and concat their data_points with existing data_points
+      console.log("response", response);
       for (let index in response) {
-        if (response.hasOwnProperty(index)) {
-          let parsed_json_object = JSON.parse(response[index]);
-
-          let existing_stage_len = ctrl.all_data.filter(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString()).length;
-          // we have found an existing stage
-          if (existing_stage_len > 0) {
-            // retieve bin by using above-mentioned assumption, updated according to the new logic
-            let stage_index = parsed_json_object['stage_number'] - 1;
-
-            if (parsed_json_object.hasOwnProperty("values") && parsed_json_object.hasOwnProperty("stage_number")) {
-              if (parsed_json_object['values'].length > 0) {
-                ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
-              }
-            }
-          } else if (existing_stage_len == 0) {
-            // a new stage has been fetched, create a new bin for it, and push all the values to the bin, also push bin to all_data
-            const stage_number = parsed_json_object['stage_number'].toString();
-            const values = parsed_json_object['values'];
-            const new_stage = {"number": stage_number};
-            ctrl.availableStages.push(new_stage);
-
-            let new_entity = ctrl.create_entity();
-            new_entity.stage_number = stage_number;
-            new_entity.values = values;
-            ctrl.all_data.push(new_entity);
+        let parsed_json_object = JSON.parse(response[index]);
+        let existing_stage = ctrl.all_data.find(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString());
+        // we have found an existing stage
+        if (!isNullOrUndefined(existing_stage)) {
+          let stage_index = parsed_json_object['stage_number'] - 1;
+          if (parsed_json_object['values'].length > 0) {
+            ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
           }
-          // update timestamp if we have retrieved a data
-          if (Number(index) == response.length - 1) {
-            let data_point_length = parsed_json_object['values'].length;
-            if (data_point_length > 0) {
-              ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
-              return true;
-            }
+        } else if (isNullOrUndefined(existing_stage)) {
+          // a new stage has been fetched, create a new bin for it, and push all the values to the bin, also push bin to all_data
+          const stage_number = parsed_json_object['stage_number'].toString();
+          const values = parsed_json_object['values'];
+          const new_stage = {"number": stage_number};
+          ctrl.availableStages.push(new_stage);
+
+          let new_entity = ctrl.create_entity();
+          new_entity.stage_number = stage_number;
+          new_entity.values = values;
+          ctrl.all_data.push(new_entity);
+        }
+        // update timestamp if we have retrieved a data
+        if (Number(index) == response.length - 1) {
+          let data_point_length = parsed_json_object['values'].length;
+          if (data_point_length > 0) {
+            ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
+            return true;
           }
         }
+
       }
     }
   }
 
-  private draw_all_plots(jsonArray) {
+  private get_data_from_local_structure(stage_no) {
+    const ctrl = this;
+    const retrieved_data = ctrl.all_data[stage_no - 1];
+    if (retrieved_data !== undefined) {
+      if (retrieved_data['values'].length == 0) {
+        this.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
+        return;
+      }
+    } else {
+      this.notify.error("Error", "Cannot retrieve data from local storage");
+      return;
+    }
+    return retrieved_data;
+  }
+
+
+
+  // draws plots by using ctrl.selected_stage_no variable to retrieve data points from local storage
+  private draw_all_plots() {
     const ctrl = this;
     // set it to false in case a new scale is selected
     ctrl.is_enough_data_for_plots = false;
-    if (jsonArray !== undefined && jsonArray.length !== 0) {
 
-      ctrl.processedData = ctrl.process_data(jsonArray,"timestamp", "value", ctrl.scale);
 
-      // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
-      const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
-      ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
-
-      if (ctrl.first_render_of_plots) {
-        ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
-        ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData);
-        // ctrl.draw_qq_plot();
-        ctrl.first_render_of_plots = false;
-      } else {
-        // now create a new graph with updated values
-        ctrl.chart1.dataProvider = ctrl.processedData;
-        ctrl.chart1.validateData();
-        ctrl.chart4.dataProvider = this.categorize_data(ctrl.processedData);
-        ctrl.chart4.validateData();
-      }
-      // initial case when page is rendered, check if next stage exists
-      if (ctrl.selected_stage_no.toString() !== "-1") {
-        // check if next stage exists
-        ctrl.availableStagesForQQJS.some(function(element) {
-          if (Number(element.number) === Number(ctrl.selected_stage_no) + 1) {
-            // TODO: ensure that next stage has enough data?
-            ctrl.selected_stage_for_qq_js = (Number(ctrl.selected_stage_no) + 1).toString();
-            // ctrl.draw_qq_js(ctrl.selected_stage_for_qq_js);
-            return true; // required as a callback for .some function
-          }
-        });
-      }
-      ctrl.is_enough_data_for_plots = true;
-    } else {
-      ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
+    // if "all stages" is selected
+    if (ctrl.selected_stage_no == -1) {
+      ctrl.processedData = ctrl.process_all_stage_data(ctrl.all_data,"timestamp", "value", ctrl.scale);
     }
+    // if any other stage is selected
+    else {
+        ctrl.processedData = ctrl.get_data_from_local_structure(ctrl.selected_stage_no);
+        ctrl.processedData = ctrl.process_single_stage_data(ctrl.processedData,"timestamp", "value", ctrl.scale);
+    }
+    // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
+    const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
+    ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
+
+    if (ctrl.first_render_of_plots) {
+      ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
+      ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData);
+      // ctrl.draw_qq_plot();
+      ctrl.first_render_of_plots = false;
+    } else {
+      // now create a new graph with updated values
+      ctrl.chart1.dataProvider = ctrl.processedData;
+      ctrl.chart1.validateData();
+      ctrl.chart4.dataProvider = this.categorize_data(ctrl.processedData);
+      ctrl.chart4.validateData();
+    }
+    // initial case when page is rendered, check if next stage exists
+    if (ctrl.selected_stage_no !== "-1") {
+      // check if next stage exists
+      ctrl.availableStagesForQQJS.some(function(element) {
+        if (Number(element.number) === Number(ctrl.selected_stage_no) + 1) {
+          // TODO: ensure that next stage has enough data?
+          ctrl.selected_stage_for_qq_js = (Number(ctrl.selected_stage_no) + 1).toString();
+          // ctrl.draw_qq_js(ctrl.selected_stage_for_qq_js);
+          return true; // required as a callback for .some function
+        }
+      });
+    }
+    ctrl.is_enough_data_for_plots = true;
   }
+
 
   private fetch_oeda_callback() {
     const ctrl = this;
@@ -291,7 +311,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       if(!isNullOrUndefined(oedaCallback)) {
         console.log(oedaCallback);
         ctrl.oedaCallback["status"] = oedaCallback.status;
-        ctrl.oedaCallback["stage_counter"] = oedaCallback.stage_counter - 1;
+        ctrl.oedaCallback["stage_counter"] = oedaCallback.stage_counter;
         // keywords (index, size) are same for the first two cases, but they indicate different things
         if (oedaCallback.status.toString() === "PROCESSING") {
           ctrl.oedaCallback["message"] = oedaCallback.message;
@@ -309,7 +329,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               let is_successful_fetch = ctrl.process_response(response);
 
               if (is_successful_fetch)
-                ctrl.draw_all_plots(ctrl.all_data);
+                ctrl.draw_all_plots();
             });
           } else {
             if (ctrl.timestamp == undefined) {
@@ -317,24 +337,31 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             }
             ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
               ctrl.process_response(response);
-              ctrl.draw_all_plots(ctrl.all_data);
+              ctrl.draw_all_plots();
             });
           }
         } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
           ctrl.oedaCallback["experiment_counter"] = oedaCallback.experiment_counter;
-          ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments - 1; // updated according to the new logic
+          ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments; // updated according to the new logic
           // if these two are equal, then there is no need to poll data
-          if (ctrl.oedaCallback["total_experiments"] == ctrl.oedaCallback["experiment_counter"]) {
-            this.disable_polling("Success", "Data is up-to-date, stopped polling.");
-            // just to make sure that, all data is rendered at the end. Can be removed? To discuss
-            // TODO: also, another option would be updating the experiment status and target system status manually
-            // normally they get updated at the end of execution, but there's a bug there for now.
+          // TODO: well, this portion of code is not really synchronized with backend because of polling logic
+          // i.e. the backend prints the remaining number of stages and time to console,
+          // but usually backend has already started collecting data for the next stage when front-end sends a request to fetch the callback
+          // i.e. user is not really well-informed about remaining time.
+          ctrl.oedaCallback["remaining_stages"] = oedaCallback.remaining_stages;
+          ctrl.oedaCallback["remaining_time"] = oedaCallback.remaining_time;
+          if (ctrl.oedaCallback["remaining_stages"] == 0) {
+            ctrl.disable_polling("Success", "Data is up-to-date, stopped polling.");
+
+            // TODO: just to make sure that, all data is shown to the user instead of empty page. It Can be removed
+            // TODO: also, another option would be updating the experiment status and setting the target system status manually
+
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
               let is_successful_fetch = ctrl.process_response(response);
-              console.log("is succ?", is_successful_fetch);
-              console.log("all data", ctrl.all_data);
-              if (is_successful_fetch)
-                ctrl.draw_all_plots(ctrl.all_data);
+              if (is_successful_fetch) {
+                ctrl.selected_stage_no = -1;
+                ctrl.draw_all_plots();
+              }
             });
           }
         }
@@ -566,43 +593,58 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     });
   }
 
-  // TODO: remove it because this is just for prototype
-  // helper function for graphs
-  process_data(jsonArray, xAttribute, yAttribute, scale): Array<number> {
+  // helper function for plotting single stage
+  process_single_stage_data(single_stage_object, xAttribute, yAttribute, scale): Array<number> {
     const ctrl = this;
     try {
-      if (jsonArray !== undefined ) {
+      if (single_stage_object !== undefined) {
         const processedData = [];
-        // iterates all bins (element) in given jsonArray
-        jsonArray.forEach(function(element) {
-          if (!isNullOrUndefined(element) && element.hasOwnProperty("values")) {
-            // now inner element
-            element['values'].forEach(function(data_point) {
-              if (xAttribute !== null && yAttribute !== null) {
-                const newElement = {};
-                newElement[xAttribute] = data_point["created"];
-                if (scale === "Log") {
-                  newElement[yAttribute] = Math.log(data_point["payload"]["overhead"]);
-                } else if (scale === "Normal") {
-                  newElement[yAttribute] = data_point["payload"]["overhead"];
-                } else {
-                  ctrl.notify.error("Error", "Please provide a valid scale");
-                  return;
-                }
-                processedData.push(newElement);
+        if (single_stage_object.hasOwnProperty("values")) {
+          // now inner element
+          single_stage_object['values'].forEach(function(data_point) {
+            if (xAttribute !== null && yAttribute !== null) {
+              const newElement = {};
+              newElement[xAttribute] = data_point["created"];
+              if (scale === "Log") {
+                newElement[yAttribute] = Math.log(data_point["payload"]["overhead"]);
+              } else if (scale === "Normal") {
+                newElement[yAttribute] = data_point["payload"]["overhead"];
               } else {
-                // this is for plotting qq plot with JS, as it only requires raw data in log or normal scale
-                if (scale === "Log") {
-                  processedData.push(Math.log(data_point["payload"]["overhead"]));
-                } else if (scale === "Normal") {
-                  processedData.push(data_point["payload"]["overhead"]);
-                } else {
-                  ctrl.notify.error("Error", "Please provide a valid scale");
-                  return;
-                }
+                ctrl.notify.error("Error", "Please provide a valid scale");
+                return;
               }
-            });
-          }
+              processedData.push(newElement);
+            } else {
+              // this is for plotting qq plot with JS, as it only requires raw data in log or normal scale
+              if (scale === "Log") {
+                processedData.push(Math.log(data_point["payload"]["overhead"]));
+              } else if (scale === "Normal") {
+                processedData.push(data_point["payload"]["overhead"]);
+              } else {
+                ctrl.notify.error("Error", "Please provide a valid scale");
+                return;
+              }
+            }
+          });
+        }
+        return processedData;
+      }
+    } catch (err) {
+      ctrl.notify.error("Error", err.message);
+    }
+  }
+
+  // helper function for plotting all stages
+  process_all_stage_data(all_stage_object, xAttribute, yAttribute, scale): Array<number> {
+    const ctrl = this;
+    try {
+      if (all_stage_object !== undefined) {
+        const processedData = [];
+        all_stage_object.forEach(function(stage_bin) {
+          let data_array = ctrl.process_single_stage_data(stage_bin, xAttribute, yAttribute, scale);
+          data_array.forEach(function(data_value){
+            processedData.push(data_value);
+          });
         });
         return processedData;
       } else {
@@ -674,28 +716,19 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     return q3 - q1;
   }
 
-  stage_changed(stage_no: any) {
+  stage_changed(stage_no: number) {
     const ctrl = this;
-
     if (isNullOrUndefined(ctrl.scale)) {
       this.notify.error("Error", "Scale is null or undefined, please try again");
       return;
     }
 
-    if (!isNullOrUndefined(stage_no)) {
-      if (stage_no === "All Stages") {
-        stage_no = -1;
-      }
-      ctrl.selected_stage_no = stage_no;
-      /*
-        Draw plots for the selected stage
-        If "All Stages" is selected, concat every stage data
-      */
-      // this.fetch_oeda_callback();
-    } else {
-      this.notify.error("Error", "Stage number is null or undefined, please try again");
-      return;
+    if (stage_no.toString() === "All Stages") {
+      stage_no = -1;
     }
+    // update selected stage no, and let draw_all_plots do the rest
+    ctrl.selected_stage_no = stage_no;
+    ctrl.draw_all_plots();
   }
 
   scale_changed(scale: string) {

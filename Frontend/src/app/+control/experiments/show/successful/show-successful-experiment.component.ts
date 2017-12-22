@@ -1058,40 +1058,16 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
   }
 
   // stage object contains more than one stages here
-  process_all_stage_data(stage_object, xAttribute, yAttribute, scale): Array<number> {
+  process_all_stage_data(all_stage_object, xAttribute, yAttribute, scale): Array<number> {
     const ctrl = this;
     try {
-      if (stage_object !== undefined) {
+      if (all_stage_object !== undefined) {
         const processedData = [];
-        stage_object.forEach(function(element) {
-          if (!isNullOrUndefined(element) && element.hasOwnProperty("values")) {
-            // now inner element
-            element['values'].forEach(function(data_point) {
-              if (xAttribute !== null && yAttribute !== null) {
-                const newElement = {};
-                newElement[xAttribute] = data_point["created"];
-                if (scale === "Log") {
-                  newElement[yAttribute] = Math.log(data_point["payload"]["overhead"]);
-                } else if (scale === "Normal") {
-                  newElement[yAttribute] = data_point["payload"]["overhead"];
-                } else {
-                  ctrl.notify.error("Error", "Please provide a valid scale");
-                  return;
-                }
-                processedData.push(newElement);
-              } else {
-                // this is for plotting qq plot with JS, as it only requires raw data in log or normal scale
-                if (scale === "Log") {
-                  processedData.push(Math.log(data_point["payload"]["overhead"]));
-                } else if (scale === "Normal") {
-                  processedData.push(data_point["payload"]["overhead"]);
-                } else {
-                  ctrl.notify.error("Error", "Please provide a valid scale");
-                  return;
-                }
-              }
-            });
-          }
+        all_stage_object.forEach(function(stage_bin) {
+          let data_array = ctrl.process_single_stage_data(stage_bin, xAttribute, yAttribute, scale);
+          data_array.forEach(function(data_value){
+            processedData.push(data_value);
+          });
         });
         return processedData;
       } else {

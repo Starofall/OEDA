@@ -293,7 +293,7 @@
         <div class="panel panel-default chartJs">
           <div class="panel-body" style="padding-top: 20px">
             <h4>Current Status of Experiment</h4>
-            <h4>Current Stage: {{oedaCallback['stage_counter']}}</h4>
+
 
             <div *ngIf="oedaCallback['status'] === 'PROCESSING'">
               <p>
@@ -313,22 +313,28 @@
             </div>
 
             <div *ngIf="oedaCallback['status'] === 'COLLECTING_DATA'">
-              <p>
-                Collecting data...
-              </p>
+              <h4>
+                Collecting data for stage: {{oedaCallback['stage_counter']}}...
+              </h4>
               <p>
                 Number of collected data: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
               </p>
               <progressbar [value]="oedaCallback['complete']*100"></progressbar>
             </div>
 
-            <div *ngIf="oedaCallback['status'] === 'EXPERIMENT_STAGE_DONE'">
+            <div *ngIf="oedaCallback['remaining_stages'] > 0">
               <p>
-                Experiment stage is completed...
+                Stage is completed...
               </p>
               <p>
-                Experiment counter: {{oedaCallback['experiment_counter']}} , total size: {{oedaCallback['total_experiments']}}
+                Remaining number of stages: {{oedaCallback['remaining_stages']}}, remaining time: {{oedaCallback['remaining_time']}} sec
               </p>
+            </div>
+
+            <div *ngIf="oedaCallback['remaining_stages'] === 0">
+              <h4>
+                Experiment is completed with {{oedaCallback['experiment_counter']}} stages...
+              </h4>
             </div>
 
           </div>

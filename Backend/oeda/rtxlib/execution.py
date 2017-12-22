@@ -92,14 +92,19 @@ def experimentFunction(wf, exp):
         wf.experimentCounter += 1
     else:
         wf.experimentCounter = 1
-    wf.run_oeda_callback({"experiment": exp, "status": "EXPERIMENT_STAGE_DONE", "experiment_counter": wf.experimentCounter, "total_experiments": wf.totalExperiments})
+
+
     # print the results
     duration = current_milli_time() - start_time
+    remaining_stages = wf.totalExperiments - wf.experimentCounter
+    remaining_time = str(remaining_stages * duration / 1000)
+    wf.run_oeda_callback({"experiment": exp, "status": "EXPERIMENT_STAGE_DONE",
+                          "experiment_counter": wf.experimentCounter, "total_experiments": wf.totalExperiments,
+                          "remaining_time": remaining_time, "remaining_stages": remaining_stages})
     # do not show stats for forever strategy
     if wf.totalExperiments > 0:
         info("> Statistics     | " + str(wf.experimentCounter) + "/" + str(wf.totalExperiments)
-             + " took " + str(duration) + "ms" + " - remaining ~" + str(
-            (wf.totalExperiments - wf.experimentCounter) * duration / 1000) + "sec")
+             + " took " + str(duration) + "ms" + " - remaining ~" + remaining_time + "sec")
     info("> FullState      | " + str(exp["state"]))
     info("> ResultValue    | " + str(result))
     # log the result values into a csv file
