@@ -32,10 +32,6 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/experiment_results/" + experiment_id)
   }
 
-  public loadAllDataPointsOfRunningStage(experiment_id: string, stage_no: string, timestamp: string): Observable<any> {
-    return this.doGETPublicRequest("/running_experiment_results/" + experiment_id + "/" + stage_no + "/" + timestamp)
-  }
-
   public loadAllDataPointsOfRunningExperiment(experiment_id: string, timestamp: string): Observable<any> {
     return this.doGETPublicRequest("/running_experiment_results/" + experiment_id + "/" + timestamp)
   }

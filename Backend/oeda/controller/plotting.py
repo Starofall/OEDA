@@ -1,16 +1,14 @@
-from flask import Flask, jsonify, request, send_from_directory, make_response
-from flask_restful import Resource, Api
-from oeda.databases import db
+from flask_restful import Resource
 from oeda.controller.experiment_results import get_all_stage_data
 import matplotlib.pyplot as plt
-
 import traceback
 import json
-
 import numpy as np
 from io import BytesIO
 import statsmodels.api as sm
 import base64
+from oeda.databases import db
+
 
 # https://www.pythonanywhere.com/forums/topic/5017/
 # https://stackoverflow.com/questions/38061267/matplotlib-graphic-image-to-base64
@@ -36,7 +34,7 @@ class QQPlotController(Resource):
                     for data_point in entity['values']:
                         pts.append(data_point["payload"]["overhead"])
             else:
-                data_points = self.get_data_points(experiment_id, stage_no)
+                data_points = db().get_data_points(experiment_id=experiment_id, stage_no=stage_no)
                 if data_points is None:
                     return {"error": "Data points cannot be retrieved for given experiment and/or stage"}, 404
                 for data_point in data_points:
@@ -64,8 +62,3 @@ class QQPlotController(Resource):
             tb = traceback.format_exc()
             print(tb)
             return {"error": e.message}, 40
-
-    # Helper Function to fetch data from ES with given parameters
-    def get_data_points(self, experiment_id, stage_no):
-        res = db().get_data_points(experiment_id=experiment_id, stage_no=stage_no)
-        return [r["_source"] for r in res["hits"]["hits"]]

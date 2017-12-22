@@ -4,14 +4,17 @@ from oeda.databases import db
 import traceback
 
 class TargetController(Resource):
-    def get(self, target_id):
+
+    @staticmethod
+    def get(target_id):
         target = db().get_target(target_id)
         try:
             return target
         except:
             return {"error": "not found"}, 404
 
-    def post(self, target_id):
+    @staticmethod
+    def post(target_id):
         try:
             content = request.get_json()
             # check if given name is unique
@@ -30,15 +33,16 @@ class TargetController(Resource):
             print(tb)
             return {"error": e.message}, 404
 
+
 class TargetsListController(Resource):
-    def get(self):
+
+    @staticmethod
+    def get():
         ids, targets = db().get_targets()
         new_targets = targets
         i = 0
-        for target in targets:
+        for _ in targets:
             new_targets[i]["id"] = ids[i]
             i += 1
 
         return new_targets
-
-        # return [t[i]["id"]=ids[i]  for i in 0..len(ids) for t in targets]

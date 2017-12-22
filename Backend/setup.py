@@ -14,5 +14,8 @@ setup(
         'flask_restful',
         'flask_cors',
         'elasticsearch',
+        'matplotlib',
+        'statsmodels',
+        'numpy'
     ]
 )

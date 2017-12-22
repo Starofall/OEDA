@@ -1,13 +1,16 @@
-from flask import Flask, request
-from flask_restful import Resource, Api
+from flask import request
+from flask_restful import Resource
 from oeda.databases import db
+
 
 class ExperimentController(Resource):
 
-    def get(self, experiment_id):
+    @staticmethod
+    def get(experiment_id):
         return db().get_experiment(experiment_id)
 
-    def post(self, experiment_id):
+    @staticmethod
+    def post(experiment_id):
         content = request.get_json()
         print content
         new_knobs = {}
@@ -21,12 +24,15 @@ class ExperimentController(Resource):
         db().save_experiment(experiment_id, content)
         return {}, 200
 
+
 class ExperimentsListController(Resource):
-    def get(self):
+
+    @staticmethod
+    def get():
         ids, experiments = db().get_experiments()
         new_experiments = experiments
         i = 0
-        for exp in experiments:
+        for _ in experiments:
             new_experiments[i]["id"] = ids[i]
             i += 1
         return new_experiments

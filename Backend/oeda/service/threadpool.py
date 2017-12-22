@@ -1,7 +1,6 @@
 # python 2.7 compatible thread pool implementation from
 # @ https://www.metachris.com/2016/04/python-threadpool/
 
-import sys
 from oeda.log import *
 from threading import Thread
 

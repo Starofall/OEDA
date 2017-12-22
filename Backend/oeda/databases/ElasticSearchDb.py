@@ -61,7 +61,6 @@ class ElasticSearchDb(Database):
             exit(0)
 
     def save_target(self, target_system_id, target_system_data):
-        #        target_system_data["in_use"] = False
         target_system_data["created"] = datetime.now().isoformat(' ')
         del target_system_data["id"]
         try:
@@ -194,7 +193,6 @@ class ElasticSearchDb(Database):
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
 
-    # returns data_points whose parent is the concatenated stage_id
     def get_data_points(self, experiment_id, stage_no):
         stage_id = Database.create_stage_id(experiment_id, stage_no)
         query = {
@@ -212,8 +210,8 @@ class ElasticSearchDb(Database):
         try:
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
-            res2 = self.es.search(self.index, body=query, size=10000, sort='created')
-            return res2
+            res = self.es.search(self.index, body=query, size=10000, sort='created')
+            return [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
 
@@ -259,7 +257,7 @@ class ElasticSearchDb(Database):
 
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
-            res2 = self.es.search(self.index, self.data_point_type_name, body=query2, size=size, sort='created')
-            return res2
+            res = self.es.search(self.index, self.data_point_type_name, body=query2, size=size, sort='created')
+            return [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
