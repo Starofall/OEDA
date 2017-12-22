@@ -272,6 +272,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         ctrl.processedData = ctrl.get_data_from_local_structure(ctrl.selected_stage_no);
         ctrl.processedData = ctrl.process_single_stage_data(ctrl.processedData,"timestamp", "value", ctrl.scale);
     }
+    console.log("processedData", ctrl.processedData);
     // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
     const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
     ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
@@ -670,14 +671,19 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
   // if data_field is null, then it is same to first sorting an array of float/int values, then finding the percentile
   calculate_threshold_for_given_percentile(data, percentile, data_field) {
-    const sortedData = data.sort(this.sort_by(data_field, true, parseFloat));
-    const index = Math.floor(sortedData.length * percentile / 100 - 1);
-    if (!isNullOrUndefined(data_field)) {
-      const result = sortedData[index][data_field];
+    if (data.length != 0) {
+      const sortedData = data.sort(this.sort_by(data_field, true, parseFloat));
+      console.log("sortedData", sortedData);
+      const index = Math.floor(sortedData.length * percentile / 100 - 1);
+      console.log("index", index);
+      if (!isNullOrUndefined(data_field)) {
+        const result = sortedData[index][data_field];
+        return +result.toFixed(2);
+      }
+      const result = sortedData[index];
       return +result.toFixed(2);
     }
-    const result = sortedData[index];
-    return +result.toFixed(2);
+    return 0;
   }
 
   // https://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects

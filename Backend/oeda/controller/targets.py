@@ -22,7 +22,6 @@ class TargetController(Resource):
 
             for target in targets:
                 if target['name'] == content['name']:
-                    print "girdim"
                     return {"error": "Duplicate target system names"}, 409
 
             content["status"] = "READY"

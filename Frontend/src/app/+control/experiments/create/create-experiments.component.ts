@@ -45,19 +45,27 @@ export class CreateExperimentsComponent implements OnInit {
         if (!isNullOrUndefined(data)) {
           for (let k = 0; k < data.length; k++) {
             console.log(data[k]);
-            // pre-calculate step size
-            for (let j = 0; j < data[k]["changeableVariable"].length; j++) {
-              data[k]["changeableVariable"][j]["step"] =
-                (data[k]["changeableVariable"][j]["max"] - data[k]["changeableVariable"][j]["min"]) / 10;
-            }
 
-            ctrl.availableTargetSystems.push(data[k]);
+            if (data[k]["status"] === "READY") {
+              // pre-calculate step size
+              for (let j = 0; j < data[k]["changeableVariable"].length; j++) {
+                data[k]["changeableVariable"][j]["step"] =
+                  (data[k]["changeableVariable"][j]["max"] - data[k]["changeableVariable"][j]["min"]) / 10;
+              }
+              ctrl.availableTargetSystems.push(data[k]);
+            }
           }
         } else {
           this.notify.error("Error", "Please create target system first");
         }
       }
     );
+  }
+
+  navigateToTargetSystemPage() {
+    this.router.navigate(["control/targets/create"]).then(() => {
+      console.log("navigated to target system creation page");
+    });
   }
 
   // assureObjectContract() {
@@ -215,8 +223,8 @@ export class CreateExperimentsComponent implements OnInit {
     const cond5 = this.experiment.name === null;
     const cond6 = this.experiment.name.length === 0;
 
-    const cond7 = this.experiment.description === null;
-    const cond8 = this.experiment.description.length === 0;
+    // const cond7 = this.experiment.description === null;
+    // const cond8 = this.experiment.description.length === 0;
 
     // const cond5 = this.experiment.executionStrategy.knobs.x.step == null;
     //
@@ -227,7 +235,7 @@ export class CreateExperimentsComponent implements OnInit {
     // const cond9 = this.experiment.executionStrategy.ignore_first_n_results == null;
     // const cond10 = this.experiment.executionStrategy.knobs.y.step == null;
 
-    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7 || cond8;
+    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6;
     // || cond9 || cond10;
   }
 

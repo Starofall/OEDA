@@ -4,7 +4,7 @@
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">Select a Target System</div>
+          <div class="title pull-left">Target System Selection</div>
           <div class="pull-right">
             <div *ngIf="hasChanges() && !hasErrors()" (click)="saveExperiment()" class="btn btn-sm btn-orange"><i
               class="fa fa-send"></i> Create Experiment
@@ -15,7 +15,7 @@
           </div>
         </div>
       </div>
-      <div class="panel-body" style="padding-top: 20px">
+      <div class="panel-body" *ngIf="availableTargetSystems.length > 0" style="padding-top: 20px">
         <div class="row">
           <div class="col-md-3">
             <div class="sub-title">Name</div>
@@ -40,6 +40,19 @@
           </div>
         </div>
       </div>
+
+
+      <div class="panel-body" *ngIf="availableTargetSystems.length == 0" style="padding-top: 20px">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="sub-title">There is no available target system
+              <a (click)="navigateToTargetSystemPage()"> please create one here </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
     </div>
   </div>
 
@@ -54,7 +67,7 @@
       <div class="panel-body">
         <div class="row">
           <labeled-input name="Experiment Name" [model]="experiment" key="name" [colSize]="6"></labeled-input>
-          <labeled-input name="Experiment Description" [model]="experiment" key="description" [colSize]="6"></labeled-input>
+          <labeled-input name="Experiment Description" [model]="experiment" key="description" [required]="false" [colSize]="6"></labeled-input>
         </div>
       </div>
     </div>

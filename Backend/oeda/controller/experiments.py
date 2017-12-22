@@ -2,6 +2,8 @@ from flask import request
 from flask_restful import Resource
 from oeda.databases import db
 
+from oeda.controller.running_experiment_results import set_dict as set_dict
+
 
 class ExperimentController(Resource):
 
@@ -18,10 +20,10 @@ class ExperimentController(Resource):
             new_knobs[knob[0]] = [knob[1], knob[2], knob[3]]
 
         content["executionStrategy"]["knobs"] = new_knobs
-        print "content in ExperimentController after:"
-        print content
         # here we first check if the experiment can be run and then fork it
         db().save_experiment(experiment_id, content)
+        # here we refresh the status of oeda callback, too
+        set_dict(None)
         return {}, 200
 
 
