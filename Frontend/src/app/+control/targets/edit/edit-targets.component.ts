@@ -33,7 +33,7 @@ export class EditTargetsComponent implements OnInit {
     this.route.params.subscribe((params: Params) => {
       if (params['id']) {
         ctrl.pageTitle = "Edit Target System";
-        ctrl.saveButtonLabel = "Save Changes as Copy";
+        ctrl.saveButtonLabel = "Save Changes";
         this.api.loadTargetById(params['id']).subscribe(
           (data) => {
             this.target = data;
@@ -162,7 +162,7 @@ export class EditTargetsComponent implements OnInit {
       } else {
         // this is a edit, so create new uuid
         ctrl.target.id = UUID.UUID();
-        ctrl.target.name = ctrl.target.name + " Copy";
+        // ctrl.target.name = ctrl.target.name + " Copy";
         ctrl.api.saveTarget(this.target).subscribe(
           (success) => {
             ctrl.notify.success("Success", "Target saved");

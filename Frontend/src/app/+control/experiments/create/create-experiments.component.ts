@@ -44,7 +44,7 @@ export class CreateExperimentsComponent implements OnInit {
       (data) => {
         if (!isNullOrUndefined(data)) {
           for (let k = 0; k < data.length; k++) {
-
+            console.log(data[k]);
             // pre-calculate step size
             for (let j = 0; j < data[k]["changeableVariable"].length; j++) {
               data[k]["changeableVariable"][j]["step"] =
@@ -53,8 +53,6 @@ export class CreateExperimentsComponent implements OnInit {
 
             ctrl.availableTargetSystems.push(data[k]);
           }
-          // default values for target system and changeable variable sections, i.e. 0th element
-          // ctrl.targetSystem = ctrl.availableTargetSystems[0];
         } else {
           this.notify.error("Error", "Please create target system first");
         }

@@ -86,9 +86,12 @@ export abstract class RESTService {
     return this.http.get(this.configBackendURL + url, this.requestOptions)
       .map((res: Response) => res.json())
       .catch((error: any) => {
-        this.notify.error("Server Error", "Action did not work")
-        this.log.error("GET@" + url, error)
-        return Observable.throw(error || 'Server error')
+        const errorMsg = JSON.parse(error._body);
+        console.log("errorMsg", errorMsg);
+        this.notify.error("Error", errorMsg.error);
+        // this.notify.error("Server Error", "Action did not work");
+        this.log.error("GET@" + url, error);
+        return Observable.throw(error || 'Server error');
       })
   }
 
@@ -96,9 +99,11 @@ export abstract class RESTService {
   public doPOSTPublicRequest<T>(url: string, object: any): Observable<T> {
     return this.http.post(this.baseURL + url, this.createCleanJSON(object), this.requestOptions)
       .catch((error: any) => {
-        this.notify.error("Server Error", "Action did not work")
-        error.object = object // add post object to error
-        this.log.error("POST@" + url, error)
+        const errorMsg = JSON.parse(error._body);
+        console.log("errorMsg", errorMsg);
+        this.notify.error("Error", errorMsg.error);
+        error.object = object; // add post object to error
+        this.log.error("POST@" + url, error);
         return Observable.throw(error || 'Server error')
       })
   }
