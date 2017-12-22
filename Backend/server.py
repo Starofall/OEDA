@@ -1,6 +1,4 @@
 #!flask/bin/python
-import json
-
 from flask import Flask, jsonify
 from flask_restful import Api
 
@@ -101,5 +99,5 @@ if __name__ == '__main__':
     http_server.listen(5000)
     enable_pretty_logging()
     setup_database("elasticsearch", "localhost", 9200)
-    initialize_execution_scheduler()
+    initialize_execution_scheduler(10)
     IOLoop.instance().start()

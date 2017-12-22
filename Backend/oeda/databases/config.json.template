@@ -20,7 +20,7 @@
             "stages_count":            { "type": "integer" }
           }
         },
-        "created":        { "type": "date"  },
+        "created":        { "type": "date", "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"},
         "targetSystemId": { "type": "keyword"  }
       }
     }
@@ -30,9 +30,9 @@
     "mapping": {
       "_parent":    { "type": "experiment"},
       "properties": {
-        "number":       { "type": "integer" },
-        "knobs":    { "type": "object"  },
-        "created":                    { "type": "date"    }
+        "number":     { "type": "integer" },
+        "knobs":      { "type": "object"  },
+        "created":    { "type": "date", "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"}
       }
     }
   },
@@ -43,7 +43,7 @@
         "rtx_run_ids":   { "type": "keyword" },
         "name":          { "type": "keyword" },
         "result":        { "type": "object"  },
-        "created":       { "type": "date"    }
+        "created":       { "type": "date", "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"}
       }
     }
   },
@@ -53,7 +53,7 @@
       "_parent":    { "type": "stage"},
       "properties": {
         "payload":  { "type": "object"  },
-        "created":  { "type": "date"    }
+        "created":  { "type": "date", "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"}
       }
     }
   },
@@ -78,7 +78,7 @@
         "name":         { "type": "keyword"  },
         "description":  { "type": "text"     },
         "status":       { "type": "keyword"  },
-        "created":      { "type": "date"     }
+        "created":  { "type": "date", "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"}
       }
     }
   }

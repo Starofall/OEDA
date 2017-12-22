@@ -49,8 +49,6 @@ class RTXDefinition:
         self.all_knobs = all_knobs
 
     def run_oeda_callback(self, dictionary):
-        # also insert stage counter to the callback
-        # https://stackoverflow.com/questions/1024847/add-new-keys-to-a-dictionary
         dictionary['stage_counter'] = self.stage_counter
         self._oedaCallback(dictionary)
 

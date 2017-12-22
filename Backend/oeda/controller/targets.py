@@ -4,6 +4,7 @@ from oeda.databases import db
 
 
 class TargetController(Resource):
+
     def get(self, target_id):
         target = db().get_target(target_id)
         try:
@@ -20,15 +21,15 @@ class TargetController(Resource):
         except:
             return {"error": "problem occurred while saving target to DB"}, 404
 
+
 class TargetsListController(Resource):
+
     def get(self):
         ids, targets = db().get_targets()
         new_targets = targets
         i = 0
-        for target in targets:
+        for _ in targets:
             new_targets[i]["id"] = ids[i]
             i += 1
 
         return new_targets
-
-        # return [t[i]["id"]=ids[i]  for i in 0..len(ids) for t in targets]
