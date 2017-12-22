@@ -15,7 +15,7 @@ import {isNullOrUndefined} from "util";
 // QQ plot reference: https://gist.github.com/mbostock/4349187
 
 export class ShowSuccessfulExperimentComponent implements OnInit {
-  private chart1: AmChart; // smooth line
+  private chart1: AmChart; // scatter plot
   private chart2: AmChart; // scatter chart
   private chart3: AmChart; // line chart
   private chart4: AmChart; // histogram
@@ -33,7 +33,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
   public experiment: Experiment;
   public targetSystem: Target;
 
-  public initialThresholdForSmoothLineChart: number;
+  public initial_threshold_for_scatter_chart: number;
 
   // following attributes are used for QQ plotting in Python
   public available_distributions: object;
@@ -514,9 +514,9 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         processedData = ctrl.process_all_stage_data(stage_object, "timestamp", "value", ctrl.scale);
         // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
         const clonedData = JSON.parse(JSON.stringify(processedData));
-        ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
+        ctrl.initial_threshold_for_scatter_chart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
 
-        ctrl.draw_smooth_line_chart("chartdiv", "filterSummary", processedData);
+        ctrl.draw_scatter_plot("chartdiv", "filterSummary", processedData);
         ctrl.draw_histogram("histogram", processedData);
         ctrl.draw_qq_plot();
       }
@@ -525,9 +525,9 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         let processedData: any;
         processedData = ctrl.process_single_stage_data(stage_object,"timestamp", "value", ctrl.scale);
         const clonedData = JSON.parse(JSON.stringify(processedData));
-        ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
+        ctrl.initial_threshold_for_scatter_chart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
 
-        ctrl.draw_smooth_line_chart("chartdiv", "filterSummary", processedData);
+        ctrl.draw_scatter_plot("chartdiv", "filterSummary", processedData);
         ctrl.draw_histogram("histogram", processedData);
 
         // check if next stage exists
@@ -616,7 +616,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     return bins;
   }
 
-  draw_smooth_line_chart(divID, summaryFieldID, processedData) {
+  draw_scatter_plot(divID, summaryFieldID, processedData) {
     const ctrl = this;
     let selectedThreshold = -1;
     const AmCharts = this.AmCharts;
@@ -642,7 +642,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         "lineColor": "#d1655d",
         "lineThickness": 2,
         "negativeLineColor": "#637bb6",
-        "negativeBase": ctrl.initialThresholdForSmoothLineChart,
+        "negativeBase": ctrl.initial_threshold_for_scatter_chart,
         "type": "smoothedLine",
         "fillAlphas": 0,
         "valueField": "value",
@@ -698,7 +698,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       // an initial guide is created here because we cannot inject new Guide() in AmChartsService class for now
       "guides": [{
         "id": "guideID",
-        "value": ctrl.initialThresholdForSmoothLineChart,
+        "value": ctrl.initial_threshold_for_scatter_chart,
         "lineAlpha": "1",
         "lineColor": "#c44"
       }],

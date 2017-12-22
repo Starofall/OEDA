@@ -16,7 +16,7 @@ import {Observable} from "rxjs/Observable";
 // QQ plot reference: https://gist.github.com/mbostock/4349187
 
 export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
-  private chart1: AmChart; // smooth line
+  private chart1: AmChart; // scatter plot
   private chart2: AmChart; // scatter chart
   private chart3: AmChart; // line chart
   private chart4: AmChart; // histogram
@@ -44,7 +44,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   public experiment: Experiment;
   public targetSystem: Target;
 
-  public initialThresholdForSmoothLineChart: number;
+  public initial_threshold_for_scatter_plot: number;
 
   // following attributes are used for QQ plotting in Python
   public available_distributions: object;
@@ -275,10 +275,10 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     console.log("processedData", ctrl.processedData);
     // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
     const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
-    ctrl.initialThresholdForSmoothLineChart = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
+    ctrl.initial_threshold_for_scatter_plot = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
 
     if (ctrl.first_render_of_plots) {
-      ctrl.draw_smooth_line_chart(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
+      ctrl.draw_scatter_plot(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData);
       ctrl.draw_histogram(ctrl.histogramDivId, ctrl.processedData);
       // ctrl.draw_qq_plot();
       ctrl.first_render_of_plots = false;
@@ -457,7 +457,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     return bins;
   }
 
-  draw_smooth_line_chart(divID, summaryFieldID, processedData) {
+  draw_scatter_plot(divID, summaryFieldID, processedData) {
     const ctrl = this;
     let selectedThreshold = -1;
     const AmCharts = this.AmCharts;
@@ -483,7 +483,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         "lineColor": "#d1655d",
         "lineThickness": 2,
         "negativeLineColor": "#637bb6",
-        "negativeBase": ctrl.initialThresholdForSmoothLineChart,
+        "negativeBase": ctrl.initial_threshold_for_scatter_plot,
         "type": "smoothedLine",
         "fillAlphas": 0,
         "valueField": "value",
@@ -539,7 +539,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       // an initial guide is created here because we cannot inject new Guide() in AmChartsService class for now
       "guides": [{
         "id": "guideID",
-        "value": ctrl.initialThresholdForSmoothLineChart,
+        "value": ctrl.initial_threshold_for_scatter_plot,
         "lineAlpha": "1",
         "lineColor": "#c44"
       }],
