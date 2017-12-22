@@ -9,25 +9,31 @@ config = {
 
 }
 
+
 class ConfigurationController(Resource):
 
-    def get(self):
+    @staticmethod
+    def get():
         try:
             return config
         except:
             return {"error": "not found"}, 404
 
-    def post(self):
+    @staticmethod
+    def post():
         content = request.get_json()
         global config
         config = content
         return {}, 200
 
 
+# TODO is this comment correct?
 # returns _oedaCallback as an API from localhost:5000/api/config/oeda
+# TODO Shouldn't this class be named CrowdNavConfigController or similar?
 class OEDAConfigController(Resource):
 
-    def get(self):
+    @staticmethod
+    def get():
         try:
             knobs = json.loads(open('oeda/crowdnav_config/knobs.json').read())
             outputs = json.loads(open('oeda/crowdnav_config/outputs.json').read())
