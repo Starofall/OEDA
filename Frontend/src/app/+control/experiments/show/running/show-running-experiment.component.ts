@@ -37,6 +37,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   private first_render_of_plots: boolean;
   private experiment_ended: boolean;
   private timestamp: string;
+  private incoming_data_type_name: string; // for labels of plots etc. TODO: what should happen if we have more than one data type?
 
   private all_data: Entity[];
 
@@ -125,7 +126,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             this.apiService.loadTargetById(experiment.targetSystemId).subscribe(targetSystem => {
               if (!isNullOrUndefined(targetSystem)) {
                 this.targetSystem = targetSystem;
-
+                this.incoming_data_type_name = targetSystem.incomingDataTypes[0]["name"].toString();
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
@@ -407,7 +408,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       "categoryField": "binLowerBound",
       "categoryAxis": {
         "startOnAxis": true,
-        "title": "Overhead"
+        "title": this.incoming_data_type_name
       },
       "valueAxes": [{
         "title": "Percentage"
@@ -473,7 +474,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       "dataProvider": processedData,
       "valueAxes": [{
         "position": "left",
-        "title": "Overhead",
+        "title": this.incoming_data_type_name,
         "precision": 2
       }],
       "graphs": [{
@@ -607,9 +608,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               const newElement = {};
               newElement[xAttribute] = data_point["created"];
               if (scale === "Log") {
-                newElement[yAttribute] = Math.log(data_point["payload"]["overhead"]);
+                newElement[yAttribute] = Math.log(data_point["payload"][this.incoming_data_type_name]);
               } else if (scale === "Normal") {
-                newElement[yAttribute] = data_point["payload"]["overhead"];
+                newElement[yAttribute] = data_point["payload"][this.incoming_data_type_name];
               } else {
                 ctrl.notify.error("Error", "Please provide a valid scale");
                 return;
@@ -618,9 +619,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             } else {
               // this is for plotting qq plot with JS, as it only requires raw data in log or normal scale
               if (scale === "Log") {
-                processedData.push(Math.log(data_point["payload"]["overhead"]));
+                processedData.push(Math.log(data_point["payload"][this.incoming_data_type_name]));
               } else if (scale === "Normal") {
-                processedData.push(data_point["payload"]["overhead"]);
+                processedData.push(data_point["payload"][this.incoming_data_type_name]);
               } else {
                 ctrl.notify.error("Error", "Please provide a valid scale");
                 return;
