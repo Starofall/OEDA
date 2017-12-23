@@ -7,7 +7,6 @@ import {AmChartsService, AmChart} from "@amcharts/amcharts3-angular";
 import {isNullOrUndefined} from "util";
 import {Observable} from "rxjs/Observable";
 
-
 @Component({
   selector: 'show-running-experiment',
   templateUrl: './show-running-experiment.component.html'
@@ -319,15 +318,17 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           ctrl.oedaCallback["index"] = oedaCallback.index;
           ctrl.oedaCallback["size"] = oedaCallback.size;
           ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
+          ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
+          // ctrl.setKnobValues(oedaCallback);
         } else if (oedaCallback.status.toString() === "COLLECTING_DATA") {
           ctrl.oedaCallback["index"] = oedaCallback.index;
           ctrl.oedaCallback["size"] = oedaCallback.size;
           ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
-
+          ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
+          // ctrl.setKnobValues(oedaCallback);
           if (ctrl.first_render_of_page) {
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
               let is_successful_fetch = ctrl.process_response(response);
-
               if (is_successful_fetch)
                 ctrl.draw_all_plots();
             });
@@ -363,7 +364,16 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     });
   }
 
-  // remove qq plot retrieved from server otherwise memory will build up
+  private setKnobValues(oedaCallback) {
+    this.oedaCallback.current_knob = oedaCallback.current_knob;
+    console.log("gelen keyler:", Object.keys(oedaCallback.current_knob));
+    console.log("kendisi:", oedaCallback.current_knob);
+    for (const key of Object.keys(oedaCallback.current_knob)) {
+      this.oedaCallback.current_knob.set(key, oedaCallback.current_knob[key]);
+    }
+  }
+
+// remove qq plot retrieved from server otherwise memory will build up
   remove_all_plots() {
     // for (let j = 0; j < this.chart1.graphs.length; j++) {
     //   var graph = this.chart1.graphs.pop();
@@ -772,7 +782,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       complete: 0,
       experiment_counter: 0,
       total_experiments: 0,
-      stage_counter: null
+      stage_counter: null,
+      current_knob: new Map<string, number>()
     };
   }
 
@@ -784,5 +795,10 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     console.log(target);
     console.log(idAttr);
     console.log(value);
+  }
+
+  // https://stackoverflow.com/questions/31490713/iterate-over-object-in-angular
+  keys() : Array<string> {
+    return Object.keys(this.oedaCallback.current_knob);
   }
 }

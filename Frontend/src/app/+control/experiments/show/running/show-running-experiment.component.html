@@ -289,23 +289,25 @@
     <!--<div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''"-->
          <!--[hidden]="is_enough_data_for_plots" style="width: 750px; height: 600px;">-->
   <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''">
-      <div class="col-sm-6 col-xs-12" style="padding-left: 0">
         <div class="panel panel-default chartJs">
           <div class="panel-body" style="padding-top: 20px">
-            <h4>Current Status of Experiment</h4>
-
-
+            <h3>Current Status of Experiment</h3>
             <div *ngIf="oedaCallback['status'] === 'PROCESSING'">
               <p>
                 {{oedaCallback['message']}} Please wait
               </p>
             </div>
 
-
             <div *ngIf="oedaCallback['status'] === 'IGNORING_SAMPLES'">
-              <p>
-                Ignoring sample data for stage: {{oedaCallback['stage_counter']}}
-              </p>
+              <h4>
+                Ignoring samples for <b>stage {{oedaCallback['stage_counter']}}</b>
+              </h4>
+              <h4>
+                Configuration:
+              </h4>
+              <ul>
+                <li *ngFor="let key of keys()"><b>{{key}}:</b> {{oedaCallback['current_knob'][key]}}</li>
+              </ul>
               <p>
                 Number of ignored samples: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
               </p>
@@ -314,8 +316,14 @@
 
             <div *ngIf="oedaCallback['status'] === 'COLLECTING_DATA'">
               <h4>
-                Collecting data for stage: {{oedaCallback['stage_counter']}}...
+                Collecting data for  <b>stage {{oedaCallback['stage_counter']}}</b>
               </h4>
+              <h4>
+                Configuration:
+              </h4>
+              <ul>
+                <li *ngFor="let key of keys();"><b>{{key}}:</b> {{oedaCallback.current_knob[key]}}</li>
+              </ul>
               <p>
                 Number of collected data: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
               </p>
@@ -339,7 +347,6 @@
 
           </div>
         </div>
-      </div>
     </div>
 
     <!-- Scatter Plot -->

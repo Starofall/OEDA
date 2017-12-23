@@ -39,7 +39,7 @@ def experimentFunction(wf, exp):
             if new_data is not None:
                 i += 1
                 # NEW - we call back to oeda and give us infos there
-                wf.run_oeda_callback({"experiment": exp, "status": "IGNORING_SAMPLES", "index": i, "size": to_ignore})
+                wf.run_oeda_callback({"experiment": exp, "status": "IGNORING_SAMPLES", "index": i, "size": to_ignore, str("current_knob"): dict(exp["knobs"])})
                 process("IgnoreSamples  | ", i, to_ignore)
         print("")
 
@@ -54,7 +54,7 @@ def experimentFunction(wf, exp):
                 try:
                     # print(new_data)
                     # NEW - we call back to oeda and give us infos there
-                    wf.run_oeda_callback({"experiment": exp, "status": "COLLECTING_DATA", "index": i, "size": sample_size})
+                    wf.run_oeda_callback({"experiment": exp, "status": "COLLECTING_DATA", "index": i, "size": sample_size, str("current_knob"): dict(exp["knobs"])})
                     exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], new_data, wf)
                 except StopIteration:
                     raise StopIteration()  # just fwd

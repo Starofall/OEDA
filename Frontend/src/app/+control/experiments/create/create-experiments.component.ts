@@ -173,7 +173,8 @@ export class CreateExperimentsComponent implements OnInit {
         // TODO: it simply multiplies number of stages for each incoming variable, might be changed
         const stage_count = Math.floor((this.experiment.changeableVariable[j]["max"]
           - this.experiment.changeableVariable[j]["min"]) /
-          this.experiment.changeableVariable[j]["step"]);
+          this.experiment.changeableVariable[j]["step"]) + 1;
+        console.log("stage_count", stage_count);
         stage_counts.push(stage_count);
       }
     }
