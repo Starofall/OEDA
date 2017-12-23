@@ -5,7 +5,7 @@ import {LayoutService} from "../../../shared/modules/helper/layout.service";
 import {OEDAApiService, Experiment, Target, ExecutionStrategy} from "../../../shared/modules/api/oeda-api.service";
 import * as _ from "lodash";
 import {UUID} from "angular2-uuid";
-import {isNullOrUndefined} from "util";
+import {isNullOrUndefined, isNumber} from "util";
 
 
 @Component({
@@ -20,8 +20,8 @@ export class CreateExperimentsComponent implements OnInit {
   executionStrategy: any;
   variable: any;
   initialVariables: any;
-  modelChanged:  EventEmitter<any>;
   selectedTargetSystem: any;
+  totalNrOfStages: any;
 
   constructor(private layout: LayoutService, private api: OEDAApiService,
               private router: Router, private route: ActivatedRoute,
@@ -34,7 +34,7 @@ export class CreateExperimentsComponent implements OnInit {
     this.executionStrategy = this.createExecutionStrategy();
     this.experiment = this.createExperiment();
     this.originalExperiment = _.cloneDeep(this.experiment);
-    this.modelChanged = new EventEmitter();
+    this.totalNrOfStages = null;
   }
 
   ngOnInit(): void {
@@ -44,7 +44,6 @@ export class CreateExperimentsComponent implements OnInit {
       (data) => {
         if (!isNullOrUndefined(data)) {
           for (let k = 0; k < data.length; k++) {
-            console.log(data[k]);
 
             if (data[k]["status"] === "READY") {
               // pre-calculate step size
@@ -84,14 +83,9 @@ export class CreateExperimentsComponent implements OnInit {
   // }
 
   firstDropDownChanged(targetSystemName: any) {
-    console.log(targetSystemName);
-    console.log("available", this.availableTargetSystems);
-    // TODO target system names must be uniquely defined, should be checked upon target system creation
     this.selectedTargetSystem = this.availableTargetSystems.find(item => item.name === targetSystemName);
-    console.log("selected:", this.selectedTargetSystem);
 
     if (this.selectedTargetSystem !== undefined) {
-      console.log("obj:", this.selectedTargetSystem);
       if (this.selectedTargetSystem.changeableVariable.length === 0) {
         this.notify.error("Error", "Target does not contain a changeable variable.");
         return;
@@ -133,27 +127,70 @@ export class CreateExperimentsComponent implements OnInit {
         ctrl.notify.error("Error", "This variable is already added");
       } else {
         ctrl.experiment.changeableVariable.push(_.cloneDeep(variable));
+        this.calculateTotalNrOfStages();
       }
     }
   }
 
   addAllChangeableVariables() {
     const ctrl = this;
-    console.log(ctrl.targetSystem.changeableVariable);
     for (let i = 0; i < ctrl.targetSystem.changeableVariable.length; i++) {
       if (ctrl.experiment.changeableVariable.filter(item => item.name === ctrl.targetSystem.changeableVariable[i].name).length === 0) {
         /* vendor does not contain the element we're looking for */
         ctrl.experiment.changeableVariable.push(_.cloneDeep(ctrl.targetSystem.changeableVariable[i]));
       }
     }
+    this.calculateTotalNrOfStages();
+  }
+
+  // re-calculates number of stages after each change to step size
+  stepSizeChanged(stepSize) {
+    if (!isNullOrUndefined(stepSize)) {
+      this.calculateTotalNrOfStages();
+    }
+  }
+
+  // if one of min and max is not valid, sets totalNrOfStages to null, so that it will get hidden
+  minMaxModelsChanged(value) {
+    if (isNullOrUndefined(value)) {
+      this.totalNrOfStages = null;
+    } else {
+      this.calculateTotalNrOfStages();
+    }
+  }
+
+  calculateTotalNrOfStages() {
+    this.totalNrOfStages = null;
+    const stage_counts = [];
+    for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
+      if (this.experiment.changeableVariable[j]["step"] <= 0) {
+        this.totalNrOfStages = null;
+        break;
+      } else if (this.experiment.changeableVariable[j]["step"] > this.experiment.changeableVariable[j]["max"] - this.experiment.changeableVariable[j]["min"]) {
+        this.totalNrOfStages = null;
+        break;
+      } else {
+        // TODO: it simply multiplies number of stages for each incoming variable, might be changed
+        const stage_count = Math.floor((this.experiment.changeableVariable[j]["max"]
+          - this.experiment.changeableVariable[j]["min"]) /
+          this.experiment.changeableVariable[j]["step"]);
+        stage_counts.push(stage_count);
+      }
+    }
+    if (stage_counts.length !== 0) {
+      const sum = stage_counts.reduce(function(a, b) {return a * b; } );
+      this.totalNrOfStages = sum;
+    }
   }
 
   removeChangeableVariable(index) {
     this.experiment.changeableVariable.splice(index, 1);
+    this.calculateTotalNrOfStages();
   }
 
   removeAllVariables() {
     this.experiment.changeableVariable.splice(0);
+    this.calculateTotalNrOfStages();
   }
 
   hasChanges(): boolean {
@@ -162,28 +199,11 @@ export class CreateExperimentsComponent implements OnInit {
 
   saveExperiment() {
     if (!this.hasErrors()) {
-      console.log("experiment to be submitted", this.experiment);
 
       if (this.experiment.changeableVariable.length === 0) {
         this.notify.error("Error", "Variable length cannot be 0");
         return;
       }
-
-      // const knob1 = {};
-      // const startEndArray1 = [];
-      // startEndArray1.push(this.experiment.changeableVariable[0].min);
-      // startEndArray1.push(this.experiment.changeableVariable[0].max);
-      // startEndArray1.push(this.experiment.changeableVariable[0].step);
-      //
-      // const variableName1 = this.experiment.changeableVariable[0].name;
-      // Object.defineProperty(knob1, variableName1, {value : startEndArray1,
-      //                       writable : true,
-      //                       enumerable : true,
-      //                       configurable : true});
-      //
-      // this.experiment.executionStrategy.knobs = knob1;
-
-
       const all_knobs = [];
       for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
         const knob = [];
@@ -197,22 +217,21 @@ export class CreateExperimentsComponent implements OnInit {
 
       this.experiment.executionStrategy.ignore_first_n_results = Number(this.experiment.executionStrategy.ignore_first_n_results);
       this.experiment.executionStrategy.sample_size = Number(this.experiment.executionStrategy.sample_size);
-      console.log("experiment to be submitted:", this.experiment);
-
-      this.api.saveExperiment(this.experiment).subscribe(
-        (success) => {
-          console.log("success: ", success);
-          this.notify.success("Success", "Experiment saved");
-          this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
-            console.log("navigated to newly created experiment running page");
-          });
-        }, (error) => {
-          console.log("error: ", error);
-        }
-      )
+      console.log("experiment to be submitted", this.experiment);
+      // this.api.saveExperiment(this.experiment).subscribe(
+      //   (success) => {
+      //     this.notify.success("Success", "Experiment saved");
+      //     this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
+      //       console.log("navigated to newly created experiment running page");
+      //     });
+      //   }, (error) => {
+      //     this.notify.success("Error", error.toString());
+      //   }
+      // )
     }
   }
 
+  // called for every div that's bounded to *ngIf=!hasErrors() expression.
   hasErrors(): boolean {
     const cond1 = this.targetSystem.status === "WORKING";
     const cond2 = this.targetSystem.status === "ERROR";
@@ -222,6 +241,18 @@ export class CreateExperimentsComponent implements OnInit {
 
     const cond5 = this.experiment.name === null;
     const cond6 = this.experiment.name.length === 0;
+
+    let cond7: boolean;
+    for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
+      if (this.experiment.changeableVariable[j]["step"] <= 0) {
+        cond7 = true;
+        break;
+      }
+      if (this.experiment.changeableVariable[j]["step"] > this.experiment.changeableVariable[j]["max"] - this.experiment.changeableVariable[j]["min"] ) {
+        cond7 = true;
+        break;
+      }
+    }
 
     // const cond7 = this.experiment.description === null;
     // const cond8 = this.experiment.description.length === 0;
@@ -235,7 +266,7 @@ export class CreateExperimentsComponent implements OnInit {
     // const cond9 = this.experiment.executionStrategy.ignore_first_n_results == null;
     // const cond10 = this.experiment.executionStrategy.knobs.y.step == null;
 
-    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6;
+    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7;
     // || cond9 || cond10;
   }
 

@@ -10,7 +10,7 @@
               class="fa fa-send"></i> Create Experiment
             </div>
             <div *ngIf="hasChanges() && hasErrors()" class="btn btn-m btn-danger"><i
-              class="fa fa-close"></i> Incomplete Fields
+              class="fa fa-close"></i> Incomplete or Erroneous Fields
             </div>
           </div>
         </div>
@@ -66,13 +66,12 @@
       </div>
       <div class="panel-body">
         <div class="row">
-          <labeled-input name="Experiment Name" [model]="experiment" key="name" [colSize]="6"></labeled-input>
+          <labeled-input name="Experiment Name (required)" [model]="experiment" key="name" [colSize]="6"></labeled-input>
           <labeled-input name="Experiment Description" [model]="experiment" key="description" [required]="false" [colSize]="6"></labeled-input>
         </div>
       </div>
     </div>
   </div>
-
 
   <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''" >
     <!-- Primary Data Provider -->
@@ -200,7 +199,6 @@
     </div>
   </div>
 
-
   <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''" >
     <!-- Incoming Data Types -->
     <div class="col-sm-6 col-xs-12" style="padding-left: 0">
@@ -315,36 +313,17 @@
                 <i class="fa fa-remove"></i> Remove All
               </div>
             </div>
+            <div class="title pull-right" style="padding-right: 5%" *ngIf="totalNrOfStages !== null">Total Number of Stages: {{totalNrOfStages}}</div>
           </div>
         </div>
         <div class="panel-body" style="padding-top: 20px">
           <div class="row" *ngFor="let input of experiment.changeableVariable; let i = index">
             <div class="row">
-              <!--Previous Version that shows every attribute of added variable in a div -->
-
-              <!--<div class="row" style="padding-left: 5%">-->
-                <!--<labeled-input name="Name" [model]="input" key="name" [colSize]="3" disabled="true"></labeled-input>-->
-                <!--<labeled-input name="Description" [model]="input" key="description" [colSize]="5" disabled="true"></labeled-input>-->
-                <!--<labeled-input name="Scale" [model]="input" key="scale" [colSize]="3" disabled="true"></labeled-input>-->
-              <!--</div>-->
-
-              <!--<div class="row" style="padding-left: 5%">-->
-                <!--<labeled-input name="Min" [model]="input" [required]="false" key="min" [colSize]="3"></labeled-input>-->
-                <!--<labeled-input name="Max" [model]="input" [required]="false" key="max" [colSize]="3"></labeled-input>-->
-                <!--<labeled-input name="Step Size" [model]="input" [required]="false" key="step" [colSize]="3"></labeled-input>-->
-              <!--</div>-->
               <div class="row" style="padding-left: 5%">
                 <labeled-input name="Name" [model]="input" key="name" [colSize]="3" disabled="true"></labeled-input>
-                <labeled-input [inputType]="'number'" name="Min" [model]="input" key="min" [colSize]="2"></labeled-input>
-                <labeled-input [inputType]="'number'" name="Max" [model]="input" key="max" [colSize]="2"></labeled-input>
-                <labeled-input [inputType]="'number'" name="Step Size" [model]="input" key="step" [colSize]="2"></labeled-input>
-                <!--<div class="col-md-2">-->
-                  <!--<div class="sub-title">Step Size</div>-->
-                  <!--<div>-->
-                    <!--<input type="number" class="form-control" name="myDecimal" [ngModel]="input.step"-->
-                           <!--ng-pattern="/^[0-9]+(\.[0-9]{1,2})?$/" required />-->
-                  <!--</div>-->
-                <!--</div>-->
+                <labeled-input [inputType]="'number'" name="Min" [model]="input" key="min" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
+                <labeled-input [inputType]="'number'" name="Max" [model]="input" key="max" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
+                <labeled-input [inputType]="'number'" name="Step Size" [model]="input" key="step" [colSize]="2" (modelChanged)="stepSizeChanged($event)"></labeled-input>
                 <div class="col-md-3 pull-right" style="padding-right: 5%">
                   <div (click)="removeChangeableVariable(i, input)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i> Remove</div>
                 </div>

@@ -746,7 +746,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     document.getElementById("polling_off_button").setAttribute('class', 'btn btn-primary active');
     document.getElementById("polling_on_button").setAttribute('class', 'btn btn-default');
     this.subscription.unsubscribe();
-    if (status !== null && content !== null) {
+    if (!isNullOrUndefined(status) && !isNullOrUndefined(content)) {
+      console.log("status, content", status, content);
       this.notify.success(status, content);
     } else {
       this.notify.success("Success", "Polling disabled");

@@ -441,8 +441,6 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     }
   }
 
-
-
   private get_data_from_local_structure(stage_no) {
     const ctrl = this;
     const retrieved_data = ctrl.all_data[stage_no - 1];
