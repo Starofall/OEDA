@@ -546,6 +546,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
   }
 
   draw_histogram(divID, processedData) {
+    const ctrl = this;
     const AmCharts = this.AmCharts;
     this.chart4 = AmCharts.makeChart(divID, {
       "type": "serial",
@@ -566,7 +567,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       "categoryField": "binLowerBound",
       "categoryAxis": {
         "startOnAxis": true,
-        "title": this.incoming_data_type_name
+        "title": ctrl.incoming_data_type_name
       },
       "valueAxes": [{
         "title": "Percentage"

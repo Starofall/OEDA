@@ -304,7 +304,7 @@
 
             <div *ngIf="oedaCallback['status'] === 'IGNORING_SAMPLES'">
               <p>
-                Ignoring some of the sampled data...
+                Ignoring sample data for stage: {{oedaCallback['stage_counter']}}
               </p>
               <p>
                 Number of ignored samples: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}

@@ -205,7 +205,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     } else {
       // we can retrieve one or more stages upon other polls
       // so, iterate the these stages and concat their data_points with existing data_points
-      console.log("response", response);
       for (let index in response) {
         let parsed_json_object = JSON.parse(response[index]);
         let existing_stage = ctrl.all_data.find(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString());
@@ -273,7 +272,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         ctrl.processedData = ctrl.get_data_from_local_structure(ctrl.selected_stage_no);
         ctrl.processedData = ctrl.process_single_stage_data(ctrl.processedData,"timestamp", "value", ctrl.scale);
     }
-    console.log("processedData", ctrl.processedData);
     // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
     const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
     ctrl.initial_threshold_for_scatter_plot = ctrl.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
@@ -355,15 +353,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           if (ctrl.oedaCallback["remaining_stages"] == 0) {
             ctrl.disable_polling("Success", "Data is up-to-date, stopped polling.");
 
-            // TODO: just to make sure that, all data is shown to the user instead of empty page. It Can be removed
-            // TODO: also, another option would be updating the experiment status and setting the target system status manually
-
-            ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-              let is_successful_fetch = ctrl.process_response(response);
-              if (is_successful_fetch) {
-                ctrl.selected_stage_no = -1;
-                ctrl.draw_all_plots();
-              }
+            // switch to successful experiment page to show other plots to the user
+            ctrl.router.navigate(["control/experiments/show/"+ctrl.experiment_id+"/success"]).then(() => {
+              console.log("navigated to experiments page");
             });
           }
         }
@@ -388,6 +380,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   }
 
   draw_histogram(divID, processedData) {
+    const ctrl = this;
     const AmCharts = this.AmCharts;
     this.chart4 = AmCharts.makeChart(divID, {
       "type": "serial",
@@ -408,7 +401,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       "categoryField": "binLowerBound",
       "categoryAxis": {
         "startOnAxis": true,
-        "title": this.incoming_data_type_name
+        "title": ctrl.incoming_data_type_name
       },
       "valueAxes": [{
         "title": "Percentage"
@@ -474,7 +467,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       "dataProvider": processedData,
       "valueAxes": [{
         "position": "left",
-        "title": this.incoming_data_type_name,
+        "title": ctrl.incoming_data_type_name,
         "precision": 2
       }],
       "graphs": [{
@@ -608,9 +601,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               const newElement = {};
               newElement[xAttribute] = data_point["created"];
               if (scale === "Log") {
-                newElement[yAttribute] = Math.log(data_point["payload"][this.incoming_data_type_name]);
+                newElement[yAttribute] = Math.log(data_point["payload"][ctrl.incoming_data_type_name]);
               } else if (scale === "Normal") {
-                newElement[yAttribute] = data_point["payload"][this.incoming_data_type_name];
+                newElement[yAttribute] = data_point["payload"][ctrl.incoming_data_type_name];
               } else {
                 ctrl.notify.error("Error", "Please provide a valid scale");
                 return;
@@ -619,9 +612,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             } else {
               // this is for plotting qq plot with JS, as it only requires raw data in log or normal scale
               if (scale === "Log") {
-                processedData.push(Math.log(data_point["payload"][this.incoming_data_type_name]));
+                processedData.push(Math.log(data_point["payload"][ctrl.incoming_data_type_name]));
               } else if (scale === "Normal") {
-                processedData.push(data_point["payload"][this.incoming_data_type_name]);
+                processedData.push(data_point["payload"][ctrl.incoming_data_type_name]);
               } else {
                 ctrl.notify.error("Error", "Please provide a valid scale");
                 return;
@@ -644,9 +637,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         const processedData = [];
         all_stage_object.forEach(function(stage_bin) {
           let data_array = ctrl.process_single_stage_data(stage_bin, xAttribute, yAttribute, scale);
-          data_array.forEach(function(data_value){
-            processedData.push(data_value);
-          });
+          if (data_array !== undefined) {
+            data_array.forEach(function (data_value) {
+              processedData.push(data_value);
+            });
+          }
         });
         return processedData;
       } else {
@@ -674,9 +669,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   calculate_threshold_for_given_percentile(data, percentile, data_field) {
     if (data.length != 0) {
       const sortedData = data.sort(this.sort_by(data_field, true, parseFloat));
-      console.log("sortedData", sortedData);
       const index = Math.floor(sortedData.length * percentile / 100 - 1);
-      console.log("index", index);
       if (!isNullOrUndefined(data_field)) {
         const result = sortedData[index][data_field];
         return +result.toFixed(2);
@@ -748,7 +741,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     document.getElementById("polling_on_button").setAttribute('class', 'btn btn-default');
     this.subscription.unsubscribe();
     if (!isNullOrUndefined(status) && !isNullOrUndefined(content)) {
-      console.log("status, content", status, content);
       this.notify.success(status, content);
     } else {
       this.notify.success("Success", "Polling disabled");

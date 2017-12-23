@@ -218,16 +218,16 @@ export class CreateExperimentsComponent implements OnInit {
       this.experiment.executionStrategy.ignore_first_n_results = Number(this.experiment.executionStrategy.ignore_first_n_results);
       this.experiment.executionStrategy.sample_size = Number(this.experiment.executionStrategy.sample_size);
       console.log("experiment to be submitted", this.experiment);
-      // this.api.saveExperiment(this.experiment).subscribe(
-      //   (success) => {
-      //     this.notify.success("Success", "Experiment saved");
-      //     this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
-      //       console.log("navigated to newly created experiment running page");
-      //     });
-      //   }, (error) => {
-      //     this.notify.success("Error", error.toString());
-      //   }
-      // )
+      this.api.saveExperiment(this.experiment).subscribe(
+        (success) => {
+          this.notify.success("Success", "Experiment saved");
+          this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
+            console.log("navigated to newly created experiment running page");
+          });
+        }, (error) => {
+          this.notify.success("Error", error.toString());
+        }
+      )
     }
   }
 
