@@ -306,7 +306,7 @@
                 Configuration:
               </h4>
               <ul>
-                <li *ngFor="let key of keys()"><b>{{key}}:</b> {{oedaCallback['current_knob'][key]}}</li>
+                <li *ngFor="let key of current_knob_keys()"><b>{{key}}:</b> {{oedaCallback['current_knob'][key]}}</li>
               </ul>
               <p>
                 Number of ignored samples: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
@@ -322,7 +322,7 @@
                 Configuration:
               </h4>
               <ul>
-                <li *ngFor="let key of keys();"><b>{{key}}:</b> {{oedaCallback.current_knob[key]}}</li>
+                <li *ngFor="let key of current_knob_keys();"><b>{{key}}:</b> {{oedaCallback.current_knob[key]}}</li>
               </ul>
               <p>
                 Number of collected data: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}

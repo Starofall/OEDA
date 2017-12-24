@@ -41,12 +41,13 @@ def get_all_stage_data(experiment_id):
 
     for stage in new_stages:
         data = db().get_data_points(experiment_id=experiment_id, stage_no=stage['number'])
-        # wrap the stage data with stage number
-        stage_and_data = {
-            "stage_number": stage["number"],
-            "values": data
-        }
-        json_data = json.dumps(stage_and_data)
-        all_stage_data.append(json_data)
+        # wrap the stage data with stage number if there are some data points
+        if len(data) != 0:
+            stage_and_data = {
+                "stage_number": stage["number"],
+                "values": data
+            }
+            json_data = json.dumps(stage_and_data)
+            all_stage_data.append(json_data)
 
     return all_stage_data

@@ -149,7 +149,7 @@ class ElasticSearchDb(Database):
         }
 
         try:
-            res = self.es.search(self.index, self.stage_type_name, query)
+            res = self.es.search(self.index, self.stage_type_name, body=query, size=10000, sort='created')
             return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
@@ -251,13 +251,15 @@ class ElasticSearchDb(Database):
             }
         }
         try:
-            res1 = self.es.count(self.index, self.data_point_type_name, query1)
-            # first determine size, otherwise it returns only 10 data (by default)
-            size = res1['count']
+            # res1 = self.es.count(self.index, self.data_point_type_name, query1)
+            # # first determine size, otherwise it returns only 10 data (by default)
+            # size = res1['count']
+            # if size is None:
+            #     size = 10000
 
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
-            res = self.es.search(self.index, self.data_point_type_name, body=query2, size=size, sort='created')
+            res = self.es.search(self.index, self.data_point_type_name, body=query2, size=10000, sort='created')
             return [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")

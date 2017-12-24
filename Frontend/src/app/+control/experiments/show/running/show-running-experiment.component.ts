@@ -144,8 +144,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                     // initially selected stage is "All Stages"
                     this.selected_stage_no = -1;
 
-                    // polling using Timer (3 sec interval) for real-time data visualization
-                    this.timer = Observable.timer(2000, 3000);
+                    // polling using Timer (2 sec interval) for real-time data visualization
+                    this.timer = Observable.timer(1000, 2000);
                     this.subscription = this.timer.subscribe(t => {
                       this.fetch_oeda_callback();
                     });
@@ -171,7 +171,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.notify.error("Error", "Cannot retrieve data from DB, please try again");
       return;
     }
-
     if (ctrl.first_render_of_page) {
       // we can retrieve one or more stages at first render
       for (let index in response) {
@@ -186,10 +185,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           if (new_entity.values.length != 0) {
             ctrl.all_data.push(new_entity);
           }
-
           // as a guard against stage duplications
-          const new_stage = {"number": parsed_json_object['stage_number']};
-          let existing_stage = ctrl.availableStages.find(entity => entity.number.toString() === new_stage['number'].toString());
+          const new_stage = {"number": parsed_json_object.stage_number};
+          let existing_stage = ctrl.availableStages.find(entity => entity.number.toString() === parsed_json_object.stage_number.toString());
           // stage does not exist yet
           if (isNullOrUndefined(existing_stage)) {
             ctrl.availableStages.push(new_stage);
@@ -207,13 +205,14 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       for (let index in response) {
         let parsed_json_object = JSON.parse(response[index]);
         let existing_stage = ctrl.all_data.find(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString());
+
         // we have found an existing stage
-        if (!isNullOrUndefined(existing_stage)) {
+        if (existing_stage !== undefined) {
           let stage_index = parsed_json_object['stage_number'] - 1;
           if (parsed_json_object['values'].length > 0) {
             ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
           }
-        } else if (isNullOrUndefined(existing_stage)) {
+        } else {
           // a new stage has been fetched, create a new bin for it, and push all the values to the bin, also push bin to all_data
           const stage_number = parsed_json_object['stage_number'].toString();
           const values = parsed_json_object['values'];
@@ -253,8 +252,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     return retrieved_data;
   }
 
-
-
   // draws plots by using ctrl.selected_stage_no variable to retrieve data points from local storage
   private draw_all_plots() {
     const ctrl = this;
@@ -287,21 +284,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.chart4.dataProvider = this.categorize_data(ctrl.processedData);
       ctrl.chart4.validateData();
     }
-    // initial case when page is rendered, check if next stage exists
-    if (ctrl.selected_stage_no !== "-1") {
-      // check if next stage exists
-      ctrl.availableStagesForQQJS.some(function(element) {
-        if (Number(element.number) === Number(ctrl.selected_stage_no) + 1) {
-          // TODO: ensure that next stage has enough data?
-          ctrl.selected_stage_for_qq_js = (Number(ctrl.selected_stage_no) + 1).toString();
-          // ctrl.draw_qq_js(ctrl.selected_stage_for_qq_js);
-          return true; // required as a callback for .some function
-        }
-      });
-    }
     ctrl.is_enough_data_for_plots = true;
   }
-
 
   private fetch_oeda_callback() {
     const ctrl = this;
@@ -319,13 +303,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           ctrl.oedaCallback["size"] = oedaCallback.size;
           ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
           ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
-          // ctrl.setKnobValues(oedaCallback);
         } else if (oedaCallback.status.toString() === "COLLECTING_DATA") {
           ctrl.oedaCallback["index"] = oedaCallback.index;
           ctrl.oedaCallback["size"] = oedaCallback.size;
           ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
           ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
-          // ctrl.setKnobValues(oedaCallback);
           if (ctrl.first_render_of_page) {
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
               let is_successful_fetch = ctrl.process_response(response);
@@ -356,21 +338,12 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
             // switch to successful experiment page to show other plots to the user
             ctrl.router.navigate(["control/experiments/show/"+ctrl.experiment_id+"/success"]).then(() => {
-              console.log("navigated to experiments page");
+              console.log("navigated to successful experiment page");
             });
           }
         }
       }
     });
-  }
-
-  private setKnobValues(oedaCallback) {
-    this.oedaCallback.current_knob = oedaCallback.current_knob;
-    console.log("gelen keyler:", Object.keys(oedaCallback.current_knob));
-    console.log("kendisi:", oedaCallback.current_knob);
-    for (const key of Object.keys(oedaCallback.current_knob)) {
-      this.oedaCallback.current_knob.set(key, oedaCallback.current_knob[key]);
-    }
   }
 
 // remove qq plot retrieved from server otherwise memory will build up
@@ -466,8 +439,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     let selectedThreshold = -1;
     const AmCharts = this.AmCharts;
     this.chart1 = AmCharts.makeChart(divID, {
-      "mouseWheelZoomEnabled": true,
-      "mouseWheelScrollEnabled": true,
       "responsive": {
         "enabled": true
       },
@@ -680,6 +651,10 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     if (data.length != 0) {
       const sortedData = data.sort(this.sort_by(data_field, true, parseFloat));
       const index = Math.floor(sortedData.length * percentile / 100 - 1);
+      // TODO how can this index be -1? this is just a work-around for now
+      if (index == -1) {
+        return 0;
+      }
       if (!isNullOrUndefined(data_field)) {
         const result = sortedData[index][data_field];
         return +result.toFixed(2);
@@ -798,7 +773,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   }
 
   // https://stackoverflow.com/questions/31490713/iterate-over-object-in-angular
-  keys() : Array<string> {
+  current_knob_keys() : Array<string> {
     return Object.keys(this.oedaCallback.current_knob);
   }
 }
