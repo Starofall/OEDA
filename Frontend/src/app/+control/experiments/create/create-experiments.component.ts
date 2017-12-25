@@ -121,7 +121,6 @@ export class CreateExperimentsComponent implements OnInit {
 
   addChangeableVariable(variable) {
     const ctrl = this;
-    console.log("variable to be added", variable);
     if (!isNullOrUndefined(variable)) {
       if (ctrl.experiment.changeableVariable.some(item => item.name === variable.name) ) {
         ctrl.notify.error("Error", "This variable is already added");
@@ -174,7 +173,6 @@ export class CreateExperimentsComponent implements OnInit {
         const stage_count = Math.floor((this.experiment.changeableVariable[j]["max"]
           - this.experiment.changeableVariable[j]["min"]) /
           this.experiment.changeableVariable[j]["step"]) + 1;
-        console.log("stage_count", stage_count);
         stage_counts.push(stage_count);
       }
     }
@@ -218,7 +216,6 @@ export class CreateExperimentsComponent implements OnInit {
 
       this.experiment.executionStrategy.ignore_first_n_results = Number(this.experiment.executionStrategy.ignore_first_n_results);
       this.experiment.executionStrategy.sample_size = Number(this.experiment.executionStrategy.sample_size);
-      console.log("experiment to be submitted", this.experiment);
       this.api.saveExperiment(this.experiment).subscribe(
         (success) => {
           this.notify.success("Success", "Experiment saved");

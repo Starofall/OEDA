@@ -60,7 +60,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   public availableStages = [];
   public availableStagesForQQJS = [];
 
-  public selected_stage_no: any;
+  public selected_stage: any;
   public oedaCallback: OedaCallbackEntity;
 
 
@@ -129,20 +129,17 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
-                    stages.sort(this.sort_by('number', true, parseInt));
-
-                    const all_stages = {"number": "All Stages"};
-                    this.availableStages.push(all_stages);
+                    // initially selected stage is "All Stages"
+                    this.selected_stage = {"number": -1, "knobs": ""};
+                    this.availableStages.push(this.selected_stage);
                     for (let j = 0; j < stages.length; j++) {
                       this.availableStages.push(stages[j]);
                     }
+                    stages.sort(this.sort_by('number', true, parseInt));
+
                     // prepare available stages for qq js that does not include all stages
                     this.availableStagesForQQJS = this.availableStages.slice(1);
-
                     this.dataAvailable = true;
-
-                    // initially selected stage is "All Stages"
-                    this.selected_stage_no = -1;
 
                     // polling using Timer (2 sec interval) for real-time data visualization
                     this.timer = Observable.timer(1000, 2000);
@@ -178,16 +175,17 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           let parsed_json_object = JSON.parse(response[index]);
           // distribute data points to empty bins
           let new_entity = ctrl.create_entity();
-          new_entity.stage_number = parsed_json_object['stage_number'].toString();
+          new_entity.number = parsed_json_object['number'];
           new_entity.values = parsed_json_object['values'];
+          new_entity.knobs = parsed_json_object['knobs'];
           // we retrieve stages and data points in following format
-          // e.g. [ 0: {stage_number: 1, values: ...}, 1: {stage_number: 2, values: ...}...]
+          // e.g. [ 0: {number: 1, values: ..., knobs: [...]}, 1: {number: 2, values: ..., knobs: [...] }...]
           if (new_entity.values.length != 0) {
             ctrl.all_data.push(new_entity);
           }
           // as a guard against stage duplications
-          const new_stage = {"number": parsed_json_object.stage_number};
-          let existing_stage = ctrl.availableStages.find(entity => entity.number.toString() === parsed_json_object.stage_number.toString());
+          const new_stage = {"number": parsed_json_object.number, "knobs": parsed_json_object.knobs};
+          let existing_stage = ctrl.availableStages.find(entity => entity.number === parsed_json_object.number);
           // stage does not exist yet
           if (isNullOrUndefined(existing_stage)) {
             ctrl.availableStages.push(new_stage);
@@ -204,24 +202,27 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       // so, iterate the these stages and concat their data_points with existing data_points
       for (let index in response) {
         let parsed_json_object = JSON.parse(response[index]);
-        let existing_stage = ctrl.all_data.find(entity => entity.stage_number.toString() === parsed_json_object.stage_number.toString());
+        let existing_stage = ctrl.all_data.find(entity => entity.number === parsed_json_object.number);
 
         // we have found an existing stage
         if (existing_stage !== undefined) {
-          let stage_index = parsed_json_object['stage_number'] - 1;
+          let stage_index = parsed_json_object['number'] - 1;
           if (parsed_json_object['values'].length > 0) {
             ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
           }
         } else {
           // a new stage has been fetched, create a new bin for it, and push all the values to the bin, also push bin to all_data
-          const stage_number = parsed_json_object['stage_number'].toString();
+          const number = parsed_json_object['number'];
           const values = parsed_json_object['values'];
-          const new_stage = {"number": stage_number};
+          const knobs = parsed_json_object['knobs'];
+          const new_stage = {"number": number, "knobs": knobs};
+          console.log("new_stage", new_stage);
           ctrl.availableStages.push(new_stage);
 
           let new_entity = ctrl.create_entity();
-          new_entity.stage_number = stage_number;
+          new_entity.number = number;
           new_entity.values = values;
+          new_entity.knobs = knobs;
           ctrl.all_data.push(new_entity);
         }
         // update timestamp if we have retrieved a data
@@ -252,7 +253,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     return retrieved_data;
   }
 
-  // draws plots by using ctrl.selected_stage_no variable to retrieve data points from local storage
+  // draws plots by using ctrl.selected_stage.number variable to retrieve data points from local storage
   private draw_all_plots() {
     const ctrl = this;
     // set it to false in case a new scale is selected
@@ -260,12 +261,12 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
 
     // if "all stages" is selected
-    if (ctrl.selected_stage_no == -1) {
+    if (ctrl.selected_stage.number == -1) {
       ctrl.processedData = ctrl.process_all_stage_data(ctrl.all_data,"timestamp", "value", ctrl.scale);
     }
     // if any other stage is selected
     else {
-        ctrl.processedData = ctrl.get_data_from_local_structure(ctrl.selected_stage_no);
+        ctrl.processedData = ctrl.get_data_from_local_structure(ctrl.selected_stage.number);
         ctrl.processedData = ctrl.process_single_stage_data(ctrl.processedData,"timestamp", "value", ctrl.scale);
     }
     // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
@@ -338,7 +339,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
             // switch to successful experiment page to show other plots to the user
             ctrl.router.navigate(["control/experiments/show/"+ctrl.experiment_id+"/success"]).then(() => {
-              console.log("navigated to successful experiment page");
+              console.log("navigated to successful experiments page");
             });
           }
         }
@@ -701,24 +702,17 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     return q3 - q1;
   }
 
-  stage_changed(stage_no: number) {
-    const ctrl = this;
-    if (isNullOrUndefined(ctrl.scale)) {
+  stage_changed() {
+    if (isNullOrUndefined(this.scale)) {
       this.notify.error("Error", "Scale is null or undefined, please try again");
       return;
     }
-
-    if (stage_no.toString() === "All Stages") {
-      stage_no = -1;
-    }
-    // update selected stage no, and let draw_all_plots do the rest
-    ctrl.selected_stage_no = stage_no;
-    ctrl.draw_all_plots();
+    this.draw_all_plots();
   }
 
   scale_changed(scale: string) {
     this.scale = scale;
-    this.stage_changed(this.selected_stage_no);
+    this.stage_changed();
   }
 
   disable_polling(status: string, content: string) {
@@ -743,8 +737,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
   private create_entity(): Entity {
     return {
-      stage_number: "",
-      values: []
+      number: "",
+      values: [],
+      knobs: null
     }
   }
 
@@ -775,5 +770,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   // https://stackoverflow.com/questions/31490713/iterate-over-object-in-angular
   current_knob_keys() : Array<string> {
     return Object.keys(this.oedaCallback.current_knob);
+  }
+
+  knobs_of_stage(stage_object) : Array<string> {
+    if (stage_object.knobs !== undefined) {
+      return Object.keys(stage_object.knobs);
+    }
   }
 }

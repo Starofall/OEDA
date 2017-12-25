@@ -6,7 +6,7 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import TransportError
 
 from Database import Database
-from oeda.log import error
+from oeda.log import *
 
 
 class ElasticSearchDb(Database):
@@ -189,7 +189,7 @@ class ElasticSearchDb(Database):
         body["payload"] = payload
         body["created"] = datetime.now().isoformat(' ') # used to replace 'T' with ' '
         try:
-            res = self.es.index(index=self.index, doc_type=self.data_point_type_name, body=body, id=data_point_id, parent=stage_id)
+            self.es.index(index=self.index, doc_type=self.data_point_type_name, body=body, id=data_point_id, parent=stage_id)
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
 

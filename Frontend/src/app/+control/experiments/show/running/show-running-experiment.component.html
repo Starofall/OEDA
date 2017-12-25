@@ -260,8 +260,18 @@
             <div class="row">
               <div class="col-md-6">
                 <div>
-                  <select class="form-control" required (change)="stage_changed($event.target.value)">
-                    <option *ngFor="let i of availableStages;" [ngValue]="i">{{ i.number }}</option>
+                  <select class="form-control" required [(ngModel)]="selected_stage" (change)="stage_changed()">
+                    <option *ngFor="let i of availableStages; let first_stage = first;" [ngValue]="i">
+                      <div *ngIf="first_stage">All Stages</div>
+                      <div *ngIf="!first_stage">Stage: {{ i.number }}
+                        <div *ngFor="let key of knobs_of_stage(i); let last_knob=last; let first_knob=first;">
+                          <b *ngIf="first_knob">[</b>
+                          <b>{{key}}: {{i.knobs[key]}}</b>
+                          <b *ngIf="!last_knob">,</b>
+                          <b *ngIf="last_knob">]</b>
+                        </div>
+                      </div>
+                    </option>
                   </select>
                 </div>
               </div>
@@ -362,7 +372,7 @@
         </div>
         <div class="panel-footer">
           <p id="filterSummary">Initial threshold for 95-percentile: <b>{{initial_threshold_for_scatter_plot}}</b></p>
-          <!--<button id="filterButton{{selected_stage_no}}" type="button" class="btn btn-primary" (click)="filter_outliers($event)">Filter</button>-->
+          <!--<button id="filterButton{{selected_stage.number}}" type="button" class="btn btn-primary" (click)="filter_outliers($event)">Filter</button>-->
         </div>
       </div>
     </div>
@@ -377,76 +387,7 @@
         </div>
         <div class="panel-body" >
           <div class="col-md-12" id="histogram" style="width: 100%; height: 400px"></div>
-          <!--<div class="col-md-12" id="histogram{{selected_stage_no}}_log" [hidden]="{{scale}}!='Log'" style="width: 100%; height: 400px"></div>-->
         </div>
       </div>
     </div>
-
-    <!-- QQ graphs -->
-    <!--<div class="col-sm-12 col-xs-12" [hidden]="!is_enough_data_for_plots">-->
-      <!--&lt;!&ndash; QQ graph 1 &ndash;&gt;-->
-      <!--<div class="col-sm-6 col-xs-12">-->
-        <!--<div class="panel panel-default chartJs">-->
-          <!--<div class="panel-heading">-->
-            <!--<div class="card-title">-->
-              <!--<div class="col-md-6">-->
-                <!--<div class="title pull-left">Quantile Quantile (QQ) Plot against Theoretical Data with {{scale}} Scale &nbsp;</div>-->
-              <!--</div>-->
-              <!--<div class="row">-->
-                <!--<div class="col-md-6">-->
-                  <!--<div class="title">Theoretical Data Distribution</div>-->
-                  <!--<select class="form-control"-->
-                          <!--[(ngModel)]="distribution" (ngModelChange)="selectDistribution($event)" size="1">-->
-                    <!--<option *ngFor="let dist of available_distributions" value="{{dist}}">{{dist}}</option>-->
-                  <!--</select>-->
-                <!--</div>-->
-              <!--</div>-->
-            <!--</div>-->
-          <!--</div>-->
-
-          <!--<div class="panel-body">-->
-            <!--<div [hidden]="!is_qq_plot_rendered">-->
-              <!--&lt;!&ndash;additional css for centering the img&ndash;&gt;-->
-              <!--<img class="col-md-6" id="qqPlot{{selected_stage_no}}" class="img-thumbnail">-->
-            <!--</div>-->
-          <!--</div>-->
-        <!--</div>-->
-      <!--</div>-->
-
-
-      <!--&lt;!&ndash; QQ graph 2 &ndash;&gt;-->
-      <!--<div class="col-sm-6 col-xs-12" *ngIf="is_enough_data_for_plots && selected_stage_no !== -1">-->
-        <!--<div class="panel panel-default chartJs">-->
-          <!--<div class="panel-heading">-->
-            <!--<div class="card-title">-->
-              <!--<div class="col-md-6">-->
-                <!--<div class="title pull-left">Quantile Quantile (QQ) Plot against Other Stage Data with {{scale}} Scale &nbsp;</div>-->
-              <!--</div>-->
-            <!--</div>-->
-            <!--<div class="row">-->
-              <!--<div class="col-md-6">-->
-                <!--<div class="title">Other  Stage</div>-->
-                <!--<select class="form-control"-->
-                        <!--[(ngModel)]="selected_stage_for_qq_js" (ngModelChange)="selectStageNoForQQJS($event)" size="1">-->
-                  <!--<option *ngFor="let stage_no of availableStagesForQQJS" value="{{stage_no.number}}">{{stage_no.number}}</option>-->
-                <!--</select>-->
-              <!--</div>-->
-            <!--</div>-->
-          <!--</div>-->
-
-          <!--<div class="panel-body">-->
-            <!--<div class="col-md-12">-->
-              <!--<div class="panel-body" style="padding-top: 20px">-->
-                <!--<div [hidden]="!qqJSPlotIsRendered" class="svg-container">-->
-                  <!--<svg id="qqPlotJS{{selected_stage_no}}" viewBox="0 0 500 500" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>-->
-                  <!--&lt;!&ndash;<svg id="qqPlotJS{{selected_stage_no}}" ></svg>&ndash;&gt;-->
-                <!--</div>-->
-              <!--</div>-->
-            <!--</div>-->
-          <!--</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!---->
-    <!--</div>-->
-
 </div>

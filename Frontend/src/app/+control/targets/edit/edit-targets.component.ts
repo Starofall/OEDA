@@ -50,7 +50,6 @@ export class EditTargetsComponent implements OnInit {
         // retrieve config json object via the api provided at localhost:5005/config/oeda
         this.api.getConfigFromAPI("/oeda").subscribe((config) => {
             if (!isNullOrUndefined(config)) {
-              console.log(config);
               // open the modal in frontend
               this.availableConfigurations.push(config);
               // this.traverse_json_object(config);
@@ -278,8 +277,7 @@ export class EditTargetsComponent implements OnInit {
   traverse_json_object(o) {
     const type = typeof o;
     if (type === "object") {
-      for(const key in o) {
-        console.log("key: ", key);
+      for (const key in o) {
         this.traverse_json_object(o[key]);
       }
     } else {
@@ -289,8 +287,6 @@ export class EditTargetsComponent implements OnInit {
 
   configDropdownChanged(selected_configuration_name: any) {
     this.selectedConfiguration = this.availableConfigurations.filter(config => config.name === selected_configuration_name)[0];
-    console.log("selected", this.selectedConfiguration);
-    console.log("type", this.selectedConfiguration.knobs);
   }
 
   useConfiguration() {

@@ -50,7 +50,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
   public availableStages = [];
   public availableStagesForQQJS = [];
 
-  public selected_stage_no: number;
+  public selected_stage: any;
 
   constructor(private layout: LayoutService,
               private apiService: OEDAApiService,
@@ -68,8 +68,6 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     this.is_collapsed = true;
     this.first_render_of_page = true;
     this.all_data = new Array<Entity>();
-    // initially selected stage is "All Stages"
-    this.selected_stage_no = -1;
     this.scale = "Normal";
 
     this.distribution = "Norm";
@@ -85,281 +83,10 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       }
     });
   }
-
-  /*
-  @ViewChild('nvd3') nvd3;
-  @ViewChild('nvd32') nvd32;
-  @ViewChild('nvd33') nvd33;
-
-  chartIndex = 0
-  chartLastValue = 10
-
-  chart1Data = [{
-    "key": "Data Collections / min",
-    "bar": true,
-    "values": []
-  }]
-
-  chart1Options = {
-    chart: {
-      type: 'lineChart',
-      height: 300,
-      margin: {
-        top: 30,
-        right: 20,
-        bottom: 30,
-        left: 45
-      },
-      clipEdge: true,
-      duration: 500,
-      stacked: true,
-      xAxis: {
-        showMaxMin: false,
-        tickFormat: function (d) {
-          return d;
-          // return d3.time.format('%x')(new Date(d));
-        }
-      },
-      yAxis: {
-        axisLabel: 'Entries',
-        axisLabelDistance: -20,
-        tickFormat: function (d) {
-          return d3.format(',f')(d);
-        }
-      }
-    }
-  }
-  */
-
-  /*chart2Options = {
-    chart: {
-      type: 'linePlusBarChart',
-      height: 300,
-      margin: {
-        top: 30,
-        right: 20,
-        bottom: 30,
-        left: 45
-      },
-      clipEdge: true,
-      duration: 500,
-      stacked: true,
-      xAxis: {
-        showMaxMin: false,
-        tickFormat: function (d) {
-          return d3.format(',f')(d);
-          // return d3.time.format('%x')(new Date(d));
-        }
-      },
-      yAxis: {
-        axisLabel: 'Entries',
-        axisLabelDistance: -20,
-        tickFormat: function (d) {
-          return d3.format(',f')(d);
-        }
-      }
-    }
-  }*/
-
-  /*chart3Options = {
-    chart: {
-      type: 'historicalBarChart',
-      height: 300,
-      margin: {
-        top: 30,
-        right: 20,
-        bottom: 30,
-        left: 45
-      },
-      clipEdge: true,
-      duration: 500,
-      stacked: true,
-      xAxis: {
-        showMaxMin: false,
-        tickFormat: function (d) {
-          return d3.format(',f')(d);
-          // return d3.time.format('%x')(new Date(d));
-        }
-      },
-      yAxis: {
-        axisLabel: 'Entries',
-        axisLabelDistance: -20,
-        tickFormat: function (d) {
-          return d3.format(',f')(d);
-        }
-      }
-    }
-  }*/
-
   /* tslint:disable */
 
   ngOnInit() {
 
-    /*
-    {
-
-      const xValues = ['A', 'B', 'C', 'D', 'E'];
-      const yValues = ['W', 'X', 'Y', 'Z'];
-      const zValues = [
-        [0.00, 0.00, 0.75, 0.75, 0.00],
-        [0.00, 0.00, 0.75, 0.75, 0.00],
-        [0.75, 0.75, 0.75, 0.75, 0.75],
-        [0.00, 0.00, 0.00, 0.75, 0.00]
-      ];
-      const colorscaleValue = [
-        [0, '#3D9970'],
-        [1, '#001f3f']
-      ];
-      const data = [{
-        x: xValues,
-        y: yValues,
-        z: zValues,
-        type: 'heatmap',
-        colorscale: colorscaleValue,
-        showscale: false
-      }];
-      const layout = {
-        title: 'Annotated Heatmap',
-        annotations: [],
-        xaxis: {
-          ticks: '',
-          side: 'top'
-        },
-        yaxis: {
-          ticks: '',
-          ticksuffix: ' ',
-          width: 700,
-          height: 700,
-          autosize: false
-        }
-      };
-      for (let i = 0; i < yValues.length; i++) {
-        for (let j = 0; j < xValues.length; j++) {
-          const currentValue = zValues[i][j];
-          if (currentValue !== 0.0) {
-            var textColor = 'white';
-          } else {
-            var textColor = 'black';
-          }
-          const result = {
-            xref: 'x1',
-            yref: 'y1',
-            x: xValues[j],
-            y: yValues[i],
-            text: zValues[i][j],
-            font: {
-              family: 'Arial',
-              size: 12,
-              // color: 'rgb(50, 171, 96)',
-              color: textColor
-            },
-            showarrow: false
-          };
-          layout.annotations.push(result);
-        }
-      }
-      window["Plotly"].newPlot('myDiv', data, layout);
-    }*/
-
-    /*
-    function normal() {
-      var x = 0,
-        y = 0,
-        rds, c;
-      do {
-        x = Math.random() * 2 - 1;
-        y = Math.random() * 2 - 1;
-        rds = x * x + y * y;
-      } while (rds == 0 || rds > 1);
-      c = Math.sqrt(-2 * Math.log(rds) / rds); // Box-Muller transform
-      return x * c; // throw away extra sample y * c
-    }*/
-
-    /*
-    {
-
-
-      let N = 2000,
-        a = -1,
-        b = 1.2;
-
-      let step = (b - a) / (N - 1);
-      let t = new Array(N), x = new Array(N), y = new Array(N);
-
-      for (let i = 0; i < N; i++) {
-        t[i] = a + step * i;
-        x[i] = (Math.pow(t[i], 3)) + (0.3 * normal() );
-        y[i] = (Math.pow(t[i], 6)) + (0.3 * normal() );
-      }
-
-      let trace1 = {
-        x: x,
-        y: y,
-        mode: 'markers',
-        name: 'points',
-        marker: {
-          color: 'rgb(102,0,0)',
-          size: 2,
-          opacity: 0.4
-        },
-        type: 'scatter'
-      };
-      let trace2 = {
-        x: x,
-        y: y,
-        name: 'density',
-        ncontours: 20,
-        colorscale: 'Hot',
-        reversescale: true,
-        showscale: false,
-        type: 'histogram2dcontour'
-      };
-      let trace3 = {
-        x: x,
-        name: 'x density',
-        marker: {color: 'rgb(102,0,0)'},
-        yaxis: 'y2',
-        type: 'histogram'
-      };
-      let trace4 = {
-        y: y,
-        name: 'y density',
-        marker: {color: 'rgb(102,0,0)'},
-        xaxis: 'x2',
-        type: 'histogram'
-      };
-      let data = [trace1, trace2, trace3, trace4];
-      let layout = {
-        showlegend: false,
-        autosize: false,
-        width: 600,
-        height: 550,
-        margin: {t: 50},
-        hovermode: 'closest',
-        bargap: 0,
-        xaxis: {
-          domain: [0, 0.85],
-          showgrid: false,
-          zeroline: false
-        },
-        yaxis: {
-          domain: [0, 0.85],
-          showgrid: false,
-          zeroline: false
-        },
-        xaxis2: {
-          domain: [0.85, 1],
-          showgrid: false,
-          zeroline: false
-        },
-        yaxis2: {
-          domain: [0.85, 1],
-          showgrid: false,
-          zeroline: false
-        }
-      };
-      window["Plotly"].newPlot('heat2', data, layout);
-    }*/
     if (!isNullOrUndefined(this.experiment_id)) {
       this.apiService.loadExperimentById(this.experiment_id).subscribe(experiment => {
 
@@ -375,14 +102,16 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
-                    stages.sort(this.sort_by('number', true, parseInt));
-                    // created variable can also be added here if necessary
-                    // casting might not have to be done here
-                    const all_stages = {"number": "All Stages"};
-                    this.availableStages.push(all_stages);
+                    // initially selected stage is "All Stages"
+                    this.selected_stage = {"number": -1, "knobs": ""};
+                    this.availableStages.push(this.selected_stage);
+
+
                     for (let j = 0; j < stages.length; j++) {
                       this.availableStages.push(stages[j]);
                     }
+                    stages.sort(this.sort_by('number', true, parseInt));
+
                     // prepare available stages for qq js that does not include all stages
                     this.availableStagesForQQJS = this.availableStages.slice(1);
                     this.dataAvailable = true;
@@ -403,20 +132,16 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
 
   }
 
-  stage_changed(stage_no: number) {
+  stage_changed() {
     const ctrl = this;
+
     if (isNullOrUndefined(ctrl.scale)) {
-      this.notify.error("Error", "Scale is null or undefined, please try again");
+      ctrl.notify.error("Error", "Scale is null or undefined, please try again");
       return;
     }
 
-    if (stage_no.toString() === "All Stages") {
-      stage_no = -1;
-    }
-    ctrl.selected_stage_no = stage_no;
-
-    if (!isNullOrUndefined(stage_no)) {
-      if (ctrl.selected_stage_no === -1) {
+    if (!isNullOrUndefined(ctrl.selected_stage.number)) {
+      if (ctrl.selected_stage.number === -1) {
         if (!isNullOrUndefined(ctrl.all_data)) {
           // redraw plots with all data that was previously retrieved
           ctrl.draw_all_plots(ctrl.all_data);
@@ -428,16 +153,16 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         /*
           Draw plots for the selected stage by retrieving it from local storage
         */
-        const stage_data = ctrl.get_data_from_local_structure(stage_no);
+        const stage_data = ctrl.get_data_from_local_structure(ctrl.selected_stage.number);
         if (!isNullOrUndefined(stage_data)) {
           ctrl.draw_all_plots(stage_data);
         } else {
-          this.notify.error("", "Please select another stage");
+          ctrl.notify.error("", "Please select another stage");
           return;
         }
       }
     } else {
-      this.notify.error("Error", "Stage number is null or undefined, please try again");
+      ctrl.notify.error("Error", "Stage number is null or undefined, please try again");
       return;
     }
   }
@@ -447,11 +172,11 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     const retrieved_data = ctrl.all_data[stage_no - 1];
     if (retrieved_data !== undefined) {
       if (retrieved_data['values'].length == 0) {
-        this.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
+        ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
         return;
       }
     } else {
-      this.notify.error("Error", "Cannot retrieve data from local storage");
+      ctrl.notify.error("Error", "Cannot retrieve data from local storage");
       return;
     }
     return retrieved_data;
@@ -471,11 +196,12 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         let parsed_json_object = JSON.parse(response[index]);
         // distribute data points to empty bins
         let new_entity = ctrl.createEntity();
-        new_entity.stage_number = parsed_json_object['stage_number'].toString();
+        new_entity.number = parsed_json_object['number'].toString();
         new_entity.values = parsed_json_object['values'];
+        new_entity.knobs = parsed_json_object['knobs'];
         // important assumption here: we retrieve stages and data points in a sorted manner with respect to created field
-        // thus, pushed new_entity will have a key of its "stage_number" with this assumption
-        // e.g. [ 0: {stage_number: 0, values: ...}, 1: {stage_number: 1, values: ...}...]
+        // thus, pushed new_entity will have a key of its "number" with this assumption
+        // e.g. [ 0: {number: 1, values: ..., knobs: [...]}, 1: {number: 2, values: ..., knobs: [...] }...]
         ctrl.all_data.push(new_entity);
       }
     }
@@ -487,7 +213,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(
       data => {
         if (isNullOrUndefined(data)) {
-          this.notify.error("Error", "Cannot retrieve data from DB, please try again");
+          ctrl.notify.error("Error", "Cannot retrieve data from DB, please try again");
           return;
         }
         ctrl.all_data = ctrl.process_response(data);
@@ -499,7 +225,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
   scale_changed(scale: string) {
     this.scale = scale;
     // trigger plot drawing process
-    this.stage_changed(this.selected_stage_no);
+    this.stage_changed();
   }
 
   draw_all_plots(stage_object) {
@@ -508,7 +234,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     if (stage_object !== undefined && stage_object.length !== 0) {
 
       // draw graphs for all_data
-      if (ctrl.selected_stage_no === -1) {
+      if (ctrl.selected_stage.number === -1) {
         let processedData: any;
         processedData = ctrl.process_all_stage_data(stage_object, "timestamp", "value", ctrl.scale);
         // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
@@ -531,7 +257,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
 
         // check if next stage exists
         ctrl.availableStagesForQQJS.some(function(element) {
-          if (Number(element.number) == Number(ctrl.selected_stage_no) + 1) {
+          if (Number(element.number) == Number(ctrl.selected_stage.number) + 1) {
             ctrl.selected_stage_for_qq_js = (element.number).toString();
             ctrl.draw_qq_js(ctrl.selected_stage_for_qq_js);
             return true; // required as a callback for .some function
@@ -757,7 +483,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     const ctrl = this;
 
     if (ctrl.processedData !== null) {
-      const pngFile = ctrl.apiService.getQQPlot(ctrl.experiment_id, ctrl.selected_stage_no.toString(), ctrl.distribution, ctrl.scale).subscribe(
+      const pngFile = ctrl.apiService.getQQPlot(ctrl.experiment_id, ctrl.selected_stage.number.toString(), ctrl.distribution, ctrl.scale).subscribe(
         response => {
           const imageSrc = 'data:image/jpg;base64,' + response;
           document.getElementById("qqPlot").setAttribute( 'src', imageSrc);
@@ -775,7 +501,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     d3.select("#qqPlotJS").selectAll("*").remove();
 
     // retrieve data for the initially selected stage
-    const data1 = ctrl.get_data_from_local_structure(ctrl.selected_stage_no);
+    const data1 = ctrl.get_data_from_local_structure(ctrl.selected_stage.number);
 
     if (isNullOrUndefined(data1)) {
       ctrl.notify.error("Error", "Selected stage might not contain data. Please select another stage.");
@@ -866,7 +592,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       vis.append("text")
         .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
         .attr("transform", "translate(" + (width / 2) + "," + (height - (padding / 3) ) + ")" )  // centre below axis
-        .text("Stage " + ctrl.selected_stage_no.toString() + " data");
+        .text("Stage " + ctrl.selected_stage.number.toString() + " data");
 
       window['transition'] = function() {
         g.datum(randomize).call(chart);
@@ -1153,8 +879,9 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
 
   private createEntity(): Entity {
     return {
-      stage_number: "",
-      values: []
+      number: "",
+      values: [],
+      knobs: null
     }
   }
 
@@ -1285,6 +1012,10 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     console.log(target);
     console.log(idAttr);
     console.log(value);
+  }
+
+  knobs_of_stage(stage) : Array<string> {
+      return Object.keys(stage);
   }
 
 }

@@ -102,8 +102,9 @@ export interface Experiment {
 }
 
 export interface Entity {
-  stage_number: string;
-  values: object[];
+  number: string,
+  values: object[],
+  knobs: any
 }
 
 

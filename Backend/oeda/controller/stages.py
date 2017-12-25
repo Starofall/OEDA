@@ -11,6 +11,7 @@ class StageController(Resource):
         i = 0
         for _ in stages:
             new_stages[i]["id"] = stage_ids[i]
+            new_stages[i]["knobs"] = _["knobs"]
             i += 1
         return new_stages
 
@@ -21,5 +22,6 @@ class StageController(Resource):
         i = 0
         for _ in stages:
             new_stages[i]["id"] = stage_ids[i]
+            new_stages[i]["knobs"] = _["knobs"]
             i += 1
         return new_stages

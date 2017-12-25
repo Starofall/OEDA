@@ -42,7 +42,8 @@ def get_all_stage_data_after(experiment_id, timestamp):
         # wrap the stage data with stage number if there are some data points
         if len(data) != 0:
             stage_and_data = {
-                "stage_number": stage["number"],
+                "knobs": stage["knobs"],
+                "number": stage["number"],
                 "values": data
             }
             json_data = json.dumps(stage_and_data)
