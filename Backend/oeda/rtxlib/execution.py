@@ -4,10 +4,12 @@ def _defaultChangeProvider(variables,wf):
     """ by default we just forward the message to the change provider """
     return variables
 
-
 def experimentFunction(wf, exp):
-    """ executes a given experiment stage """
 
+    if hasattr(wf, "experimentCounter"):
+        wf.remaining_time_and_stages['remaining_stages'] = wf.totalExperiments - wf.experimentCounter
+
+    """ executes a given experiment stage """
     start_time = current_milli_time()
     # remove all old data from the queues
     wf.primary_data_provider["instance"].reset()
@@ -39,7 +41,12 @@ def experimentFunction(wf, exp):
             if new_data is not None:
                 i += 1
                 # NEW - we call back to oeda and give us infos there
-                wf.run_oeda_callback({"experiment": exp, "status": "IGNORING_SAMPLES", "index": i, "size": to_ignore, str("current_knob"): dict(exp["knobs"])})
+                wf.run_oeda_callback({"experiment": exp,
+                                      "status": "IGNORING_SAMPLES",
+                                      "index": i,
+                                      "size": to_ignore,
+                                      str("current_knob"): dict(exp["knobs"]),
+                                      "remaining_time_and_stages": wf.remaining_time_and_stages})
                 process("IgnoreSamples  | ", i, to_ignore)
         print("")
 
@@ -54,7 +61,11 @@ def experimentFunction(wf, exp):
                 try:
                     # print(new_data)
                     # NEW - we call back to oeda and give us infos there
-                    wf.run_oeda_callback({"experiment": exp, "status": "COLLECTING_DATA", "index": i, "size": sample_size, str("current_knob"): dict(exp["knobs"])})
+                    wf.run_oeda_callback({"experiment": exp,
+                                          "status": "COLLECTING_DATA",
+                                          "index": i, "size": sample_size,
+                                          str("current_knob"): dict(exp["knobs"]),
+                                          "remaining_time_and_stages": wf.remaining_time_and_stages})
                     exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], new_data, wf)
                 except StopIteration:
                     raise StopIteration()  # just fwd
@@ -96,15 +107,16 @@ def experimentFunction(wf, exp):
 
     # print the results
     duration = current_milli_time() - start_time
-    remaining_stages = wf.totalExperiments - wf.experimentCounter
-    remaining_time = str(remaining_stages * duration / 1000)
+    wf.remaining_time_and_stages['remaining_stages'] = wf.totalExperiments - wf.experimentCounter
+    wf.remaining_time_and_stages['remaining_time'] = str(wf.remaining_time_and_stages['remaining_stages'] * duration / 1000)
+
     wf.run_oeda_callback({"experiment": exp, "status": "EXPERIMENT_STAGE_DONE",
                           "experiment_counter": wf.experimentCounter, "total_experiments": wf.totalExperiments,
-                          "remaining_time": remaining_time, "remaining_stages": remaining_stages})
+                          "remaining_time_and_stages": wf.remaining_time_and_stages})
     # do not show stats for forever strategy
     if wf.totalExperiments > 0:
         info("> Statistics     | " + str(wf.experimentCounter) + "/" + str(wf.totalExperiments)
-             + " took " + str(duration) + "ms" + " - remaining ~" + remaining_time + "sec")
+             + " took " + str(duration) + "ms" + " - remaining ~" + wf.remaining_time_and_stages['remaining_time'] + "sec")
     info("> FullState      | " + str(exp["state"]))
     info("> ResultValue    | " + str(result))
     # log the result values into a csv file

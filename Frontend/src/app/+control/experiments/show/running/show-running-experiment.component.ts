@@ -36,7 +36,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   private first_render_of_plots: boolean;
   private experiment_ended: boolean;
   private timestamp: string;
-  private incoming_data_type_name: string; // for labels of plots etc. TODO: what should happen if we have more than one data type?
+  private incoming_data_type_name: string;
 
   private all_data: Entity[];
 
@@ -141,8 +141,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                     this.availableStagesForQQJS = this.availableStages.slice(1);
                     this.dataAvailable = true;
 
+
+
                     // polling using Timer (2 sec interval) for real-time data visualization
                     this.timer = Observable.timer(1000, 2000);
+
                     this.subscription = this.timer.subscribe(t => {
                       this.fetch_oeda_callback();
                     });
@@ -160,6 +163,80 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       this.notify.error("Error", "Failed retrieving experiment id, please check URI");
     }
 
+  }
+
+  private fetch_oeda_callback() {
+    const ctrl = this;
+
+    ctrl.apiService.getOedaCallback(ctrl.experiment_id).subscribe(oedaCallback => {
+      if(!isNullOrUndefined(oedaCallback)) {
+        console.log(oedaCallback);
+        ctrl.oedaCallback["status"] = oedaCallback.status;
+        ctrl.oedaCallback["stage_counter"] = oedaCallback.stage_counter;
+
+        // keywords (index, size) are same for the first two cases, but they indicate different things
+        if (oedaCallback.status.toString() === "PROCESSING") {
+          ctrl.oedaCallback["message"] = oedaCallback.message;
+        } else if (oedaCallback.status.toString() === "IGNORING_SAMPLES") {
+          ctrl.oedaCallback["index"] = oedaCallback.index;
+          ctrl.oedaCallback["size"] = oedaCallback.size;
+          ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
+          ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
+          // remaining_time_and_stages is a experiment-wise unique dict that contains remaining stages and time
+          ctrl.oedaCallback.remaining_time_and_stages = oedaCallback.remaining_time_and_stages;
+
+          if (oedaCallback.remaining_time_and_stages === undefined)
+            ctrl.oedaCallback.remaining_time_and_stages["remaining_stages"] = ctrl.experiment.executionStrategy.sample_size;
+          else
+            ctrl.oedaCallback.remaining_time_and_stages["remaining_stages"] = ctrl.oedaCallback.remaining_time_and_stages.remaining_stages;
+
+          if (oedaCallback.remaining_time_and_stages["remaining_time"] !== undefined)
+            ctrl.oedaCallback.remaining_time_and_stages["remaining_time"] = ctrl.oedaCallback.remaining_time_and_stages.remaining_time;
+
+        } else if (oedaCallback.status.toString() === "COLLECTING_DATA") {
+          ctrl.oedaCallback["index"] = oedaCallback.index;
+          ctrl.oedaCallback["size"] = oedaCallback.size;
+          ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
+          ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
+          // remaining_time_and_stages is a experiment-wise unique dict that contains remaining stages and time
+          ctrl.oedaCallback.remaining_time_and_stages = oedaCallback.remaining_time_and_stages;
+
+          if (oedaCallback.remaining_time_and_stages["remaining_stages"] === undefined)
+            ctrl.oedaCallback.remaining_time_and_stages["remaining_stages"] = ctrl.experiment.executionStrategy.sample_size;
+          else
+            ctrl.oedaCallback.remaining_time_and_stages["remaining_stages"] = ctrl.oedaCallback.remaining_time_and_stages.remaining_stages;
+
+          if (oedaCallback.remaining_time_and_stages["remaining_time"] !== undefined)
+            ctrl.oedaCallback.remaining_time_and_stages["remaining_time"] = ctrl.oedaCallback.remaining_time_and_stages.remaining_time;
+
+
+          if (ctrl.first_render_of_page) {
+            ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
+              let is_successful_fetch = ctrl.process_response(response);
+              if (is_successful_fetch)
+                ctrl.draw_all_plots();
+            });
+          } else {
+            if (ctrl.timestamp == undefined) {
+              ctrl.timestamp = "-1";
+            }
+            ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
+              ctrl.process_response(response);
+              ctrl.draw_all_plots();
+            });
+          }
+        } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
+          if (oedaCallback.remaining_time_and_stages["remaining_stages"] == 0) {
+            ctrl.disable_polling("Success", "Data is up-to-date, stopped polling.");
+
+            // switch to successful experiment page to show other plots to the user
+            ctrl.router.navigate(["control/experiments/show/"+ctrl.experiment_id+"/success"]).then(() => {
+              console.log("navigated to successful experiments page");
+            });
+          }
+        }
+      }
+    });
   }
 
   private process_response(response) {
@@ -286,65 +363,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.chart4.validateData();
     }
     ctrl.is_enough_data_for_plots = true;
-  }
-
-  private fetch_oeda_callback() {
-    const ctrl = this;
-
-    ctrl.apiService.getOedaCallback(ctrl.experiment_id).subscribe(oedaCallback => {
-      if(!isNullOrUndefined(oedaCallback)) {
-        console.log(oedaCallback);
-        ctrl.oedaCallback["status"] = oedaCallback.status;
-        ctrl.oedaCallback["stage_counter"] = oedaCallback.stage_counter;
-        // keywords (index, size) are same for the first two cases, but they indicate different things
-        if (oedaCallback.status.toString() === "PROCESSING") {
-          ctrl.oedaCallback["message"] = oedaCallback.message;
-        } else if (oedaCallback.status.toString() === "IGNORING_SAMPLES") {
-          ctrl.oedaCallback["index"] = oedaCallback.index;
-          ctrl.oedaCallback["size"] = oedaCallback.size;
-          ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
-          ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
-        } else if (oedaCallback.status.toString() === "COLLECTING_DATA") {
-          ctrl.oedaCallback["index"] = oedaCallback.index;
-          ctrl.oedaCallback["size"] = oedaCallback.size;
-          ctrl.oedaCallback["complete"] = (Number(oedaCallback.index)) / (Number(oedaCallback.size));
-          ctrl.oedaCallback.current_knob = oedaCallback.current_knob;
-          if (ctrl.first_render_of_page) {
-            ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-              let is_successful_fetch = ctrl.process_response(response);
-              if (is_successful_fetch)
-                ctrl.draw_all_plots();
-            });
-          } else {
-            if (ctrl.timestamp == undefined) {
-              ctrl.timestamp = "-1";
-            }
-            ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
-              ctrl.process_response(response);
-              ctrl.draw_all_plots();
-            });
-          }
-        } else if (oedaCallback.status.toString() === "EXPERIMENT_STAGE_DONE") {
-          ctrl.oedaCallback["experiment_counter"] = oedaCallback.experiment_counter;
-          ctrl.oedaCallback["total_experiments"] = oedaCallback.total_experiments; // updated according to the new logic
-          // if these two are equal, then there is no need to poll data
-          // TODO: well, this portion of code is not really synchronized with backend because of polling logic
-          // i.e. the backend prints the remaining number of stages and time to console,
-          // but usually backend has already started collecting data for the next stage when front-end sends a request to fetch the callback
-          // i.e. user is not really well-informed about remaining time.
-          ctrl.oedaCallback["remaining_stages"] = oedaCallback.remaining_stages;
-          ctrl.oedaCallback["remaining_time"] = oedaCallback.remaining_time;
-          if (ctrl.oedaCallback["remaining_stages"] == 0) {
-            ctrl.disable_polling("Success", "Data is up-to-date, stopped polling.");
-
-            // switch to successful experiment page to show other plots to the user
-            ctrl.router.navigate(["control/experiments/show/"+ctrl.experiment_id+"/success"]).then(() => {
-              console.log("navigated to successful experiments page");
-            });
-          }
-        }
-      }
-    });
   }
 
 // remove qq plot retrieved from server otherwise memory will build up
@@ -753,7 +771,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       experiment_counter: 0,
       total_experiments: 0,
       stage_counter: null,
-      current_knob: new Map<string, number>()
+      current_knob: new Map<string, number>(),
+      remaining_time_and_stages: new Map<any, any>()
     };
   }
 

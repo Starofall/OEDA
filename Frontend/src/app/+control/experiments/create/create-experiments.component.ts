@@ -21,7 +21,7 @@ export class CreateExperimentsComponent implements OnInit {
   variable: any;
   initialVariables: any;
   selectedTargetSystem: any;
-  totalNrOfStages: any;
+  stages_count: any;
 
   constructor(private layout: LayoutService, private api: OEDAApiService,
               private router: Router, private route: ActivatedRoute,
@@ -34,7 +34,7 @@ export class CreateExperimentsComponent implements OnInit {
     this.executionStrategy = this.createExecutionStrategy();
     this.experiment = this.createExperiment();
     this.originalExperiment = _.cloneDeep(this.experiment);
-    this.totalNrOfStages = null;
+    this.stages_count = null;
   }
 
   ngOnInit(): void {
@@ -149,27 +149,26 @@ export class CreateExperimentsComponent implements OnInit {
     }
   }
 
-  // if one of min and max is not valid, sets totalNrOfStages to null, so that it will get hidden
+  // if one of min and max is not valid, sets stages_count to null, so that it will get hidden
   minMaxModelsChanged(value) {
     if (isNullOrUndefined(value)) {
-      this.totalNrOfStages = null;
+      this.stages_count = null;
     } else {
       this.calculateTotalNrOfStages();
     }
   }
 
   calculateTotalNrOfStages() {
-    this.totalNrOfStages = null;
+    this.stages_count = null;
     const stage_counts = [];
     for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
       if (this.experiment.changeableVariable[j]["step"] <= 0) {
-        this.totalNrOfStages = null;
+        this.stages_count = null;
         break;
       } else if (this.experiment.changeableVariable[j]["step"] > this.experiment.changeableVariable[j]["max"] - this.experiment.changeableVariable[j]["min"]) {
-        this.totalNrOfStages = null;
+        this.stages_count = null;
         break;
       } else {
-        // TODO: it simply multiplies number of stages for each incoming variable, might be changed
         const stage_count = Math.floor((this.experiment.changeableVariable[j]["max"]
           - this.experiment.changeableVariable[j]["min"]) /
           this.experiment.changeableVariable[j]["step"]) + 1;
@@ -178,7 +177,7 @@ export class CreateExperimentsComponent implements OnInit {
     }
     if (stage_counts.length !== 0) {
       const sum = stage_counts.reduce(function(a, b) {return a * b; } );
-      this.totalNrOfStages = sum;
+      this.stages_count = sum;
     }
   }
 
@@ -216,6 +215,8 @@ export class CreateExperimentsComponent implements OnInit {
 
       this.experiment.executionStrategy.ignore_first_n_results = Number(this.experiment.executionStrategy.ignore_first_n_results);
       this.experiment.executionStrategy.sample_size = Number(this.experiment.executionStrategy.sample_size);
+      // save experiment stage to executionStrategy, so that it can be used in determining nr of remaining stages and estimated time
+      this.experiment.executionStrategy.stages_count = Number(this.stages_count);
       this.api.saveExperiment(this.experiment).subscribe(
         (success) => {
           this.notify.success("Success", "Experiment saved");
@@ -303,7 +304,8 @@ export class CreateExperimentsComponent implements OnInit {
       // type: "" --- change to this if we dont want a default value
       ignore_first_n_results: 100,
       sample_size: 100,
-      knobs: []
+      knobs: [],
+      stages_count: 0
     }
   }
 

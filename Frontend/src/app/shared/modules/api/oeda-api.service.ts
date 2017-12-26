@@ -129,7 +129,8 @@ export interface ExecutionStrategy {
   type: string,
   ignore_first_n_results: number,
   sample_size: number,
-  knobs: any
+  knobs: any,
+  stages_count: number
 }
 
 export interface OedaCallbackEntity {
@@ -141,7 +142,8 @@ export interface OedaCallbackEntity {
   experiment_counter: number,
   total_experiments: number,
   stage_counter: number,
-  current_knob: any
+  current_knob: any,
+  remaining_time_and_stages: any
 }
 
 export interface Configuration {

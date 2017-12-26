@@ -309,6 +309,9 @@
             </div>
 
             <div *ngIf="oedaCallback['status'] === 'IGNORING_SAMPLES'">
+              <h4 *ngIf="oedaCallback['remaining_time_and_stages']['remaining_stages'] !== null && oedaCallback['remaining_time_and_stages']['remaining_time'] !== null">
+                Remaining number of stages: {{oedaCallback['remaining_time_and_stages']['remaining_stages']}}, estimated remaining time: {{oedaCallback['remaining_time_and_stages']['remaining_time']}} seconds
+              </h4>
               <h4>
                 Ignoring samples for <b>stage {{oedaCallback['stage_counter']}}</b>
               </h4>
@@ -325,6 +328,9 @@
             </div>
 
             <div *ngIf="oedaCallback['status'] === 'COLLECTING_DATA'">
+              <h4 *ngIf="oedaCallback['remaining_time_and_stages']['remaining_stages'] != null && oedaCallback['remaining_time_and_stages']['remaining_time'] != null">
+                Remaining number of stages: {{oedaCallback['remaining_time_and_stages']['remaining_stages']}}, estimated remaining time: {{oedaCallback['remaining_time_and_stages']['remaining_time']}} seconds
+              </h4>
               <h4>
                 Collecting data for  <b>stage {{oedaCallback['stage_counter']}}</b>
               </h4>
@@ -340,14 +346,14 @@
               <progressbar [value]="oedaCallback['complete']*100"></progressbar>
             </div>
 
-            <div *ngIf="oedaCallback['remaining_stages'] > 0">
-              <p>
-                Stage is completed...
-              </p>
-              <p>
-                Remaining number of stages: {{oedaCallback['remaining_stages']}}, remaining time: {{oedaCallback['remaining_time']}} sec
-              </p>
-            </div>
+            <!--<div *ngIf="oedaCallback['remaining_stages'] > 0">-->
+              <!--<p>-->
+                <!--Stage is completed...-->
+              <!--</p>-->
+              <!--<p>-->
+                <!--Remaining number of stages: {{oedaCallback['remaining_stages']}}, remaining time: {{oedaCallback['remaining_time']}} sec-->
+              <!--</p>-->
+            <!--</div>-->
 
             <div *ngIf="oedaCallback['remaining_stages'] === 0">
               <h4>

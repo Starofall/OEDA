@@ -50,7 +50,7 @@ class RTXDefinition:
 
     def run_oeda_callback(self, dictionary):
         dictionary['stage_counter'] = self.stage_counter
-        self._oeda_callback(dictionary)
+        self._oeda_callback(dictionary, self.id)
 
     @staticmethod
     def primary_data_reducer(state, new_data, wf):

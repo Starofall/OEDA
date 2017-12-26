@@ -68,10 +68,9 @@ def fork_and_run_experiment(experiment):
 
 def rtx_execution(experiment, target_system):
 
-    # TODO: related with associating experimetn id in oedaController: rtx_execution's experiment can be attached to dictionary and set accordingly
-    def oeda_callback(dictionary):
+    def oeda_callback(dictionary, experiment_id):
         """"Custom callback that RTX uses to update us with experiment progress information"""
-        set_dict(dictionary)
+        set_dict(dictionary, experiment_id)
 
     try:
         set_experiment_status(experiment["id"], "RUNNING")

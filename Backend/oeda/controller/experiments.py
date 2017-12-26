@@ -23,7 +23,7 @@ class ExperimentController(Resource):
         # here we first check if the experiment can be run and then fork it
         db().save_experiment(experiment_id, content)
         # here we refresh the status of oeda callback, too
-        set_dict(None)
+        set_dict(None, experiment_id)
         return {}, 200
 
 
