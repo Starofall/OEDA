@@ -46,6 +46,10 @@ export const routes: Routes = [
         component: ShowSuccessfulExperimentComponent,
       },
       {
+        path: 'experiments/show/:id/interrupted',
+        component: ShowSuccessfulExperimentComponent,
+      },
+      {
         path: 'targets',
         component: TargetsComponent,
       },

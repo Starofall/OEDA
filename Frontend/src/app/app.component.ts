@@ -13,7 +13,7 @@ import {NotificationsService} from "angular2-notifications/dist";
 export class AppComponent {
 
   public notificationOptions = {
-    timeOut: 2000,
+    timeOut: 2500,
     lastOnBottom: true,
     clickToClose: true,
     maxLength: 0,

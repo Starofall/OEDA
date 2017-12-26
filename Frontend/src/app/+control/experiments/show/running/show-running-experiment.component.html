@@ -9,6 +9,9 @@
             <i *ngIf="is_collapsed" class="fa fa-angle-double-down" aria-hidden="true"></i>
             <i *ngIf="!is_collapsed" class="fa fa-angle-double-up" aria-hidden="true"></i>
           </button>
+          <button type="button" class="btn btn-primary"
+                  (click)="stopRunningExperiment()">Stop Experiment
+          </button>
         </div>
         <div class="panel-body" [hidden]="is_collapsed">
           <div class="row">

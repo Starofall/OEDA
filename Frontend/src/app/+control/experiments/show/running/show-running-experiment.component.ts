@@ -116,15 +116,15 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   ngOnInit() {
     if (!isNullOrUndefined(this.experiment_id)) {
       this.apiService.loadExperimentById(this.experiment_id).subscribe(experiment => {
-
         if (!isNullOrUndefined(experiment)) {
           this.experiment = experiment;
-          if (!isNullOrUndefined(experiment.targetSystemId) && !isNullOrUndefined(experiment.targetSystemId)) {
-
+          this.experiment.id = this.experiment_id;
+          if (!isNullOrUndefined(experiment.targetSystemId)) {
             // retrieve target system
             this.apiService.loadTargetById(experiment.targetSystemId).subscribe(targetSystem => {
               if (!isNullOrUndefined(targetSystem)) {
                 this.targetSystem = targetSystem;
+                this.targetSystem.id = this.experiment.targetSystemId;
                 this.incoming_data_type_name = targetSystem.incomingDataTypes[0]["name"].toString();
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
@@ -140,8 +140,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
                     // prepare available stages for qq js that does not include all stages
                     this.availableStagesForQQJS = this.availableStages.slice(1);
                     this.dataAvailable = true;
-
-
 
                     // polling using Timer (2 sec interval) for real-time data visualization
                     this.timer = Observable.timer(1000, 2000);
@@ -795,5 +793,20 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     if (stage_object.knobs !== undefined) {
       return Object.keys(stage_object.knobs);
     }
+  }
+
+  stopRunningExperiment(): void {
+    alert("Do you really want to stop the running experiment?");
+    this.experiment.status = "INTERRUPTED";
+    this.apiService.updateExperiment(this.experiment).subscribe(response => {
+      this.targetSystem.status = "READY";
+      this.apiService.updateTarget(this.targetSystem).subscribe(response2 => {
+        this.notify.success("Success", response.message);
+      }, errorResp2 => {
+        this.notify.error("Error", errorResp2.message);
+      });
+    }, errorResp => {
+      this.notify.error("Error", errorResp.message);
+    });
   }
 }

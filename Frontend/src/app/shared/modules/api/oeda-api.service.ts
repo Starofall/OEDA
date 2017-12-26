@@ -56,6 +56,10 @@ export class OEDAApiService extends RESTService {
     return this.doPOSTPublicRequest("/experiments/" + experiment.id, experiment)
   }
 
+  public updateExperiment(experiment: Experiment): Observable<any> {
+    return this.doPUTPublicRequest("/experiments/" + experiment.id, experiment)
+  }
+
   public loadAllDefinitions(): Observable<Definition[]> {
     return this.doGETPublicRequest("/definitions")
   }
@@ -80,6 +84,9 @@ export class OEDAApiService extends RESTService {
     return this.doPOSTPublicRequest("/targets/" + target.id, target)
   }
 
+  public updateTarget(target: Target): Observable<any> {
+    return this.doPUTPublicRequest("/targets/" + target.id, target)
+  }
 
   public loadConfiguration(): Observable<Configuration> {
     return this.doGETPublicRequest("/configuration")

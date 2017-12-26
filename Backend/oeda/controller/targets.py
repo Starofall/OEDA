@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 from oeda.databases import db
 import traceback
@@ -22,7 +22,7 @@ class TargetController(Resource):
 
             for target in targets:
                 if target['name'] == content['name']:
-                    return {"error": "Duplicate target system names"}, 409
+                    return {"message": "Duplicate target system names"}, 409
 
             content["status"] = "READY"
             db().save_target(target_id, content)
@@ -31,6 +31,22 @@ class TargetController(Resource):
             tb = traceback.format_exc()
             print(tb)
             return {"error": e.message}, 404
+
+    @staticmethod
+    def put(target_id):
+        try:
+            if target_id is None:
+                return {"message": "target_id should not be null"}, 404
+            content = request.get_json()
+            status = content["status"]
+            db().update_target_system_status(target_id, status)
+            resp = jsonify({"message": "Target system status is updated"})
+            resp.status_code = 200
+            return resp
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(tb)
+            return {"message": e.message}, 404
 
 
 class TargetsListController(Resource):

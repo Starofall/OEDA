@@ -59,7 +59,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
               private router: Router,
               private notify: NotificationsService) {
 
-    this.layout.setHeader("Successful Experiment Results", "");
+
     this.dataAvailable = false;
     this.is_all_stages_selected = false;
     this.is_qq_plot_rendered = false;
@@ -81,6 +81,17 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       if (params["id"] && this.router.url.toString().includes("/control/experiments/show")) {
         this.experiment_id = params["id"];
       }
+
+      // distinguish between successful and interrupted
+      if (this.router.url.toString().includes("interrupted")) {
+        this.layout.setHeader("Interrupted Experiment Results", "");
+      } else if (this.router.url.toString().includes("success")) {
+        this.layout.setHeader("Successful Experiment Results", "");
+      } else {
+        this.layout.setHeader("Experiment Results", "");
+      }
+
+
     });
   }
   /* tslint:disable */
@@ -1017,5 +1028,4 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
   knobs_of_stage(stage) : Array<string> {
       return Object.keys(stage);
   }
-
 }

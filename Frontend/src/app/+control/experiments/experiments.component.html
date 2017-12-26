@@ -45,11 +45,15 @@
                 <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status == 'RUNNING'"
                    routerLink="/control/experiments/show/{{item.id}}/running"><i class="fa fa-search"></i> Results
                 </a>
+                <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status == 'INTERRUPTED'"
+                   routerLink="/control/experiments/show/{{item.id}}/interrupted"><i class="fa fa-search"></i> Results
+                </a>
               </td>
               <td>
                 <label *ngIf="item.status == 'SUCCESS'" class="label label-success">SUCCESS</label>
                 <label *ngIf="item.status == 'RUNNING'" class="label label-info">RUNNING</label>
                 <label *ngIf="item.status == 'ERROR'" class="label label-danger">ERROR</label>
+                <label *ngIf="item.status == 'INTERRUPTED'" class="label label-warning">INTERRUPTED</label>
                 <!--<label *ngIf="item.status == 'FAILURE'" class="label label-danger">Failure</label>-->
               </td>
               <td>{{item.name}}</td>
