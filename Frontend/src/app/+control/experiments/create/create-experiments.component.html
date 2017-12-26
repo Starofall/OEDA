@@ -245,8 +245,8 @@
                                     {key:'uncorrelated_self_optimizer_strategy',label:'Uncorrelated Self Optimizer Strategy'}]">
           </labeled-input-select>
 
-          <labeled-input [inputType]="'number'" name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
-          <labeled-input [inputType]="'number'" name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
+          <labeled-input inputType="number" name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
+          <labeled-input inputType="number" name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
         </div>
       </div>
     </div>
@@ -321,9 +321,9 @@
             <div class="row">
               <div class="row" style="padding-left: 5%">
                 <labeled-input name="Name" [model]="input" key="name" [colSize]="3" disabled="true"></labeled-input>
-                <labeled-input [inputType]="'number'" name="Min" [model]="input" key="min" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
-                <labeled-input [inputType]="'number'" name="Max" [model]="input" key="max" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
-                <labeled-input [inputType]="'number'" name="Step Size" [model]="input" key="step" [colSize]="2" (modelChanged)="stepSizeChanged($event)"></labeled-input>
+                <labeled-input inputType="number" name="Min" [model]="input" key="min" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
+                <labeled-input inputType="number" name="Max" [model]="input" key="max" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
+                <labeled-input inputType="number" name="Step Size" [model]="input" key="step" [colSize]="2" (modelChanged)="stepSizeChanged($event)"></labeled-input>
                 <div class="col-md-3 pull-right" style="padding-right: 5%">
                   <div (click)="removeChangeableVariable(i, input)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i> Remove</div>
                 </div>
