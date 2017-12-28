@@ -40,7 +40,6 @@ export class EntityService {
       if (single_stage_object !== undefined) {
         const processedData = [];
         // now inner element
-        console.log("single_stage_object in process_sing", single_stage_object);
         single_stage_object.values.forEach(function(data_point) {
           if (xAttribute !== null && yAttribute !== null) {
             const newElement = {};

@@ -289,7 +289,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           const values = parsed_json_object['values'];
           const knobs = parsed_json_object['knobs'];
           const new_stage = {"number": number, "knobs": knobs};
-          console.log("new_stage", new_stage);
           ctrl.availableStages.push(new_stage);
 
           let new_entity = ctrl.create_entity();
