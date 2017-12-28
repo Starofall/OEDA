@@ -345,6 +345,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       return item.value > ctrl.initial_threshold_for_scatter_plot;
     }).length;
 
+    // just to override the text in div
+    // if user previously clicked in the chart; but new data has come, so we should update div that tells user updated threshold and number of points to filtered.
+    document.getElementById(ctrl.filterSummaryId).innerHTML = "<p>Threshold for 95-percentile: <b>" + ctrl.initial_threshold_for_scatter_plot + "</b> and # of points to be removed: <b>" + ctrl.nr_points_to_be_filtered + "</b></p>";
+
+
     if (ctrl.first_render_of_plots) {
       ctrl.scatter_plot = ctrl.plotService.draw_scatter_plot(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData, ctrl.incoming_data_type_name, ctrl.initial_threshold_for_scatter_plot);
       ctrl.histogram = ctrl.plotService.draw_histogram(ctrl.histogramDivId, ctrl.processedData, ctrl.incoming_data_type_name);
