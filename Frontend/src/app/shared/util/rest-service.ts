@@ -9,7 +9,7 @@ import {Observable} from "rxjs/Observable";
 
 @Injectable()
 /** an abstract class that can be used to write REST compatible client APIs */
-export abstract class RESTService {
+export class RESTService {
 
   constructor(public http: Http,
               public authHttp: AuthHttp,

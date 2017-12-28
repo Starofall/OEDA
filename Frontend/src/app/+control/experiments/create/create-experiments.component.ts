@@ -67,21 +67,6 @@ export class CreateExperimentsComponent implements OnInit {
     });
   }
 
-  // assureObjectContract() {
-  //   if (this.experiment.primaryDataProvider == null) {
-  //     this.experiment.primaryDataProvider = {type: ""}
-  //   }
-  //   if (this.experiment.changeProvider == null) {
-  //     this.experiment.changeProvider = {type: ""}
-  //   }
-  //   if (this.experiment.incomingDataTypes == null) {
-  //     this.experiment.incomingDataTypes = []
-  //   }
-  //   if (this.experiment.changeableVariable == null) {
-  //     this.experiment.changeableVariable = []
-  //   }
-  // }
-
   firstDropDownChanged(targetSystemName: any) {
     this.selectedTargetSystem = this.availableTargetSystems.find(item => item.name === targetSystemName);
 
@@ -252,21 +237,7 @@ export class CreateExperimentsComponent implements OnInit {
         break;
       }
     }
-
-    // const cond7 = this.experiment.description === null;
-    // const cond8 = this.experiment.description.length === 0;
-
-    // const cond5 = this.experiment.executionStrategy.knobs.x.step == null;
-    //
-    // const cond6 = this.experiment.executionStrategy.knobs.y.min == null;
-    // const cond7 = this.experiment.executionStrategy.knobs.y.max == null;
-    // const cond8 = this.experiment.executionStrategy.knobs.y.step == null;
-    //
-    // const cond9 = this.experiment.executionStrategy.ignore_first_n_results == null;
-    // const cond10 = this.experiment.executionStrategy.knobs.y.step == null;
-
     return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7;
-    // || cond9 || cond10;
   }
 
   createExperiment(): Experiment {

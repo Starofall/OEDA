@@ -18,7 +18,8 @@ import {DataTableModule} from "angular2-datatable";
 import {DataService} from "./util/data-service";
 import {UIModule} from "./modules/ui/ui.module";
 import {OEDAApiService} from "./modules/api/oeda-api.service";
-import {RESTService} from "./util/rest-service";
+import {PlotService} from "./util/plot-service";
+import {EntityService} from "./util/entity-service";
 
 @NgModule({
   imports: [
@@ -49,7 +50,8 @@ import {RESTService} from "./util/rest-service";
     UserRouteGuard,
     LayoutService,
     DataService,
-    // RESTService,
+    PlotService,
+    EntityService,
     OEDAApiService
     // should always be empty
   ]

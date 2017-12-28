@@ -342,7 +342,7 @@
               <div class="col-md-6">
                 <div class="title">Theoretical Data Distribution</div>
                 <select class="form-control"
-                        [(ngModel)]="distribution" (ngModelChange)="selectDistribution($event)" size="1">
+                        [(ngModel)]="distribution" (ngModelChange)="selectDistributionAndDrawQQPlot($event)" size="1">
                   <option *ngFor="let dist of available_distributions" value="{{dist}}">{{dist}}</option>
                 </select>
               </div>
@@ -383,9 +383,6 @@
         <div class="panel-body">
           <div class="col-md-6">
             <div class="panel-body" style="padding-top: 20px">
-              <!--<div [hidden]="!qqJSPlotIsRendered" class="svg-container">-->
-                <!--<svg id="qqPlotJS" viewBox="0 0 700 700" preserveAspectRatio="xMinYMin meet" class="svg-content"></svg>-->
-              <!--</div>-->
               <!--ref: https://css-tricks.com/scale-svg/-->
               <div class="scaling-svg-container"
                    style="padding-bottom: 100% /* 100% * 55/60 */">

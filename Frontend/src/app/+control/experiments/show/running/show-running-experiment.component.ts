@@ -15,10 +15,8 @@ import {Observable} from "rxjs/Observable";
 // QQ plot reference: https://gist.github.com/mbostock/4349187
 
 export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
-  private chart1: AmChart; // scatter plot
-  private chart2: AmChart; // scatter chart
-  private chart3: AmChart; // line chart
-  private chart4: AmChart; // histogram
+  private scatter_plot: AmChart;
+  private histogram: AmChart;
 
   public dataAvailable: boolean;
   public is_collapsed: boolean;
@@ -355,34 +353,18 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.first_render_of_plots = false;
     } else {
       // now create a new graph with updated values
-      ctrl.chart1.dataProvider = ctrl.processedData;
-      ctrl.chart1.validateData();
-      ctrl.chart4.dataProvider = this.categorize_data(ctrl.processedData);
-      ctrl.chart4.validateData();
+      ctrl.scatter_plot.dataProvider = ctrl.processedData;
+      ctrl.scatter_plot.validateData();
+      ctrl.histogram.dataProvider = this.categorize_data(ctrl.processedData);
+      ctrl.histogram.validateData();
     }
     ctrl.is_enough_data_for_plots = true;
-  }
-
-// remove qq plot retrieved from server otherwise memory will build up
-  remove_all_plots() {
-    // for (let j = 0; j < this.chart1.graphs.length; j++) {
-    //   var graph = this.chart1.graphs.pop();
-    //   this.chart1.removeGraph(graph);
-    // }
-    // for (let k = 0; k < this.chart4.graphs.length; k++) {
-    //   var graph = this.chart4.graphs.pop();
-    //   this.chart4.removeGraph(graph);
-    // }
-    if (document.getElementById(this.qqPlotDivId).hasAttribute('src')) {
-      var image_qq_plot = document.getElementById(this.qqPlotDivId);
-      image_qq_plot.removeAttribute('src');
-    }
   }
 
   draw_histogram(divID, processedData) {
     const ctrl = this;
     const AmCharts = this.AmCharts;
-    this.chart4 = AmCharts.makeChart(divID, {
+    this.histogram = AmCharts.makeChart(divID, {
       "type": "serial",
       "theme": "light",
       "responsive": {
@@ -407,7 +389,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
         "title": "Percentage"
       }]
     });
-    return this.chart4;
+    return this.histogram;
   }
 
   // helper function to distribute overheads in the given data to fixed-size bins (i.e. by 0.33 increment)
@@ -455,7 +437,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     const ctrl = this;
     let selectedThreshold = -1;
     const AmCharts = this.AmCharts;
-    this.chart1 = AmCharts.makeChart(divID, {
+    this.scatter_plot = AmCharts.makeChart(divID, {
       "responsive": {
         "enabled": true
       },
@@ -539,12 +521,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       "listeners": [{
         "event": "init",
         "method": function (e) {
-
-          /**
-           * Pre-zoom disabled for now
-           */
-          // e.chart.zoomToIndexes( e.chart.dataProvider.length - 40, e.chart.dataProvider.length - 1 );
-
           /**
            * Add click event on the plot area
            */
