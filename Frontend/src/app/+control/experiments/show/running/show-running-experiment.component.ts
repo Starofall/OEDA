@@ -29,7 +29,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   private qqPlotDivIdJS: string;
   private filterSummaryId: string;
   private histogramLogDivId: string;
-  private processedData: object;
+  private processedData: any;
   private timer: any;
   private subscription: any;
   private first_render_of_page: boolean;
@@ -45,6 +45,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   public targetSystem: Target;
 
   public initial_threshold_for_scatter_plot: number;
+  public nr_points_to_be_filtered: number;
 
   // following attributes are used for QQ plotting in Python
   public available_distributions: object;
@@ -56,6 +57,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   public qqJSPlotIsRendered: boolean;
   public is_enough_data_for_plots: boolean;
   public is_all_stages_selected: boolean;
+
 
   public available_stages = [];
   public available_stages_for_qq_js = [];
@@ -211,7 +213,9 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
           if (ctrl.first_render_of_page) {
             ctrl.apiService.loadAllDataPointsOfExperiment(ctrl.experiment_id).subscribe(response => {
-              let is_successful_fetch = ctrl.entityService.process_response_for_running_experiment(response, ctrl.all_data, ctrl.first_render_of_page, ctrl.available_stages, ctrl.available_stages_for_qq_js, ctrl.timestamp);
+              // TODO: after re-factoring, i.e. when we switch to using entityService.process_response_for_running_experiment, time to validate scatter plot data 8-times larger than this old version.
+              // let is_successful_fetch = ctrl.entityService.process_response_for_running_experiment(response, ctrl.all_data, ctrl.first_render_of_page, ctrl.available_stages, ctrl.available_stages_for_qq_js, ctrl.timestamp);
+              let is_successful_fetch = ctrl.process_response(response);
               if (is_successful_fetch) {
                 ctrl.first_render_of_page = false;
                 ctrl.draw_all_plots();
@@ -222,7 +226,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               ctrl.timestamp = "-1";
             }
             ctrl.apiService.loadAllDataPointsOfRunningExperiment(ctrl.experiment_id, ctrl.timestamp).subscribe(response => {
-              ctrl.entityService.process_response_for_running_experiment(response, ctrl.all_data, ctrl.first_render_of_page, ctrl.available_stages, ctrl.available_stages_for_qq_js, ctrl.timestamp);
+              ctrl.process_response(response);
+              // ctrl.entityService.process_response_for_running_experiment(response, ctrl.all_data, ctrl.first_render_of_page, ctrl.available_stages, ctrl.available_stages_for_qq_js, ctrl.timestamp);
               ctrl.draw_all_plots();
             });
           }
@@ -240,52 +245,119 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** refactoring this method (integrating it into entityService) makes significant/drastic changes in user-experience in terms of delays, spikes while validating/updating all_data.*/
+  private process_response(response) {
+    const ctrl = this;
+    if (isNullOrUndefined(response)) {
+      ctrl.notify.error("Error", "Cannot retrieve data from DB, please try again");
+      return;
+    }
+    if (ctrl.first_render_of_page) {
+      // we can retrieve one or more stages at first render
+      for (let index in response) {
+        if (response.hasOwnProperty(index)) {
+          let parsed_json_object = JSON.parse(response[index]);
+          // distribute data points to empty bins
+          let new_entity = ctrl.entityService.create_entity();
+          new_entity.number = parsed_json_object['number'];
+          new_entity.values = parsed_json_object['values'];
+          new_entity.knobs = parsed_json_object['knobs'];
+          // we retrieve stages and data points in following format
+          // e.g. [ 0: {number: 1, values: ..., knobs: [...]}, 1: {number: 2, values: ..., knobs: [...] }...]
+          if (new_entity.values.length != 0) {
+            ctrl.all_data.push(new_entity);
+          }
+          // as a guard against stage duplications
+          const new_stage = {"number": parsed_json_object.number, "knobs": parsed_json_object.knobs};
+          let existing_stage = ctrl.available_stages.find(entity => entity.number === parsed_json_object.number);
+          // stage does not exist yet
+          if (isNullOrUndefined(existing_stage)) {
+            ctrl.available_stages.push(new_stage);
+            ctrl.available_stages_for_qq_js.push(new_stage);
+          }
+          // do not update timestamp here if we can't retrieve any data, just keep fetching with timestamp "-1"
+          // because backend is also updated accordingly, i.e. it continues to fetch all data if timestamp is -1
+        }
+      }
+      ctrl.first_render_of_page = false;
+      return true;
+    } else {
+      // we can retrieve one or more stages upon other polls
+      // so, iterate the these stages and concat their data_points with existing data_points
+      for (let index in response) {
+        let parsed_json_object = JSON.parse(response[index]);
+        let existing_stage = ctrl.all_data.find(entity => entity.number === parsed_json_object.number);
+
+        // we have found an existing stage
+        if (existing_stage !== undefined) {
+          let stage_index = parsed_json_object['number'] - 1;
+          if (parsed_json_object['values'].length > 0) {
+            ctrl.all_data[stage_index].values = ctrl.all_data[stage_index].values.concat(parsed_json_object['values']);
+          }
+        } else {
+          // a new stage has been fetched, create a new bin for it, and push all the values to the bin, also push bin to all_data
+          const number = parsed_json_object['number'];
+          const values = parsed_json_object['values'];
+          const knobs = parsed_json_object['knobs'];
+          const new_stage = {"number": number, "knobs": knobs};
+          ctrl.available_stages.push(new_stage);
+
+          let new_entity = ctrl.entityService.create_entity();
+          new_entity.number = number;
+          new_entity.values = values;
+          new_entity.knobs = knobs;
+          ctrl.all_data.push(new_entity);
+        }
+        // update timestamp if we have retrieved a data
+        if (Number(index) == response.length - 1) {
+          let data_point_length = parsed_json_object['values'].length;
+          if (data_point_length > 0) {
+            ctrl.timestamp = parsed_json_object.values[data_point_length - 1]['created'];
+            return true;
+          }
+        }
+
+      }
+    }
+  }
+
   /** uses stage_object (that can be either one stage or all_stage) and PlotService to draw plots accordingly */
   private draw_all_plots() {
     const ctrl = this;
     // set it to false in case a new scale is selected
     ctrl.is_enough_data_for_plots = false;
 
-
     // if "all stages" is selected
     if (ctrl.selected_stage.number == -1) {
-      var start = new Date().getTime();
       ctrl.processedData = ctrl.entityService.process_all_stage_data(ctrl.all_data, "timestamp", "value", ctrl.scale, ctrl.incoming_data_type_name, false);
-      var end = new Date().getTime();
-      var time = end - start;
-      console.log('process_all_stage_data: ', time);
     }
     // if any other stage is selected
     else {
       ctrl.processedData = ctrl.all_data[ctrl.selected_stage.number - 1];
-      var start2 = new Date().getTime();
       ctrl.processedData = ctrl.entityService.process_single_stage_data(ctrl.processedData,"timestamp", "value", ctrl.scale, ctrl.incoming_data_type_name);
-      var end2 = new Date().getTime();
-      var time2 = end2 - start2;
-      console.log('process_single_stage_data: ', time2);
     }
     // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
     const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
     ctrl.initial_threshold_for_scatter_plot = ctrl.plotService.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
+
+    // just to inform user about how many points are above the calculated threshold (95-percentile)
+    ctrl.nr_points_to_be_filtered = ctrl.processedData.filter(function (item) {
+      return item.value > ctrl.initial_threshold_for_scatter_plot;
+    }).length;
 
     if (ctrl.first_render_of_plots) {
       ctrl.scatter_plot = ctrl.plotService.draw_scatter_plot(ctrl.divId, ctrl.filterSummaryId, ctrl.processedData, ctrl.incoming_data_type_name, ctrl.initial_threshold_for_scatter_plot);
       ctrl.histogram = ctrl.plotService.draw_histogram(ctrl.histogramDivId, ctrl.processedData, ctrl.incoming_data_type_name);
       ctrl.first_render_of_plots = false;
     } else {
-      // now create a new graph with updated values
+      // now update (validate) values & threshold value and its guide (line) of the scatter plot
       ctrl.scatter_plot.dataProvider = ctrl.processedData;
-      var start3 = new Date().getTime();
-      ctrl.scatter_plot.validateData();
-      var end3 = new Date().getTime();
-      var time3 = end3 - start3;
-      console.log('validating scatter_plot data: ', time3);
-      var start4 = new Date().getTime();
+      ctrl.scatter_plot.graphs[0].negativeBase = ctrl.initial_threshold_for_scatter_plot;
+      ctrl.scatter_plot.valueAxes[0].guides[0].value = ctrl.initial_threshold_for_scatter_plot;
+      // https://docs.amcharts.com/3/javascriptcharts/AmChart, following refers to validateNow(validateData = true, skipEvents = false)
+      ctrl.scatter_plot.validateNow(true, false);
       ctrl.histogram.dataProvider = ctrl.plotService.categorize_data(ctrl.processedData);
       ctrl.histogram.validateData();
-      var end4 = new Date().getTime();
-      var time4 = end4 - start4;
-      console.log('validating histogram data: ', time4);
     }
     ctrl.is_enough_data_for_plots = true;
   }
@@ -340,7 +412,12 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.apiService.updateExperiment(this.experiment).subscribe(response => {
       this.targetSystem.status = "READY";
       this.apiService.updateTarget(this.targetSystem).subscribe(response2 => {
-        this.notify.success("Success", response.message);
+        this.ngOnDestroy();
+        // switch to regular experiments page
+        this.router.navigate(["control/experiments"]).then(() => {
+          console.log("navigated to experiments page");
+          this.notify.success("Success", "Experiment stopped successfully");
+        });
       }, errorResp2 => {
         this.notify.error("Error", errorResp2.message);
       });

@@ -133,7 +133,7 @@ export class PlotService {
               e.chart.graphs[0].negativeBase = selectedThreshold;
               e.chart.validateNow();
             } else {
-              this.notify.error("", "Please move your cursor to determine the threshold");
+              this.notify.error("Error", "Please pick a threshold by clicking the chart");
             }
           })
         }

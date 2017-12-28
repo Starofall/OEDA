@@ -330,7 +330,7 @@
               <progressbar [value]="oedaCallback['complete']*100"></progressbar>
             </div>
 
-            <div *ngIf="oedaCallback['status'] === 'COLLECTING_DATA'">
+            <div *ngIf="oedaCallback['status'] === 'COLLECTING_DATA' || oedaCallback['status'] === 'EXPERIMENT_STAGE_DONE'">
               <h4 *ngIf="oedaCallback['remaining_time_and_stages']['remaining_stages'] != null && oedaCallback['remaining_time_and_stages']['remaining_time'] != null">
                 Remaining number of stages: {{oedaCallback['remaining_time_and_stages']['remaining_stages']}}, estimated remaining time: {{oedaCallback['remaining_time_and_stages']['remaining_time']}} seconds
               </h4>
@@ -370,7 +370,7 @@
           <div class="col-md-12" id="chartdiv" style="width: 100%; height: 400px"></div>
         </div>
         <div class="panel-footer">
-          <p id="filterSummary">Initial threshold for 95-percentile: <b>{{initial_threshold_for_scatter_plot}}</b></p>
+          <p id="filterSummary">Threshold for 95-percentile: <b>{{initial_threshold_for_scatter_plot}}</b>, number of points to be filtered: {{nr_points_to_be_filtered}}</p>
           <!--<button id="filterButton{{selected_stage.number}}" type="button" class="btn btn-primary" (click)="filter_outliers($event)">Filter</button>-->
         </div>
       </div>
