@@ -41,8 +41,8 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
   public is_enough_data_for_plots: boolean;
   public is_all_stages_selected: boolean;
 
-  public availableStages = [];
-  public availableStagesForQQJS = [];
+  public available_stages = [];
+  public available_stages_for_qq_js = [];
 
   public selected_stage: any;
 
@@ -109,15 +109,15 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
                   if (!isNullOrUndefined(stages)) {
                     // initially selected stage is "All Stages"
                     this.selected_stage = {"number": -1, "knobs": ""};
-                    this.availableStages.push(this.selected_stage);
+                    this.available_stages.push(this.selected_stage);
 
                     for (let j = 0; j < stages.length; j++) {
-                      this.availableStages.push(stages[j]);
+                      this.available_stages.push(stages[j]);
                     }
                     stages.sort(this.entityService.sort_by('number', true, parseInt));
-
+                    console.log("avail", this.available_stages);
                     // prepare available stages for qq js that does not include all stages
-                    this.availableStagesForQQJS = this.availableStages.slice(1);
+                    this.available_stages_for_qq_js = this.available_stages.slice(1);
                     this.dataAvailable = true;
                     this.fetch_data();
                   }
@@ -142,7 +142,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     if (stage_object !== undefined && stage_object.length !== 0) {
       // draw graphs for all_data
       if (ctrl.selected_stage.number === -1) {
-        let processedData = ctrl.entityService.process_all_stage_data(stage_object, "timestamp", "value", ctrl.scale, ctrl.incoming_data_type_name);
+        let processedData = ctrl.entityService.process_all_stage_data(stage_object, "timestamp", "value", ctrl.scale, ctrl.incoming_data_type_name, true);
         // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
         const clonedData = JSON.parse(JSON.stringify(processedData));
         ctrl.initial_threshold_for_scatter_chart = ctrl.plotService.calculate_threshold_for_given_percentile(clonedData, 95, 'value');
@@ -159,7 +159,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         ctrl.histogram = ctrl.plotService.draw_histogram("histogram", processedData, ctrl.incoming_data_type_name);
 
         // check if next stage exists for javascript side of qq plot
-        ctrl.availableStagesForQQJS.some(function(element) {
+        ctrl.available_stages_for_qq_js.some(function(element) {
           if (Number(element.number) == Number(ctrl.selected_stage.number) + 1) {
             ctrl.selected_stage_for_qq_js = (element.number).toString();
             ctrl.plotService.draw_qq_js("qqPlotJS", ctrl.all_data, ctrl.selected_stage, ctrl.selected_stage_for_qq_js, ctrl.scale, ctrl.incoming_data_type_name);
@@ -173,13 +173,6 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       ctrl.notify.error("Error", "Selected stage might not contain data points. Please select another stage.");
       return;
     }
-  }
-
-  /** called when scale dropdown (Normal, Log) in main page is changed */
-  scale_changed(scale: string) {
-    this.scale = scale;
-    // trigger plot drawing process
-    this.stage_changed();
   }
 
   /** called when stage dropdown (All Stages, Stage 1 [...], Stage 2 [...], ...) in main page is changed */
@@ -204,7 +197,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         /*
           Draw plots for the selected stage by retrieving it from local storage
         */
-        const stage_data = ctrl.entityService.get_data_from_local_structure(ctrl.all_data, ctrl.selected_stage.number);
+        const stage_data = ctrl.entityService.get_data_from_local_structure(ctrl.all_data, ctrl.selected_stage.number, true);
         if (!isNullOrUndefined(stage_data)) {
           ctrl.draw_all_plots(stage_data);
         } else {
@@ -216,6 +209,13 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       ctrl.notify.error("Error", "Stage number is null or undefined, please try again");
       return;
     }
+  }
+
+  /** called when scale dropdown (Normal, Log) in main page is changed */
+  scale_changed(scale: string) {
+    this.scale = scale;
+    // trigger plot drawing process
+    this.stage_changed();
   }
 
   /** returns keys of the retrieved stage */
@@ -251,7 +251,7 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
           this.notify.error("Error", "Cannot retrieve data from DB, please try again");
           return;
         }
-        this.all_data = ctrl.entityService.process_response(this.all_data, data);
+        this.all_data = ctrl.entityService.process_response_for_successful_experiment(this.all_data, data);
         this.draw_all_plots(this.all_data);
       }
     );

@@ -264,10 +264,10 @@
               <div class="col-md-6">
                 <div>
                   <select class="form-control" required [(ngModel)]="selected_stage" (change)="stage_changed()">
-                    <option *ngFor="let i of availableStages; let first_stage = first;" [ngValue]="i">
+                    <option *ngFor="let i of available_stages; let first_stage = first;" [ngValue]="i">
                       <div *ngIf="first_stage">All Stages</div>
                       <div *ngIf="!first_stage">Stage: {{ i.number }}
-                        <div *ngFor="let key of knobs_of_stage(i); let last_knob=last; let first_knob=first;">
+                        <div *ngFor="let key of keys(i.knobs); let last_knob=last; let first_knob=first;">
                           <b *ngIf="first_knob">[</b>
                           <b>{{key}}: {{i.knobs[key]}}</b>
                           <b *ngIf="!last_knob">,</b>
@@ -301,7 +301,7 @@
 
     <!--<div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''"-->
          <!--[hidden]="is_enough_data_for_plots" style="width: 750px; height: 600px;">-->
-  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''">
+    <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''">
         <div class="panel panel-default chartJs">
           <div class="panel-body" style="padding-top: 20px">
             <h3>Current Status of Experiment</h3>
@@ -312,7 +312,7 @@
             </div>
 
             <div *ngIf="oedaCallback['status'] === 'IGNORING_SAMPLES'">
-              <h4 *ngIf="oedaCallback['remaining_time_and_stages']['remaining_stages'] !== null && oedaCallback['remaining_time_and_stages']['remaining_time'] !== null">
+              <h4 *ngIf="oedaCallback['remaining_time_and_stages']['remaining_stages'] !== undefined && oedaCallback['remaining_time_and_stages']['remaining_time'] !== undefined">
                 Remaining number of stages: {{oedaCallback['remaining_time_and_stages']['remaining_stages']}}, estimated remaining time: {{oedaCallback['remaining_time_and_stages']['remaining_time']}} seconds
               </h4>
               <h4>
@@ -322,7 +322,7 @@
                 Configuration:
               </h4>
               <ul>
-                <li *ngFor="let key of current_knob_keys()"><b>{{key}}:</b> {{oedaCallback['current_knob'][key]}}</li>
+                <li *ngFor="let key of keys(oedaCallback.current_knob)"><b>{{key}}:</b> {{oedaCallback.current_knob[key]}}</li>
               </ul>
               <p>
                 Number of ignored samples: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
@@ -341,23 +341,13 @@
                 Configuration:
               </h4>
               <ul>
-                <li *ngFor="let key of current_knob_keys();"><b>{{key}}:</b> {{oedaCallback.current_knob[key]}}</li>
+                <li *ngFor="let key of keys(oedaCallback.current_knob);"><b>{{key}}:</b> {{oedaCallback.current_knob[key]}}</li>
               </ul>
               <p>
                 Number of collected data: {{oedaCallback['index']}} , total size: {{oedaCallback['size']}}
               </p>
               <progressbar [value]="oedaCallback['complete']*100"></progressbar>
             </div>
-
-            <!--<div *ngIf="oedaCallback['remaining_stages'] > 0">-->
-              <!--<p>-->
-                <!--Stage is completed...-->
-              <!--</p>-->
-              <!--<p>-->
-                <!--Remaining number of stages: {{oedaCallback['remaining_stages']}}, remaining time: {{oedaCallback['remaining_time']}} sec-->
-              <!--</p>-->
-            <!--</div>-->
-
             <div *ngIf="oedaCallback['remaining_stages'] === 0">
               <h4>
                 Experiment is completed with {{oedaCallback['experiment_counter']}} stages...

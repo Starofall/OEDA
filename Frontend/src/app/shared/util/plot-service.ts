@@ -178,7 +178,7 @@ export class PlotService {
   }
 
   /** dstributes data to bins for histogram*/
-  private categorize_data(data: any) {
+  public categorize_data(data: any) {
 
     const bins = [];
     const onlyValuesInData = this.extract_values_from_array(data, "value");
@@ -291,7 +291,9 @@ export class PlotService {
     return 0;
   }
 
-  /** draws QQ Plot based on https://gist.github.com/mbostock/4349187 and http://mbostock.github.io/protovis/ex/qqplot.html*/
+  /** draws QQ Plot for a successful experiment.
+   * It's based on https://gist.github.com/mbostock/4349187 and http://mbostock.github.io/protovis/ex/qqplot.html
+   */
   public draw_qq_js(divID, all_data, selected_stage, other_stage_number, scale, incoming_data_type_name) {
     const ctrl = this;
     // clear svg data, so that two different plots should not overlap with each other upon several rendering
@@ -299,7 +301,7 @@ export class PlotService {
     d3.select("#" + divID).selectAll("*").remove();
 
     // retrieve data for the initially selected stage
-    const data1 = ctrl.entityService.get_data_from_local_structure(all_data, selected_stage.number);
+    const data1 = ctrl.entityService.get_data_from_local_structure(all_data, selected_stage.number, true);
 
     if (isNullOrUndefined(data1)) {
       ctrl.notify.error("Error", "Selected stage might not contain data. Please select another stage.");
@@ -309,7 +311,7 @@ export class PlotService {
     const data_for_x_axis = ctrl.entityService.process_single_stage_data(data1, null, null, scale, incoming_data_type_name);
 
     // retrieve data for the newly selected stage
-    const data2 = ctrl.entityService.get_data_from_local_structure(all_data, other_stage_number);
+    const data2 = ctrl.entityService.get_data_from_local_structure(all_data, other_stage_number, true);
     if (isNullOrUndefined(data2)) {
       ctrl.notify.error("Error", "Selected stage might not contain data. Please select another stage.");
       return;

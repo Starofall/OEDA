@@ -256,7 +256,7 @@
           <div class="col-md-6">
             <div>
               <select class="form-control" required [(ngModel)]="selected_stage" (change)="stage_changed()">
-                <option *ngFor="let i of availableStages; let first_stage = first;" [ngValue]="i">
+                <option *ngFor="let i of available_stages; let first_stage = first;" [ngValue]="i">
                   <div *ngIf="first_stage">All Stages</div>
                   <div *ngIf="!first_stage">Stage: {{ i.number }}
                     <div *ngFor="let key of knobs_of_stage(i.knobs); let last_knob=last; let first_knob=first;">
@@ -374,7 +374,7 @@
               <div class="title">Other  Stage</div>
               <select class="form-control"
                       [(ngModel)]="selected_stage_for_qq_js" (ngModelChange)="selectStageNoForQQJS($event)" size="1">
-                <option *ngFor="let stage_no of availableStagesForQQJS" value="{{stage_no.number}}">{{stage_no.number}}</option>
+                <option *ngFor="let stage_no of available_stages_for_qq_js" value="{{stage_no.number}}">{{stage_no.number}}</option>
               </select>
             </div>
           </div>
