@@ -13,9 +13,10 @@ setup(
         'tornado',
         'flask_restful',
         'flask_cors',
-        'elasticsearch',
+        'elasticsearch5',
         'matplotlib',
         'statsmodels',
-        'numpy'
+        'numpy',
+        'requests'
     ]
 )

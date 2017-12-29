@@ -54,7 +54,7 @@ class ElasticSearchDb(Database):
         try:
             self.indices_client = IndicesClient(self.es)
             if not self.indices_client.exists(self.index):
-                self.indices_client.create(self.index, body)
+                self.indices_client.create(index=self.index, body=body)
         except TransportError:
             error("Error while creating elasticsearch. Check type mappings in config.json.")
             print(traceback.format_exc())
@@ -64,7 +64,7 @@ class ElasticSearchDb(Database):
         target_system_data["created"] = datetime.now().isoformat(' ')
         del target_system_data["id"]
         try:
-            self.es.index(self.index, self.target_system_type_name, target_system_data, target_system_id)
+            self.es.index(index=self.index, doc_type=self.target_system_type_name, id=target_system_id, body=target_system_data)
         except ConnectionError:
             error("Error while saving rtx_run data in elasticsearch. Check connection to elasticsearch and restart.")
         except TransportError:
@@ -72,7 +72,7 @@ class ElasticSearchDb(Database):
             print(traceback.format_exc())
 
     def get_target(self, target_system_id):
-        res = self.es.get(self.index, target_system_id, self.target_system_type_name)
+        res = self.es.get(index=self.index, doc_type=self.target_system_type_name, id=target_system_id)
         return res["_source"]
 
     def get_targets(self):
@@ -82,7 +82,7 @@ class ElasticSearchDb(Database):
                 "match_all": {}
             }
         }
-        res = self.es.search(self.index, self.target_system_type_name, query)
+        res = self.es.search(index=self.index, doc_type=self.target_system_type_name, body=query)
         return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
 
     def save_experiment(self, experiment_id, experiment_data):
@@ -90,12 +90,12 @@ class ElasticSearchDb(Database):
         experiment_data["created"] = datetime.now().isoformat(' ')
         del experiment_data["id"]
         try:
-            self.es.index(self.index, self.experiment_type_name, experiment_data, experiment_id)
+            self.es.index(index=self.index, doc_type=self.experiment_type_name, body=experiment_data, id=experiment_id)
         except ConnectionError:
             error("Error while saving experiment data in elasticsearch. Check connection to elasticsearch and restart.")
 
     def get_experiment(self, experiment_id):
-        res = self.es.get(self.index, experiment_id, self.experiment_type_name)
+        res = self.es.get(index=self.index, doc_type=self.experiment_type_name, id=experiment_id)
         return res["_source"]
 
     def get_experiments(self):
@@ -106,20 +106,20 @@ class ElasticSearchDb(Database):
             }
         }
 
-        res = self.es.search(self.index, self.experiment_type_name, query)
+        res = self.es.search(index=self.index, doc_type=self.experiment_type_name, body=query)
         return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
 
     def update_experiment_status(self, experiment_id, status):
         body = {"doc": {"status": status}}
         try:
-            self.es.update(self.index, self.experiment_type_name, experiment_id, body)
+            self.es.update(index=self.index, doc_type=self.experiment_type_name, id=experiment_id, body=body)
         except ConnectionError:
             error("Error while updating experiment's status in elasticsearch. Check connection to elasticsearch.")
 
     def update_target_system_status(self, target_system_id, status):
         body = {"doc": {"status": status}}
         try:
-            self.es.update(self.index, self.target_system_type_name, target_system_id, body)
+            self.es.update(index=self.index, doc_type=self.target_system_type_name, id=target_system_id, body=body)
         except ConnectionError:
             error("Error while updating target system in_use flag in elasticsearch. Check connection to elasticsearch.")
 
@@ -130,7 +130,7 @@ class ElasticSearchDb(Database):
         body["knobs"] = knobs
         body["created"] = datetime.now().isoformat(' ')
         try:
-            self.es.index(self.index, self.stage_type_name, body, stage_id, parent=experiment_id)
+            self.es.index(index=self.index, doc_type=self.stage_type_name, body=body, id=stage_id, parent=experiment_id)
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
 
@@ -149,7 +149,7 @@ class ElasticSearchDb(Database):
         }
 
         try:
-            res = self.es.search(self.index, self.stage_type_name, body=query, size=10000, sort='created')
+            res = self.es.search(index=self.index, doc_type=self.stage_type_name, body=query, size=10000, sort='created')
             return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
@@ -177,7 +177,7 @@ class ElasticSearchDb(Database):
         }
 
         try:
-            res = self.es.search(self.index, self.stage_type_name, query, sort='created')
+            res = self.es.search(index=self.index, doc_type=self.stage_type_name, body=query, sort='created')
             return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
@@ -210,7 +210,7 @@ class ElasticSearchDb(Database):
         try:
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
-            res = self.es.search(self.index, body=query, size=10000, sort='created')
+            res = self.es.search(index=self.index, body=query, size=10000, sort='created')
             return [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
@@ -259,7 +259,7 @@ class ElasticSearchDb(Database):
 
             # https://stackoverflow.com/questions/9084536/sorting-by-multiple-params-in-pyes-and-elasticsearch
             # sorting is required for proper visualization of data
-            res = self.es.search(self.index, self.data_point_type_name, body=query2, size=10000, sort='created')
+            res = self.es.search(index=self.index, doc_type=self.data_point_type_name, body=query2, size=10000, sort='created')
             return [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
             error("Error while retrieving data points from elasticsearch. Check connection to elasticsearch.")
