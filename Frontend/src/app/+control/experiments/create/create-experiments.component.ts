@@ -6,6 +6,7 @@ import {OEDAApiService, Experiment, Target, ExecutionStrategy} from "../../../sh
 import * as _ from "lodash";
 import {UUID} from "angular2-uuid";
 import {isNullOrUndefined, isNumber} from "util";
+import {TempStorageService} from "../../../shared/modules/helper/temp-storage-service";
 
 
 @Component({
@@ -25,7 +26,7 @@ export class CreateExperimentsComponent implements OnInit {
 
   constructor(private layout: LayoutService, private api: OEDAApiService,
               private router: Router, private route: ActivatedRoute,
-              private notify: NotificationsService) {
+              private notify: NotificationsService, private temp_storage: TempStorageService) {
     this.availableTargetSystems = [];
     this.initialVariables = [];
 
@@ -205,9 +206,11 @@ export class CreateExperimentsComponent implements OnInit {
       this.api.saveExperiment(this.experiment).subscribe(
         (success) => {
           this.notify.success("Success", "Experiment saved");
-          this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
-            console.log("navigated to newly created experiment running page");
-          });
+          // this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
+          //   console.log("navigated to newly created experiment running page");
+          // });
+          this.temp_storage.setNewValue(this.experiment);
+          this.router.navigate(["control/experiments"])
         }, (error) => {
           this.notify.success("Error", error.toString());
         }

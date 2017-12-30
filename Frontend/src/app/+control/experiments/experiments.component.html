@@ -39,14 +39,16 @@
             <tbody class="bigTable">
             <tr *ngFor="let item of mf.data">
               <td style="padding-right: 0px">
+                <!--Does not show a button for an erroneous experiment-->
                 <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status == 'SUCCESS'"
                    routerLink="/control/experiments/show/{{item.id}}/success"><i class="fa fa-search"></i> Results
                 </a>
-                <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status == 'RUNNING'"
-                   routerLink="/control/experiments/show/{{item.id}}/running"><i class="fa fa-search"></i> Results
-                </a>
                 <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status == 'INTERRUPTED'"
                    routerLink="/control/experiments/show/{{item.id}}/interrupted"><i class="fa fa-search"></i> Results
+                </a>
+                <!--Default button is the following-->
+                <a class="btn btn-xs btn-orange" type="button" *ngIf="item.status !== 'INTERRUPTED' && item.status !== 'SUCCESS'"
+                   routerLink="/control/experiments/show/{{item.id}}/running"><i class="fa fa-search"></i> Results
                 </a>
               </td>
               <td>

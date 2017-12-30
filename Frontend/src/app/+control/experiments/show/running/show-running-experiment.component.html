@@ -305,12 +305,10 @@
         <div class="panel panel-default chartJs">
           <div class="panel-body" style="padding-top: 20px">
             <h3>Current Status of Experiment</h3>
-            <div *ngIf="oedaCallback['status'] === 'PROCESSING'">
-              <p>
-                {{oedaCallback['message']}} Please wait
-              </p>
+            <div *ngIf="oedaCallback['status'] !== 'IGNORING_SAMPLES' && oedaCallback['status'] !== 'COLLECTING_DATA' && oedaCallback['status'] !== 'EXPERIMENT_STAGE_DONE'">
+              <i class="fa fa-spinner fa-pulse fa-3x fa-fw" style="padding-top: 1%"></i>
+              <h4>Please wait...</h4>
             </div>
-
             <div *ngIf="oedaCallback['status'] === 'IGNORING_SAMPLES'">
               <h4 *ngIf="oedaCallback['remaining_time_and_stages']['remaining_stages'] !== undefined && oedaCallback['remaining_time_and_stages']['remaining_time'] !== undefined">
                 Remaining number of stages: {{oedaCallback['remaining_time_and_stages']['remaining_stages']}}, estimated remaining time: {{oedaCallback['remaining_time_and_stages']['remaining_time']}} seconds
