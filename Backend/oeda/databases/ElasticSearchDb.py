@@ -70,6 +70,7 @@ class ElasticSearchDb(Database):
         except TransportError:
             error("Error while creating elasticsearch. Check type mappings in config.json.")
             print(traceback.format_exc())
+        return target_system_data
 
     def get_target(self, target_system_id):
         res = self.es.get(index=self.index, doc_type=self.target_system_type_name, id=target_system_id)

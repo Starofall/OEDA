@@ -25,8 +25,9 @@ class TargetController(Resource):
                     return {"message": "Duplicate target system names"}, 409
 
             content["status"] = "READY"
-            db().save_target(target_id, content)
-            return {}, 200
+            new_target = db().save_target(target_id, content)
+            new_target["id"] = target_id
+            return new_target
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)

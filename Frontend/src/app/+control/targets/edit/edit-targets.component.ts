@@ -1,5 +1,6 @@
 import {Component, Injectable, OnInit, ElementRef} from '@angular/core';
 import {LayoutService} from "../../../shared/modules/helper/layout.service";
+import {TempStorageService} from "../../../shared/modules/helper/temp-storage-service";
 import {OEDAApiService, Target} from "../../../shared/modules/api/oeda-api.service";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {UUID} from "angular2-uuid";
@@ -14,7 +15,9 @@ import {isNullOrUndefined} from "util";
 export class EditTargetsComponent implements OnInit {
 
 
-  constructor(private layout: LayoutService, private api: OEDAApiService,
+  constructor(private layout: LayoutService,
+              private temp_storage: TempStorageService,
+              private api: OEDAApiService,
               private router: Router, private route: ActivatedRoute,
               private notify: NotificationsService) {
   }
@@ -146,12 +149,10 @@ export class EditTargetsComponent implements OnInit {
         if (!this.checkDuplicateInObject('name', this.target.changeableVariable)
             && !this.checkDuplicateInObject('name', this.target.incomingDataTypes) ) {
           ctrl.api.saveTarget(this.target).subscribe(
-            (success) => {
+            (new_target) => {
+              this.temp_storage.setNewValue(new_target);
               ctrl.notify.success("Success", "Target system is saved");
-              // this.router.navigate(["control/targets/edit", this.target.id]);
-              ctrl.router.navigate(["control/experiments"]).then(() => {
-                console.log("navigated to experiments page");
-              });
+              ctrl.router.navigate(["control/targets"]);
             }
           )
         } else {
@@ -163,11 +164,10 @@ export class EditTargetsComponent implements OnInit {
         ctrl.target.id = UUID.UUID();
         // ctrl.target.name = ctrl.target.name + " Copy";
         ctrl.api.saveTarget(this.target).subscribe(
-          (success) => {
+          (new_target) => {
+            this.temp_storage.setNewValue(new_target);
             ctrl.notify.success("Success", "Target system is saved");
-            ctrl.router.navigate(["control/experiments"]).then(() => {
-              console.log("navigated to experiments page");
-            });
+            ctrl.router.navigate(["control/targets"]);
           }
         );
       }

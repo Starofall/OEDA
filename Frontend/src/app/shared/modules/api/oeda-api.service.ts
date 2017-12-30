@@ -1,11 +1,9 @@
 import {Injectable} from "@angular/core";
 import {NotificationsService} from "angular2-notifications";
 import {AuthHttp} from "angular2-jwt";
-import {Http} from "@angular/http";
+import {Http, Response} from "@angular/http";
 import {RESTService} from "../../util/rest-service";
 import {LoggerService} from "../helper/logger.service";
-import {URLSearchParams} from "@angular/http";
-import {environment} from "../../../../environments/environment";
 import {Observable} from "rxjs/Observable";
 
 
@@ -22,10 +20,6 @@ export class OEDAApiService extends RESTService {
 
   public loadExperimentById(experiment_id: string): Observable<Experiment> {
     return this.doGETPublicRequest("/experiments/" + experiment_id)
-  }
-
-  public loadDataPointsOfStage(experiment_id: string, stage_no: string): Observable<any> {
-    return this.doGETPublicRequest("/experiment_results/" + experiment_id + "/" + stage_no)
   }
 
   public loadAllDataPointsOfExperiment(experiment_id: string): Observable<any> {
@@ -60,18 +54,6 @@ export class OEDAApiService extends RESTService {
     return this.doPUTPublicRequest("/experiments/" + experiment.id, experiment)
   }
 
-  public loadAllDefinitions(): Observable<Definition[]> {
-    return this.doGETPublicRequest("/definitions")
-  }
-
-  public loadDefinitionsById(id: string): Observable<Definition> {
-    return this.doGETPublicRequest("/definitions/" + id)
-  }
-
-  public saveDefinitions(definition: Definition): Observable<any> {
-    return this.doPOSTPublicRequest("/definitions/" + definition.id, definition)
-  }
-
   public loadAllTargets(): Observable<Target[]> {
     return this.doGETPublicRequest("/targets")
   }
@@ -80,8 +62,9 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/targets/" + id)
   }
 
-  public saveTarget(target: Target): Observable<any> {
+  public saveTarget(target: Target): Observable<Target> {
     return this.doPOSTPublicRequest("/targets/" + target.id, target)
+      .map((res: Response) => res.json())
   }
 
   public updateTarget(target: Target): Observable<any> {
@@ -112,12 +95,6 @@ export interface Entity {
   number: string,
   values: object[],
   knobs: any
-}
-
-
-export interface Definition {
-  id: string,
-  name: string
 }
 
 

@@ -10,6 +10,7 @@ import {NotificationsService} from "angular2-notifications";
 import {HttpInterceptor} from "./util/http-interceptor";
 import {CustomErrorHandler} from "./util/custom-error-handler";
 import {LoggerService} from "./modules/helper/logger.service";
+import {TempStorageService} from "./modules/helper/temp-storage-service";
 import {UserService} from "./modules/auth/user.service";
 import {LayoutService} from "./modules/helper/layout.service";
 import {UserRouteGuard} from "./modules/auth/staff-routeguard.service";
@@ -47,6 +48,7 @@ import {EntityService} from "./util/entity-service";
   providers: [
     UserService,
     LoggerService,
+    TempStorageService,
     UserRouteGuard,
     LayoutService,
     DataService,
