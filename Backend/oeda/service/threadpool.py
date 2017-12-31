@@ -38,10 +38,8 @@ class Worker(Thread):
         self.daemon = True
         self.start()
 
-    def join(self, timeout=None):
-        # setting flag to stop
+    def set_stop_request(self):
         self.oeda_stop_request.set()
-        super(Worker, self).join(timeout)
 
     def run(self):
         while True:
@@ -76,14 +74,11 @@ class ThreadPool:
 
     def kill_thread(self, experiment_id_to_remove):
         """ Kills a thread that is currently running an experiment """
-        # we look into the queue of working threads for the thread that runs the experiment we want to stop
+        # We look into the queue of working threads for the thread that runs the experiment we want to stop
         for _ in range(self.active_workers.qsize()):
             experiment_id, experiment_thread = self.active_workers.get()
             if experiment_id == experiment_id_to_remove:
-                # ask the thread politely to stop its execution
-                experiment_thread.join()
-                # Here we create another thread so that the total number of threads in the pool remains the same
-                Worker(self.tasks, self.active_workers)
+                experiment_thread.set_stop_request()
             else:
                 # this is not the thread we want to stop, just put it back in the queue
                 self.active_workers.put((experiment_id, experiment_thread))
