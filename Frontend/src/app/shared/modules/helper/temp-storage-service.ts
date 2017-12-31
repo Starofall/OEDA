@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 
+// https://stackoverflow.com/questions/34088209/how-to-pass-object-from-one-component-to-another-in-angular-2
 @Injectable()
 export class TempStorageService {
 
