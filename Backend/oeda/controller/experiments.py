@@ -2,6 +2,8 @@ from flask import request, jsonify
 from flask_restful import Resource
 from oeda.databases import db
 from oeda.controller.running_experiment_results import set_dict as set_dict
+from oeda.service.execution_scheduler import kill_experiment as kill_experiment
+from oeda.controller.running_experiment_results import globalDict as globalDict
 import traceback
 
 class ExperimentController(Resource):
@@ -30,14 +32,26 @@ class ExperimentController(Resource):
                 return {"message": "experiment_id should not be null"}, 404
             content = request.get_json()
             status = content["status"]
-            db().update_experiment_status(experiment_id, status)
+
+            # kill thread and return respective messages
+            if status == "INTERRUPTED":
+                kill_experiment(experiment_id=experiment_id)
+
+            # db().update_experiment_status(experiment_id, status)
+            # also remove callback from globalDict
+            # globalDict.pop(experiment_id, None)
             resp = jsonify({"message": "Experiment status is updated"})
             resp.status_code = 200
+            print "resp", resp
             return resp
         except Exception as e:
+            print "e", e
             tb = traceback.format_exc()
             print(tb)
             return {"message": e.message}, 404
+        except KeyError as key_error:
+            print "key_error", key_error
+            return {"message": "experiment_id does not exist in globalDict, please re-create experiment"}, 404
 
 class ExperimentsListController(Resource):
 

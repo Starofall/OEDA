@@ -9,7 +9,7 @@
             <i *ngIf="is_collapsed" class="fa fa-angle-double-down" aria-hidden="true"></i>
             <i *ngIf="!is_collapsed" class="fa fa-angle-double-up" aria-hidden="true"></i>
           </button>
-          <button type="button" class="btn btn-primary"
+          <button type="button" class="btn btn-primary" *ngIf="oedaCallback['status'] === 'IGNORING_SAMPLES' || oedaCallback['status'] === 'COLLECTING_DATA'"
                   (click)="stopRunningExperiment()">Stop Experiment
           </button>
         </div>

@@ -4,7 +4,7 @@ from oeda.service.threadpool import getCachedThreadPool
 from oeda.rtxlib.workflow import execute_workflow
 from oeda.service.rtx_definition import *
 from oeda.databases import db
-
+import traceback
 from oeda.controller.running_experiment_results import set_dict as set_dict
 
 
@@ -71,8 +71,13 @@ def fork_and_run_experiment(experiment):
 
 def kill_experiment(experiment_id):
     debug("Interrupting experiment with id " + experiment_id)
-    getCachedThreadPool().kill_thread(experiment_id)
-
+    try:
+        getCachedThreadPool().kill_thread(experiment_id)
+        return True
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)
+        return False
 
 def rtx_execution(experiment, target_system, oeda_stop_request):
 

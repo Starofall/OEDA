@@ -415,9 +415,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     alert("Do you really want to stop the running experiment?");
     this.experiment.status = "INTERRUPTED";
     this.apiService.updateExperiment(this.experiment).subscribe(response => {
+      console.log("111", response);
       this.targetSystem.status = "READY";
       this.apiService.updateTarget(this.targetSystem).subscribe(response2 => {
-        this.ngOnDestroy();
+        console.log("222", response2);
+        this.subscription.unsubscribe();
         // switch to regular experiments page
         this.router.navigate(["control/experiments"]).then(() => {
           console.log("navigated to experiments page");
