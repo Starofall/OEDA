@@ -8,6 +8,7 @@ import {isNullOrUndefined} from "util";
 import {Observable} from "rxjs/Observable";
 import {PlotService} from "../../../../shared/util/plot-service";
 import {EntityService} from "../../../../shared/util/entity-service";
+import {TempStorageService} from "../../../../shared/modules/helper/temp-storage-service";
 
 @Component({
   selector: 'show-running-experiment',
@@ -72,7 +73,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               private plotService: PlotService,
               private activated_route: ActivatedRoute,
               private router: Router,
-              private notify: NotificationsService) {
+              private notify: NotificationsService,
+              private temp_storage: TempStorageService) {
 
     this.layout.setHeader("Experiment Results", "");
     this.dataAvailable = false;
@@ -415,11 +417,11 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     alert("Do you really want to stop the running experiment?");
     this.experiment.status = "INTERRUPTED";
     this.apiService.updateExperiment(this.experiment).subscribe(response => {
-      console.log("111", response);
       this.targetSystem.status = "READY";
       this.apiService.updateTarget(this.targetSystem).subscribe(response2 => {
-        console.log("222", response2);
         this.subscription.unsubscribe();
+        // set temp_storage so that experiments page will reflect the new status of it
+        this.temp_storage.setNewValue(this.experiment);
         // switch to regular experiments page
         this.router.navigate(["control/experiments"]).then(() => {
           console.log("navigated to experiments page");
