@@ -10,26 +10,11 @@ from oeda.rtxlib.preprocessors import init_pre_processors, kill_pre_processors
 def execute_workflow(wf):
     """ this is the main workflow for executing a given workflow """
     try:
-        # check that the definition is correct
-        info("sssss", Fore.CYAN)
-        print "$$$$$$ wf in execute_workflow"  
-        print wf
-
         info("######################################", Fore.CYAN)
         info("> Workflow       | " + str(wf.name), Fore.CYAN)
-        # check variables
-        
-        b = wf.change_provider
-        print "b:"
-        print b
 
-        c = wf.primary_data_provider
-        print "c:"
-        print c
+        debug("execution_strategy:" + str(wf.execution_strategy))
 
-        d = wf.execution_strategy
-        print "d:"
-        print d
     except KeyError as e:
         error("definition.py is missing value " + str(e))
         exit(1)

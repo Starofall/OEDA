@@ -11,28 +11,26 @@ from oeda.rtxlib.executionstrategy.UncorrelatedSelfOptimizerStrategy import star
 def run_execution_strategy(wf):
     """ we run the correct execution strategy """
     applyInitKnobs(wf)
-    try:
-        # start the right execution strategy
-        if wf.execution_strategy["type"] == "sequential":
-            # log_results(wf.folder, wf.execution_strategy["knobs"][0].keys() + ["result"], append=False)
-            start_sequential_strategy(wf)
+    # start the right execution strategy
+    if wf.execution_strategy["type"] == "sequential":
+        # log_results(wf.folder, wf.execution_strategy["knobs"][0].keys() + ["result"], append=False)
+        start_sequential_strategy(wf)
 
-        elif wf.execution_strategy["type"] == "self_optimizer":
-            # log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
-            start_self_optimizer_strategy(wf)
+    elif wf.execution_strategy["type"] == "self_optimizer":
+        # log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+        start_self_optimizer_strategy(wf)
 
-        elif wf.execution_strategy["type"] == "uncorrelated_self_optimizer":
-            # log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
-            start_uncorrelated_self_optimizer_strategy(wf)
+    elif wf.execution_strategy["type"] == "uncorrelated_self_optimizer":
+        # log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+        start_uncorrelated_self_optimizer_strategy(wf)
 
-        elif wf.execution_strategy["type"] == "step_explorer":
-            # log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
-            start_step_strategy(wf)
+    elif wf.execution_strategy["type"] == "step_explorer":
+        # log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+        start_step_strategy(wf)
 
-        elif wf.execution_strategy["type"] == "forever":
-            start_forever_strategy(wf)
-    except RuntimeError:
-        error("Stopped the whole workflow as requested by a RuntimeError")
+    elif wf.execution_strategy["type"] == "forever":
+        start_forever_strategy(wf)
+
     # finished
     info(">")
     applyDefaultKnobs(wf)

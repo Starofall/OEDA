@@ -8,16 +8,18 @@ class RTXDefinition:
     _oeda_experiment = None
     _oeda_target = None
     _oeda_callback = None
+    _oeda_stop_request = None
     primary_data_provider = None
     change_provider = None
     id = None
     stage_counter = None
     all_knobs = None
 
-    def __init__(self, oeda_experiment, oeda_target, oeda_callback):
+    def __init__(self, oeda_experiment, oeda_target, oeda_callback, oeda_stop_request):
         self._oeda_experiment = oeda_experiment
         self._oeda_target = oeda_target
         self._oeda_callback = oeda_callback
+        self._oeda_stop_request = oeda_stop_request
         self.name = oeda_experiment["name"]
         self.id = oeda_experiment["id"]
         self.stage_counter = 1
@@ -56,6 +58,8 @@ class RTXDefinition:
     def primary_data_reducer(state, new_data, wf):
         db().save_data_point(new_data, state["data_points"], wf.id, wf.stage_counter)
         state["data_points"] += 1
+        if wf._oeda_stop_request.isSet():
+            raise RuntimeError("Experiment interrupted from OEDA while gathering data.")
         return state
 
     @staticmethod

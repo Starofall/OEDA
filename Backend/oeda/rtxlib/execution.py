@@ -48,6 +48,9 @@ def experimentFunction(wf, exp):
                                       str("current_knob"): dict(exp["knobs"]),
                                       "remaining_time_and_stages": wf.remaining_time_and_stages})
                 process("IgnoreSamples  | ", i, to_ignore)
+                # NEW - we check for any interruption flags
+                if wf._oeda_stop_request.isSet():
+                    raise RuntimeError("Experiment interrupted from OEDA while ignoring data.")
         print("")
 
     # start collecting data
@@ -67,10 +70,10 @@ def experimentFunction(wf, exp):
                                           str("current_knob"): dict(exp["knobs"]),
                                           "remaining_time_and_stages": wf.remaining_time_and_stages})
                     exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], new_data, wf)
-                except StopIteration:
-                    raise StopIteration()  # just fwd
-                except RuntimeError:
-                    raise RuntimeError()  # just fwd
+                except StopIteration as e:
+                    raise  # just fwd
+                except RuntimeError as e:
+                    raise  # just fwd
                 except Exception as e:
                     error("Exception:", str(e))
                     error("could not reducing data set: " + str(new_data))
@@ -83,16 +86,16 @@ def experimentFunction(wf, exp):
                     for nd in new_data:
                         try:
                             exp["state"] = cp["data_reducer"](exp["state"], nd,wf)
-                        except StopIteration:
-                            raise StopIteration()  # just
-                        except RuntimeError:
-                            raise RuntimeError()  # just fwd
+                        except StopIteration as e:
+                            raise  # just
+                        except RuntimeError as e:
+                            raise  # just fwd
                         except:
                             error("could not reducing data set: " + str(nd))
         print("")
-    except StopIteration:
+    except StopIteration as e:
         # this iteration should stop asap
-        error("This experiment got stopped as requested by a StopIteration exception")
+        error("This stage got stopped as requested by the StopIteration exception:" + str(e))
     try:
         result = wf.evaluator(exp["state"],wf)
     except:

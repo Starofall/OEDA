@@ -65,8 +65,16 @@ def fork_and_run_experiment(experiment):
         # fork RTX execution to threadpool
         getCachedThreadPool().add_task(rtx_execution, experiment, target_system)
 
+        # example of killing experiment after 10 secs TODO remove this line after testing!
+        # Timer(10, kill_experiment, [experiment["id"]]).start()
 
-def rtx_execution(experiment, target_system):
+
+def kill_experiment(experiment_id):
+    debug("Interrupting experiment with id " + experiment_id)
+    getCachedThreadPool().kill_thread(experiment_id)
+
+
+def rtx_execution(experiment, target_system, oeda_stop_request):
 
     def oeda_callback(dictionary, experiment_id):
         """"Custom callback that RTX uses to update us with experiment progress information"""
@@ -76,13 +84,19 @@ def rtx_execution(experiment, target_system):
         set_experiment_status(experiment["id"], "RUNNING")
         set_target_system_status(experiment["targetSystemId"], "WORKING")
         # convert OEDA to RTX experiment
-        rtx_definition = RTXDefinition(experiment, target_system, oeda_callback)
+        rtx_definition = RTXDefinition(experiment, target_system, oeda_callback, oeda_stop_request)
         # here we now start the experiment on a different thread (in the thread pool)
         execute_workflow(rtx_definition)
         set_experiment_status(experiment["id"], "SUCCESS")
         set_target_system_status(experiment["targetSystemId"], "READY")
         # TODO here the analytics part should start and also do updateExperiment(experimentId,analysisResults)
+
+    except RuntimeError as e:
+        debug("Experiment INTERRUPTED - " + experiment["id"] + " - " + str(e))
+        set_experiment_status(experiment["id"], "INTERRUPTED")
+        set_target_system_status(experiment["targetSystemId"], "READY")
+
     except Exception as e:
         error("Experiment FAILED - " + experiment["id"] + " - " + str(e))
         set_experiment_status(experiment["id"], "ERROR")
-        set_target_system_status(experiment["targetId"], "READY")
+        set_target_system_status(experiment["targetSystemId"], "READY")
