@@ -17,6 +17,7 @@ setup(
         'matplotlib',
         'statsmodels',
         'numpy',
-        'requests'
+        'requests',
+        'rpy2==2.7.8'
     ]
 )
