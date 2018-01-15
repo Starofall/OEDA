@@ -6,11 +6,13 @@ import {JwtHelper, AuthHttp} from "angular2-jwt";
 import {Router} from "@angular/router";
 import {Try, Option, None, Some} from "monapt";
 import {environment} from "../../../../environments/environment";
+import {NotificationsService} from "angular2-notifications/dist";
+import {RESTService} from "../../util/rest-service";
 
 @Injectable()
 export class UserService {
 
-  constructor(private http: Http, private router: Router, private log: LoggerService) {
+  constructor(private http: Http, private router: Router, private log: LoggerService, private notify: NotificationsService) {
   }
 
   /** store the URL so we can redirect after logging in */
@@ -25,6 +27,17 @@ export class UserService {
         return Try(() => !this.jwtHelper.isTokenExpired(token)).getOrElse(() => false)
       }
     ).getOrElse(() => false)
+  }
+
+  /** true if db is configured properly */
+  is_db_configured(): any {
+    const user_token_value = this.getAuthToken()["value"].user.db_configuration;
+    if (user_token_value.hasOwnProperty("host") &&
+            user_token_value.hasOwnProperty("port") &&
+            user_token_value.hasOwnProperty("type")) {
+      return true;
+    }
+    return false;
   }
 
   tryTokenRenewal(): Observable<boolean> {
@@ -54,7 +67,7 @@ export class UserService {
       .getOrElse(() => new Date())
   }
 
-  /** tries to log in the user and stores the token in localStorage */
+  /** tries to log in the user and stores the token in sessionStorage */
   login(request: LoginRequest): Observable<boolean> {
     this.log.debug("UserService - starting LoginRequest");
     return this.http.post(environment.backendURL + "/auth/login", request)
@@ -62,6 +75,11 @@ export class UserService {
         this.log.debug("UserService - request successful");
         this.setAuthToken(response.json().token);
         return true;
+      })
+      .catch((error: any) => {
+        const errorMsg = JSON.parse(error._body);
+        this.notify.error("Error", errorMsg.error || errorMsg.message);
+        return Observable.throw(error || 'Server error');
       })
   }
 
@@ -73,12 +91,12 @@ export class UserService {
   /** stores the token*/
   setAuthToken(token: string): void {
     this.log.debug("UserService - storing token");
-    localStorage.setItem('pinyal_token', token)
+    sessionStorage.setItem('oeda_token', token)
   }
 
-  /** returns the token stored in localStorage*/
+  /** returns the token stored in sessionStorage*/
   getAuthTokenRaw(): Option<string> {
-    const token = localStorage.getItem('oeda_token');
+    const token = sessionStorage.getItem('oeda_token');
     if (token == null || token.split('.').length !== 3) {
       return None
     } else {
@@ -88,9 +106,11 @@ export class UserService {
 
   /** logs out the user */
   logout(): void {
+    console.log("UserService - removing token");
     this.log.debug("UserService - removing token");
-    localStorage.removeItem('oeda_token');
-    this.router.navigate(['/auth/login'])
+    sessionStorage.removeItem('oeda_token');
+    console.log(sessionStorage.getItem('oeda_token'));
+    this.router.navigate(['/'])
   }
 
   /** checks if a user has a given permission */
@@ -132,14 +152,14 @@ export class Permission {
 
 /** request for logging in */
 export interface LoginRequest {
-  email: string,
+  username: string,
   password: string
 }
 
 /** the format of tokens we use for auth*/
 export interface JWTToken {
   id: string,
-  email: string,
+  value: string,
   roles: string[],
   representsArtists: string[],
   monitorsArtists: string[],

@@ -17,8 +17,4 @@ export class UserLayoutComponent {
     this.contentHeight = window.innerHeight - this.FOOTER_HEIGHT;
     this.token = userService.getAuthToken().getOrElse(() => null)
   }
-
-  logout() {
-    this.userService.logout()
-  }
 }

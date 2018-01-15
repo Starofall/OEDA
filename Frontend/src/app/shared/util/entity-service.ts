@@ -1,7 +1,7 @@
 import {NotificationsService} from "angular2-notifications";
 import {LoggerService} from "../modules/helper/logger.service";
 import {Injectable} from "@angular/core";
-import {Entity, OedaCallbackEntity} from "../modules/api/oeda-api.service";
+import {Entity, OedaCallbackEntity, UserEntity} from "../modules/api/oeda-api.service";
 import {isNullOrUndefined} from "util";
 
 @Injectable()
@@ -229,6 +229,14 @@ export class EntityService {
       stage_counter: null,
       current_knob: new Map<string, number>(),
       remaining_time_and_stages: new Map<any, any>()
+    };
+  }
+
+  public create_user_entity(): UserEntity {
+    return {
+      name: "",
+      password: "",
+      db_configuration: new Map<string, string>()
     };
   }
 

@@ -1,6 +1,6 @@
 import {Routes} from "@angular/router";
 import {UserLayoutComponent} from "./layout/user-layout.component";
-import {UserRouteGuard} from "../shared/modules/auth/staff-routeguard.service";
+import {UserRouteGuard} from "../shared/modules/auth/user-routeguard.service";
 import {DashboardComponent} from "./dashboard/dashboard.component";
 import {TargetsComponent} from "./targets/targets.component";
 import {ConfigurationComponent} from "./configuration/configuration.component";

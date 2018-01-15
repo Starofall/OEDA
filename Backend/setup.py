@@ -18,6 +18,7 @@ setup(
         'statsmodels',
         'numpy',
         'requests',
-        'rpy2==2.7.8'
+        'rpy2==2.7.8',
+        'pyjwt'
     ]
 )

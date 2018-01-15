@@ -13,52 +13,50 @@ class ElasticSearchDb(Database):
 
     def __init__(self, host, port, db_config):
         self.es = Elasticsearch([{"host": host, "port": port}])
-
-        if not self.es.ping():
-            error("cannot connect to elasticsearch cluster. Check database configuration in config.json.")
-            exit(0)
-
-        index = db_config["index"]
-        self.index = index["name"]
-
-        stage_type = db_config["stage_type"]
-        self.stage_type_name = stage_type["name"]
-
-        analysis_type = db_config["analysis_type"]
-        self.analysis_type_name = analysis_type["name"]
-
-        data_point_type = db_config["data_point_type"]
-        self.data_point_type_name = data_point_type["name"]
-
-        target_system_type = db_config["target_system_type"]
-        self.target_system_type_name = target_system_type["name"]
-
-        experiment_system_type = db_config["experiment_type"]
-        self.experiment_type_name = experiment_system_type["name"]
-
-        mappings = dict()
-        # user can specify an type without a mapping (dynamic mapping)
-        if "mapping" in stage_type:
-            mappings[self.stage_type_name] = stage_type["mapping"]
-        if "mapping" in analysis_type:
-            mappings[self.analysis_type_name] = analysis_type["mapping"]
-        if "mapping" in data_point_type:
-            mappings[self.data_point_type_name] = data_point_type["mapping"]
-
-        body = dict()
-        if "settings" in index:
-            body["settings"] = index["settings"]
-        if mappings:
-            body["mappings"] = mappings
-
         try:
-            self.indices_client = IndicesClient(self.es)
-            if not self.indices_client.exists(self.index):
-                self.indices_client.create(index=self.index, body=body)
-        except TransportError:
-            error("Error while creating elasticsearch. Check type mappings in config.json.")
-            print(traceback.format_exc())
-            exit(0)
+            if self.es.ping():
+                index = db_config["index"]
+                self.index = index["name"]
+
+                stage_type = db_config["stage_type"]
+                self.stage_type_name = stage_type["name"]
+
+                analysis_type = db_config["analysis_type"]
+                self.analysis_type_name = analysis_type["name"]
+
+                data_point_type = db_config["data_point_type"]
+                self.data_point_type_name = data_point_type["name"]
+
+                target_system_type = db_config["target_system_type"]
+                self.target_system_type_name = target_system_type["name"]
+
+                experiment_system_type = db_config["experiment_type"]
+                self.experiment_type_name = experiment_system_type["name"]
+
+                mappings = dict()
+                # user can specify an type without a mapping (dynamic mapping)
+                if "mapping" in stage_type:
+                    mappings[self.stage_type_name] = stage_type["mapping"]
+                if "mapping" in analysis_type:
+                    mappings[self.analysis_type_name] = analysis_type["mapping"]
+                if "mapping" in data_point_type:
+                    mappings[self.data_point_type_name] = data_point_type["mapping"]
+
+                body = dict()
+                if "settings" in index:
+                    body["settings"] = index["settings"]
+                if mappings:
+                    body["mappings"] = mappings
+
+
+                self.indices_client = IndicesClient(self.es)
+                if not self.indices_client.exists(self.index):
+                    self.indices_client.create(index=self.index, body=body)
+            else:
+                raise ConnectionError("Host/port values are not valid")
+        except TransportError as err1:
+            error("Error while creating elasticsearch for experiments. Check type mappings for experiments in experiment_db_config.json.")
+            raise err1
 
     def save_target(self, target_system_id, target_system_data):
         target_system_data["created"] = datetime.now().isoformat(' ')
@@ -66,9 +64,9 @@ class ElasticSearchDb(Database):
         try:
             self.es.index(index=self.index, doc_type=self.target_system_type_name, id=target_system_id, body=target_system_data)
         except ConnectionError:
-            error("Error while saving rtx_run data in elasticsearch. Check connection to elasticsearch and restart.")
+            error("Error while saving target system in elasticsearch. Check connection to elasticsearch and restart.")
         except TransportError:
-            error("Error while creating elasticsearch. Check type mappings in config.json.")
+            error("Error while saving target system in elasticsearch. Check type mappings in experiment_db_config.json.")
             print(traceback.format_exc())
         return target_system_data
 
@@ -133,7 +131,7 @@ class ElasticSearchDb(Database):
         try:
             self.es.index(index=self.index, doc_type=self.stage_type_name, body=body, id=stage_id, parent=experiment_id)
         except ConnectionError:
-            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+            error("Error while saving stage in elasticsearch. Check connection to elasticsearch.")
 
     def get_stages(self, experiment_id):
         query = {
@@ -153,7 +151,7 @@ class ElasticSearchDb(Database):
             res = self.es.search(index=self.index, doc_type=self.stage_type_name, body=query, size=10000, sort='created')
             return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
-            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+            error("Error while getting stages from elasticsearch. Check connection to elasticsearch.")
 
     def get_stages_after(self, experiment_id, timestamp):
         query = {
@@ -181,7 +179,7 @@ class ElasticSearchDb(Database):
             res = self.es.search(index=self.index, doc_type=self.stage_type_name, body=query, sort='created')
             return [r["_id"] for r in res["hits"]["hits"]], [r["_source"] for r in res["hits"]["hits"]]
         except ConnectionError:
-            error("Error while saving data point data in elasticsearch. Check connection to elasticsearch.")
+            error("Error while getting stage data from elasticsearch. Check connection to elasticsearch.")
 
     def save_data_point(self, payload, data_point_count, experiment_id, stage_no):
         data_point_id = Database.create_data_point_id(experiment_id, stage_no, data_point_count)

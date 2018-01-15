@@ -1,0 +1,22 @@
+{
+  "db_type": "elasticsearch",
+  "host": "localhost",
+  "port": 9200,
+  "index": {
+    "name": "rtx_users",
+    "settings" : {
+      "number_of_shards" : 1,
+      "number_of_replicas" : 1
+    }
+  },
+  "user_type": {
+    "name": "user",
+    "mapping": {
+      "properties": {
+        "name":              { "type": "keyword" },
+        "password":          { "type": "text"    },
+        "db_configuration":  { "type": "object"  }
+      }
+    }
+  }
+}

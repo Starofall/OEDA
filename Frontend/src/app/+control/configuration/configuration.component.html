@@ -3,8 +3,8 @@
     <div class="panel panel-default">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">System Configuration</div>
-          <div class="pull-right">
+          <div class="title pull-left">Database Configuration for Experiments</div>
+          <div class="pull-right" *ngIf="!save_button_clicked">
             <div *ngIf="hasChanges()" (click)="revertChanges()" class="btn btn-sm btn-default"><i
               class="fa fa-recycle"></i> Revert Changes
             </div>
@@ -18,7 +18,13 @@
         </div>
       </div>
       <div class="panel-body">
-       <labeled-input name="Database Connection" [model]="configuration" key="database"></labeled-input>
+        <labeled-input name="Database Host" [model]="configuration" key="host"></labeled-input>
+        <labeled-input name="Database Port" [model]="configuration" key="port" inputType="number" [minNumber]="1" [maxNumber]="65535"></labeled-input>
+        <labeled-input-select name="Database Type" [model]="configuration" key="type" [colSize]="12" [options]="[{key:'elasticsearch',label:'ElasticSearch'}]"></labeled-input-select>
+        <div class="col-md-6" *ngIf="save_button_clicked">
+          <i class="fa fa-spinner fa-pulse fa-3x fa-fw" style="padding-top: 10%"></i>
+          <p>Please wait...</p>
+        </div>
       </div>
     </div>
   </div>

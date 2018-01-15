@@ -6,7 +6,18 @@
           <div class="title pull-left">All Experiments</div>
         </div>
       </div>
-      <div class="panel-body">
+
+      <div class="panel-body" *ngIf="!is_db_configured" style="padding-top: 20px">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="sub-title">Experiments database is not configured yet.
+              <a (click)="navigateToConfigurationPage()"> please configure it here </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body" *ngIf="is_db_configured">
         <div class="table-responsive">
           <table style="margin-top: 20px" class="table table-striped" [mfData]="experiments" #mf="mfDataTable"
                [mfRowsOnPage]="10" >

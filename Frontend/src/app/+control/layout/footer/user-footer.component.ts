@@ -11,11 +11,11 @@ export class UserFooterComponent implements OnInit {
   }
 
   sessionExpires: Date;
-  email: string;
+  value: string;
 
   ngOnInit() {
     this.sessionExpires = this.user.sessionExpiresDate()
-    this.email = this.user.getAuthToken().map(t => t.email).getOrElse(() => "")
+    this.value = this.user.getAuthToken().map(t => t.value).getOrElse(() => "")
   }
 
 }

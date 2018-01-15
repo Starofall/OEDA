@@ -5,7 +5,7 @@
 
 export const environment = {
   production: false,
-  logLevel: 5,
+  logLevel: 1,
   backendURL: "http://localhost:5000/api",
   configBackendURL: "http://localhost:5000/api/config"
 };

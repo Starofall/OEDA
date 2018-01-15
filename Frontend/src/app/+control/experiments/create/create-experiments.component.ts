@@ -25,8 +25,8 @@ export class CreateExperimentsComponent implements OnInit {
   stages_count: any;
 
   constructor(private layout: LayoutService, private api: OEDAApiService,
-              private router: Router, private route: ActivatedRoute,
-              private notify: NotificationsService, private temp_storage: TempStorageService) {
+              private router: Router, private notify: NotificationsService,
+              private temp_storage: TempStorageService) {
     this.availableTargetSystems = [];
     this.initialVariables = [];
 

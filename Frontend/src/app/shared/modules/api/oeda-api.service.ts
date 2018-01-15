@@ -75,10 +75,21 @@ export class OEDAApiService extends RESTService {
     return this.doGETPublicRequest("/configuration")
   }
 
-  public saveConfiguration(configuration: Configuration): Observable<any> {
-    return this.doPOSTPublicRequest("/configuration", configuration)
+  public updateUser(user: UserEntity): Observable<any> {
+    return this.doPOSTPublicRequest("/user/" + user.name, user);
   }
 
+  public loadUserByName(user: UserEntity): Observable<any> {
+    return this.doGETPublicRequest("/user" + user.name);
+  }
+
+  public loadAllUsers(user: UserEntity): Observable<any> {
+    return this.doGETPublicRequest("/users" )
+  }
+
+  public registerUser(user: UserEntity): Observable<any> {
+    return this.doPOSTPublicRequest("/auth/register", user);
+  }
 }
 
 export interface Experiment {
@@ -131,5 +142,13 @@ export interface OedaCallbackEntity {
 }
 
 export interface Configuration {
-  database: any
+  host: string,
+  port: number,
+  type: string
+}
+
+export interface UserEntity {
+  name: string,
+  password: string,
+  db_configuration: Map<string, string>
 }

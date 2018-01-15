@@ -75,9 +75,10 @@ export class RESTService {
     return this.http.get(this.baseURL + url, this.requestOptions)
       .map((res: Response) => res.json())
       .catch((error: any) => {
-        this.notify.error("Server Error", "Action did not work")
-        this.log.error("GET@" + url, error)
-        return Observable.throw(error || 'Server error')
+        const errorMsg = JSON.parse(error._body);
+        this.notify.error("Error", errorMsg.error || errorMsg.message);
+        this.log.error("GET@" + url, error);
+        return Observable.throw(error || 'Server error');
       })
   }
 
@@ -87,10 +88,19 @@ export class RESTService {
       .map((res: Response) => res.json())
       .catch((error: any) => {
         const errorMsg = JSON.parse(error._body);
-        console.log("errorMsg", errorMsg);
-        this.notify.error("Error", errorMsg.error);
-        // this.notify.error("Server Error", "Action did not work");
+        this.notify.error("Error", errorMsg.error || errorMsg.message);
         this.log.error("GET@" + url, error);
+        return Observable.throw(error || 'Server error');
+      })
+  }
+
+  /** does a public http get request to the given host and port for checking if db is configured properly or not */
+  public doGETPublicRequestForDatabaseConfigValidity<T>(host: string, port: string): Observable<T> {
+    return this.http.get("http://" + host + ":" + port, this.requestOptions)
+      .map((res: Response) => res.json())
+      .catch((error: any) => {
+        const errorMsg = JSON.parse(error._body);
+        this.notify.error("Error", errorMsg.error || errorMsg.message);
         return Observable.throw(error || 'Server error');
       })
   }
@@ -100,21 +110,21 @@ export class RESTService {
     return this.http.post(this.baseURL + url, this.createCleanJSON(object), this.requestOptions)
       .catch((error: any) => {
         const errorMsg = JSON.parse(error._body);
-        console.log("errorMsg", errorMsg);
-        this.notify.error("Error", errorMsg.error);
+        this.notify.error("Error", errorMsg.error || errorMsg.message);
         error.object = object; // add post object to error
         this.log.error("POST@" + url, error);
-        return Observable.throw(error || 'Server error')
+        return Observable.throw(error || 'Server error');
       })
   }
 
   public doPUTPublicRequest<T>(url: string, object: any): Observable<T> {
     return this.http.put(this.baseURL + url, this.createCleanJSON(object), this.requestOptions)
       .catch((error: any) => {
-        this.notify.error("Server Error", "Action did not work")
-        error.object = object // add post object to error
-        this.log.error("PUT@" + url, error)
-        return Observable.throw(error || 'Server error')
+        const errorMsg = JSON.parse(error._body);
+        this.notify.error("Error", errorMsg.error || errorMsg.message);
+        error.object = object; // add post object to error
+        this.log.error("PUT@" + url, error);
+        return Observable.throw(error || 'Server error');
       })
   }
 }

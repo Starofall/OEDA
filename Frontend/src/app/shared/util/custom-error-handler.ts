@@ -10,10 +10,11 @@ export class CustomErrorHandler implements ErrorHandler {
 
   // handles exceptions in angular2 and forwards them to eventq
   handleError(error) {
-    // this.log.error("RUNTIME_ERROR", error)
-    // this.notify.error("Application Error", "Please reload...")
-    console.log("-ERROR-")
-    console.error(error)
+    this.log.error("RUNTIME_ERROR", error);
+    // error = error.json();
+    // this.notify.error("Error", error.message || error.error);
+    console.log("-ERROR-");
+    console.error(error);
   }
 }
 

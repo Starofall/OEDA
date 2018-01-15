@@ -6,21 +6,66 @@
           <div class="navbar-brand" style="float: none;text-align: center;font-size: xx-large;color:#F36A5A" href="#"><strong><i class="icon fa fa-cog"></i>EDA Platform</strong>
           </div>
           <hr>
-          <h3 class="panel-title" style="text-align: center">Please sign in</h3>
         </div>
         <div class="panel-body">
-          <form accept-charset="UTF-8" role="form">
+          <form accept-charset="UTF-8" role="form" class="form-signin">
             <fieldset>
+
               <div class="form-group">
-                <input class="form-control" placeholder="E-mail" name="email" type="text">
+                <label for="username" class="cols-sm-2 control-label">Username</label>
+                <div class="cols-sm-10">
+                  <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
+                    <input type="text" class="form-control" name="username" id="username"  placeholder="Enter your Username" [(ngModel)]="user.name"/>
+                  </div>
+                </div>
               </div>
+
               <div class="form-group">
-                <input class="form-control" placeholder="Password" name="password" type="password" value="">
+                <label for="password" class="cols-sm-2 control-label">Password</label>
+                <div class="cols-sm-10">
+                  <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
+                    <input type="password" class="form-control" name="password" id="password"  placeholder="Enter your Password" [(ngModel)]="user.password"/>
+                  </div>
+                </div>
               </div>
+
+              <!--<div class="form-group">-->
+                <!--<input class="form-control" placeholder="Username" name="username" type="text" >-->
+              <!--</div>-->
+              <!--<div class="form-group">-->
+                <!--<input class="form-control" placeholder="Password" name="password" type="password" [(ngModel)]="user.password">-->
+              <!--</div>-->
               <!--<input class="navbar-brand btn btn-lg btn-default btn-block"  type="submit" value="Login">-->
-              <a routerLink="control" class="navbar-brand btn btn-lg btn-default btn-block">Login</a>
+              <!--<a routerLink="control" class="navbar-brand btn btn-lg btn-default btn-block">Sign in</a>-->
+              <button type="button" class="navbar-brand btn btn-lg default btn-block"
+                      (click)="submitLogin()" style="padding-bottom: 5%">Sign in
+              </button>
+              <hr>
+              <p></p>
+              <button type="button" class="navbar-brand btn btn-lg btn-primary btn-block"
+                      (click)="submitRegistration()"   style="padding-bottom: 5%">Register
+              </button>
             </fieldset>
           </form>
+          <!--<form accept-charset="UTF-8" role="form" [hidden]="register_is_collapsed">-->
+            <!--<div class="form-group">-->
+              <!--User Registration-->
+            <!--</div>-->
+            <!--<fieldset>-->
+              <!--<div class="form-group">-->
+                <!--<input class="form-control" placeholder="Username" name="username" type="text" required>-->
+              <!--</div>-->
+              <!--<div class="form-group">-->
+                <!--<input class="form-control" placeholder="Password" name="password" type="password" value="" required>-->
+              <!--</div>-->
+              <!--<input class="navbar-brand btn btn-lg btn-default btn-block" type="submit" value="Submit" (click)="submitRegistration()">-->
+              <!--<button type="button" class="navbar-brand btn btn-lg btn-primary btn-block"-->
+                      <!--(click)="backButtonClicked()"   style="padding-bottom: 5%">Back to Login-->
+              <!--</button>-->
+            <!--</fieldset>-->
+          <!--</form>-->
         </div>
       </div>
     </div>

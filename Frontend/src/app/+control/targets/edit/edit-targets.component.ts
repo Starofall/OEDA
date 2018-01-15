@@ -50,8 +50,8 @@ export class EditTargetsComponent implements OnInit {
         this.target = this.createTarget();
         this.originalTarget = _.cloneDeep(this.target);
 
-        // retrieve config json object via the api provided at localhost:5005/config/oeda
-        this.api.getConfigFromAPI("/oeda").subscribe((config) => {
+        // retrieve config json object via the api provided at localhost:5005/config/crowdnav
+        this.api.getConfigFromAPI("/crowdnav").subscribe((config) => {
             if (!isNullOrUndefined(config)) {
               // open the modal in frontend
               this.availableConfigurations.push(config);

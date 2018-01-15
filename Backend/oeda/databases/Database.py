@@ -33,35 +33,35 @@ class Database:
         pass
 
     def update_experiment_status(self, experiment_id, status):
-        # TODO """  """
+        """ updates experiment status with provided id """
         pass
 
     def update_target_system_status(self, target_system_id, status):
-        # TODO """  """
+        """ updates experiment status with provided id """
         pass
 
     def save_stage(self, stage_no, knobs, experiment_id):
-        # TODO """  """
+        """ saves stage of an OEDA experiment with provided configuration and stage no """
         pass
 
     def get_stages(self, experiment_id):
-        # TODO """  """
+        """ returns all stages of an OEDA experiment with provided id """
         pass
 
     def get_stages_after(self, experiment_id, timestamp):
-        # TODO """  """
+        """ returns all stages of an OEDA experiment that are created after the timestamp """
         pass
 
     def save_data_point(self, payload, data_point_count, experiment_id, stage_no):
-        # TODO """  """
+        """ saves data of the given stage """
         pass
 
     def get_data_points(self, experiment_id, stage_no):
-        # TODO is this correct? : """ Returns data_points whose parent is the concatenated stage_id """
+        """ returns data_points whose parent is the concatenated stage_id (see create_stage_id) """
         pass
 
     def get_data_points_after(self, experiment_id, stage_no, timestamp):
-        # TODO """  """
+        """ returns data_points that are created after the given timestamp. Data points' parents are the concatenated stage_id (see create_stage_id) """
         pass
 
     @staticmethod

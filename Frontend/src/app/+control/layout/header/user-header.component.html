@@ -39,13 +39,13 @@
     <!-- /.dropdown -->
     <li id="userDropdown" class="dropdown">
       <a style="color: #ee6f5d" class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-        <i class="fa fa-user fa-fw"></i>Max Mustermann <i class="fa fa-caret-down"></i>
+        <i class="fa fa-user fa-fw"></i>{{username}}<i class="fa fa-caret-down"></i>
       </a>
       <ul class="dropdown-menu dropdown-user">
-        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a></li>
-        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a></li>
-        <li class="divider"></li>
-        <li><a href="#"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+        <!--<li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a></li>-->
+        <!--<li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a></li>-->
+        <!--<li class="divider"></li>-->
+        <li><a href="#" (click)=logout()><i class="fa fa-sign-out fa-fw"></i>Logout</a>
         </li>
       </ul>
       <!-- /.dropdown-user -->

@@ -27,18 +27,26 @@ export class UserHeaderComponent {
   header = {
     name: "",
     description: ""
+  };
+
+  runningExperiments = [];
+
+  username = "";
+
+  constructor(private userService: UserService, private layout: LayoutService, api: OEDAApiService) {
+    this.header = this.layout.header;
+    this.username = this.userService.getAuthToken()['value'].user.name;
+    // if user has configured the db configuration for experiments, fetch them
+    if (this.userService.is_db_configured()) {
+      api.loadAllExperiments().subscribe(
+        (data) => {
+          this.runningExperiments = data.filter(value => value.status === "RUNNING")
+        }
+      );
+    }
   }
 
-  runningExperiments = []
-
-  constructor(private user: UserService, private layout: LayoutService, api: OEDAApiService) {
-    this.header = this.layout.header
-    api.loadAllExperiments().subscribe(
-      (data) => {
-        this.runningExperiments = data.filter(value => value.status === "RUNNING")
-      }
-    )
+  public logout() {
+    this.userService.logout();
   }
-
-
 }

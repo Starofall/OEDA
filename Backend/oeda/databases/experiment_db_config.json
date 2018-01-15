@@ -78,7 +78,7 @@
         "name":         { "type": "keyword"  },
         "description":  { "type": "text"     },
         "status":       { "type": "keyword"  },
-        "created":  { "type": "date", "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"}
+        "created":      { "type": "date", "format": "yyyy-MM-dd HH:mm:ss.SSSSSS"}
       }
     }
   }

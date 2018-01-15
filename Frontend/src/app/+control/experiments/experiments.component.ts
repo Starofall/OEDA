@@ -2,18 +2,35 @@ import {Component, Injectable, AfterViewInit} from '@angular/core';
 import {NotificationsService} from "angular2-notifications";
 import {LayoutService} from "../../shared/modules/helper/layout.service";
 import {OEDAApiService} from "../../shared/modules/api/oeda-api.service";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {isNullOrUndefined} from "util";
 import {TempStorageService} from "../../shared/modules/helper/temp-storage-service";
+import {UserService} from "../../shared/modules/auth/user.service";
 
 @Component({
   selector: 'control-experiments',
   templateUrl: './experiments.component.html',
 })
 export class ExperimentsComponent {
-  constructor(private layout: LayoutService, private api: OEDAApiService, private router: ActivatedRoute, private notify: NotificationsService, private temp_storage: TempStorageService) {
+
+  public is_db_configured: boolean;
+
+  constructor (
+                private layout: LayoutService,
+                private api: OEDAApiService,
+                private router: Router,
+                private notify: NotificationsService,
+                private temp_storage: TempStorageService,
+                private userService: UserService,
+                private activatedRoute: ActivatedRoute) {
     const ctrl = this;
-    router.params.subscribe(Event => {
+    // redirect user to configuration page if it's not configured yet.
+    ctrl.is_db_configured = ctrl.userService.is_db_configured();
+
+    if (!ctrl.is_db_configured ) {
+        return;
+    }
+    activatedRoute.params.subscribe(Event => {
       ctrl.fetch_experiments();
     });
   }
@@ -53,5 +70,9 @@ export class ExperimentsComponent {
 
       }
     )
+  }
+
+  navigateToConfigurationPage() {
+    this.router.navigate(["control/configuration"]);
   }
 }

@@ -13,7 +13,7 @@ import {LoggerService} from "./modules/helper/logger.service";
 import {TempStorageService} from "./modules/helper/temp-storage-service";
 import {UserService} from "./modules/auth/user.service";
 import {LayoutService} from "./modules/helper/layout.service";
-import {UserRouteGuard} from "./modules/auth/staff-routeguard.service";
+import {UserRouteGuard} from "./modules/auth/user-routeguard.service";
 import {UtilModule} from "./modules/util/util.module";
 import {DataTableModule} from "angular2-datatable";
 import {DataService} from "./util/data-service";

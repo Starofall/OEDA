@@ -5,33 +5,8 @@ from oeda.crowdnav_config import Config
 import traceback
 import json
 
-config = {
 
-}
-
-
-class ConfigurationController(Resource):
-
-    @staticmethod
-    def get():
-        try:
-            return config
-        except:
-            return {"error": "not found"}, 404
-
-    @staticmethod
-    def post():
-        content = request.get_json()
-        global config
-        config = content
-        return {}, 200
-
-
-# TODO is this comment correct?
-# returns _oedaCallback as an API from localhost:5000/api/config/oeda
-# TODO Shouldn't this class be named CrowdNavConfigController or similar?
-class OEDAConfigController(Resource):
-
+class CrowdNavConfigController(Resource):
     @staticmethod
     def get():
         try:

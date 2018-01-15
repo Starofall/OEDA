@@ -12,28 +12,28 @@ import {NotificationsService} from "angular2-notifications/dist";
 @Injectable()
 export class UserRouteGuard implements CanActivate, CanLoad, CanActivateChild {
 
-  constructor(private router: Router, private logger: LoggerService, private userService: UserService, private notifiy: NotificationsService) {
+  constructor(private router: Router, private logger: LoggerService, private userService: UserService, private notify: NotificationsService) {
   }
 
   doUserCheck(state: RouterStateSnapshot): Observable<boolean> {
-    if (this.userService.isLoggedIn()) { // @todo readd this && this.userService.userIsInGroup("PINYAL_STAFF")
-      this.logger.debug("RouteGuard - User is authed")
-      return Observable.of(true)
+    if (this.userService.isLoggedIn()) {
+      this.logger.debug("RouteGuard - User is authed");
+      return Observable.of(true);
     } else {
       if (this.userService.getAuthTokenRaw().isEmpty) {
-        this.logger.debug("RouteGuard - User has no auth token, direct send him to login")
-        this.router.navigate(['/'], {queryParams: {returnUrl: state.url}})
-        return Observable.of(false)
+        this.logger.debug("RouteGuard - User has no auth token, direct send him to login");
+        this.router.navigate(['/'], {queryParams: {returnUrl: state.url}});
+        return Observable.of(false);
       } else {
-        this.logger.debug("RouteGuard - User auth expired - try to reauth")
+        this.logger.debug("RouteGuard - User auth expired - try to reauth");
         this.userService.tryTokenRenewal().subscribe(
           (worked) => {
-            this.logger.debug("RouteGuard - re-auth worked")
-            this.router.navigate([state.url])
+            this.logger.debug("RouteGuard - re-auth worked");
+            this.router.navigate([state.url]);
             return true
           },
           (failed) => {
-            this.router.navigate(['/'], {queryParams: {returnUrl: state.url}})
+            this.router.navigate(['/'], {queryParams: {returnUrl: state.url}});
             return false
           }
         )
