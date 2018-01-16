@@ -37,7 +37,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   private first_render_of_plots: boolean;
   private experiment_ended: boolean;
   private timestamp: string;
-  private incoming_data_type_name: string;
+
 
   private all_data: Entity[];
 
@@ -59,6 +59,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   public is_enough_data_for_plots: boolean;
   public is_all_stages_selected: boolean;
 
+  public incoming_data_type_name: string;
 
   public available_stages = [];
   public available_stages_for_qq_js = [];
@@ -130,7 +131,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               if (!isNullOrUndefined(targetSystem)) {
                 this.targetSystem = targetSystem;
                 this.targetSystem.id = this.experiment.targetSystemId;
-                this.incoming_data_type_name = targetSystem.incomingDataTypes[0]["name"].toString();
+                console.log("targetSYstem types", this.targetSystem.incomingDataTypes);
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
@@ -148,7 +149,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
                     // polling using Timer (2 sec interval) for real-time data visualization
                     this.timer = Observable.timer(1000, 2000);
-
                     this.subscription = this.timer.subscribe(t => {
                       this.fetch_oeda_callback();
                     });
@@ -170,6 +170,8 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
   private fetch_oeda_callback() {
     const ctrl = this;
+    // also set "polling-on" button disabled, because polling is already on
+    document.getElementById("polling_on_button").setAttribute('disabled', 'true');
 
     ctrl.apiService.getOedaCallback(ctrl.experiment_id).subscribe(oedaCallback => {
       if(!isNullOrUndefined(oedaCallback)) {
@@ -266,6 +268,17 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
           new_entity.knobs = parsed_json_object['knobs'];
           // we retrieve stages and data points in following format
           // e.g. [ 0: {number: 1, values: ..., knobs: [...]}, 1: {number: 2, values: ..., knobs: [...] }...]
+          // tries to set the initially-selected incoming data type name by looking at the payload
+          for (let j = 0; j < this.targetSystem.incomingDataTypes.length; j++) {
+            const candidate_incoming_data_type_name = this.targetSystem.incomingDataTypes[j]["name"].toString();
+            // TODO: refactor using is_data_type_disabled fcn
+            if (new_entity.values[0]["payload"].hasOwnProperty(candidate_incoming_data_type_name)) {
+              this.incoming_data_type_name = candidate_incoming_data_type_name;
+              console.log("candidate", candidate_incoming_data_type_name);
+              break;
+            }
+          }
+
           if (new_entity.values.length != 0) {
             ctrl.all_data.push(new_entity);
           }
@@ -384,10 +397,42 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
     this.stage_changed();
   }
 
+  /** called when incoming data type of the target system is changed */
+  incoming_data_type_changed(i) {
+    console.log("i in incoming_data_type_changed", i);
+    if (!this.is_data_type_disabled(i)) {
+      // set incoming_data_type name, so that subsequent polls would draw different plots for different data types
+      this.incoming_data_type_name = i;
+    }
+  }
+
+  /** returns true if payload object of data structure contains selected incoming data type
+      TODO: assumption here: different data types are provided at the same time within the same payload by CrowdNav
+      so, it's reasonable to only look for the first entity (stage) in the controller's data structure to determine
+      if we should disable selection of data type or not.
+   */
+  is_data_type_disabled(incoming_data_type): boolean {
+    const first_stage = this.all_data[0];
+    if (first_stage !== undefined) {
+      if (first_stage.hasOwnProperty("values")) {
+        const first_tuple = first_stage.values;
+        const first_payload = first_tuple[0]["payload"];
+        if (first_payload.hasOwnProperty(incoming_data_type.name)) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+    }
+    return true;
+  }
+
   /** disables polling upon user click, and informs user */
   disable_polling(status: string, content: string) {
     document.getElementById("polling_off_button").setAttribute('class', 'btn btn-primary active');
+    document.getElementById("polling_off_button").setAttribute('disabled', 'true');
     document.getElementById("polling_on_button").setAttribute('class', 'btn btn-default');
+    document.getElementById("polling_on_button").removeAttribute('disabled');
     this.subscription.unsubscribe();
     if (!isNullOrUndefined(status) && !isNullOrUndefined(content)) {
       this.notify.success(status, content);
@@ -399,7 +444,10 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
   /** re-creates the subscription object to periodically fetch data from server */
   enable_polling() {
     document.getElementById("polling_on_button").setAttribute('class', 'btn btn-primary active');
+    document.getElementById("polling_on_button").setAttribute('disabled', 'true');
     document.getElementById("polling_off_button").setAttribute('class', 'btn btn-default');
+    document.getElementById("polling_off_button").removeAttribute('disabled');
+
     this.subscription = this.timer.subscribe(t => {
       this.fetch_oeda_callback();
     });

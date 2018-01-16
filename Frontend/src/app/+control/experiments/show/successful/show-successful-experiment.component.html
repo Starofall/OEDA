@@ -246,13 +246,18 @@
             <div class="title pull-left">Stages of Experiment</div>
           </div>
 
-          <div class="col-md-6">
+          <div class="col-md-3">
+            <div class="title pull-left">Incoming Data Type</div>
+          </div>
+
+          <div class="col-md-3">
             <div class="title pull-left">Scale of Results</div>
           </div>
         </div>
       </div>
       <div class="panel-body" style="padding-top: 20px">
         <div class="row">
+
           <div class="col-md-6">
             <div>
               <select class="form-control" required [(ngModel)]="selected_stage" (change)="stage_changed()">
@@ -270,7 +275,18 @@
               </select>
             </div>
           </div>
-          <div class="col-md-6">
+
+          <div class="col-md-3">
+            <div class="card-title">
+              <select class="form-control" (change)="incoming_data_type_changed($event.target.value)">
+                <option *ngFor="let i of targetSystem.incomingDataTypes" [ngValue]="i.name" [disabled]="is_data_type_disabled(i)">
+                  {{i.name}}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-3">
             <div class="card-title">
               <select class="form-control" required (change)="scale_changed($event.target.value)">
                 <option [selected]="true">Normal</option>

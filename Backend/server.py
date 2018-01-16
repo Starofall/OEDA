@@ -107,5 +107,4 @@ if __name__ == '__main__':
     http_server.listen(5000)
     enable_pretty_logging()
     setup_user_database()
-    # initialize_execution_scheduler(10)
     IOLoop.instance().start()

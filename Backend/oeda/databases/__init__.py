@@ -57,12 +57,12 @@ def setup_experiment_database(db_type, host, port):
 def user_db():
     if not UserDatabase.DB:
         error("You have to setup the user database using experiment_db_config.json file")
-        exit(0)
+        return None
     return UserDatabase.DB
 
 
 def db():
     if not ExperimentDatabase.DB:
         error("You can configure experiment database using Configuration section in the dashboard.")
-        raise ConnectionError
+        return None
     return ExperimentDatabase.DB

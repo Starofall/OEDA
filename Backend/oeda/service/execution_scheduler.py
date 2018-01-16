@@ -7,6 +7,8 @@ from oeda.databases import db
 import traceback
 from oeda.controller.running_experiment_results import set_dict as set_dict
 
+execution_scheduler_timer = None
+
 
 def find_open_experiments():
     ids, experiments = db().get_experiments()
@@ -34,7 +36,8 @@ def get_target_system(target_system_id):
 def initialize_execution_scheduler(period):
     # we start the threaded timer to search for experiments with status "OPEN"
     info("Starting execution scheduler")
-    Timer(period, search_for_open_experiments, [period]).start()
+    global execution_scheduler_timer
+    execution_scheduler_timer = Timer(period, search_for_open_experiments, [period]).start()
 
 
 def search_for_open_experiments(period):
@@ -79,6 +82,7 @@ def kill_experiment(experiment_id):
         print(tb)
         return False
 
+
 def rtx_execution(experiment, target_system, oeda_stop_request):
 
     def oeda_callback(dictionary, experiment_id):
@@ -105,3 +109,20 @@ def rtx_execution(experiment, target_system, oeda_stop_request):
         error("Experiment FAILED - " + experiment["id"] + " - " + str(e))
         set_experiment_status(experiment["id"], "ERROR")
         set_target_system_status(experiment["targetSystemId"], "READY")
+
+
+def get_execution_scheduler_timer():
+    global execution_scheduler_timer
+    return execution_scheduler_timer
+
+
+def kill_execution_scheduler_timer():
+    debug("Killing execution scheduler")
+    try:
+        global execution_scheduler_timer
+        execution_scheduler_timer = None
+        return True
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)
+        return False

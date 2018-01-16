@@ -115,7 +115,6 @@ export class EntityService {
 
   /** parses static response object returned from server, creates new stage-point tuple(s) and pushes them to the all_data (array of json strings) */
   public process_response_for_successful_experiment(response, all_data): Entity[] {
-
     if (isNullOrUndefined(response)) {
       this.notify.error("Error", "Cannot retrieve data from DB, please try again");
       return;

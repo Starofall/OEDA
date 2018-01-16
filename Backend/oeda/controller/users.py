@@ -1,10 +1,11 @@
 from flask import request, jsonify
 from flask_restful import Resource
-from oeda.databases import user_db, setup_experiment_database
+from oeda.databases import user_db, setup_experiment_database, db
 import json, traceback, jwt, requests
 from werkzeug.security import generate_password_hash, check_password_hash
 from elasticsearch.exceptions import ConnectionError
-from oeda.log import *
+from oeda.service.execution_scheduler import initialize_execution_scheduler
+from oeda.service.execution_scheduler import get_execution_scheduler_timer
 
 key = "oeda_jwt_token_secret"
 
@@ -55,6 +56,8 @@ class UserController(Resource):
             if 'host' in content['db_configuration'] and 'port' in content['db_configuration'] and 'type' in content['db_configuration']:
                 setup_experiment_database(str(content['db_configuration']['type']), str(content['db_configuration']['host']), str(content['db_configuration']['port']))
                 user_db().update_user(content)
+                # start execution scheduler using updated config
+                initialize_execution_scheduler(10)
                 resp = jsonify({"message": "Update successful", "token": jwt.encode({"user": content}, key, algorithm="HS256")})
                 resp.status_code = 200
                 return resp
@@ -98,6 +101,16 @@ class UserLoginController(Resource):
                     if check_password_hash(user_info_without_id['password'], password):
                         del user_info_without_id['password']
                         encoded_jwt = jwt.encode({"user": user_info_without_id}, key, algorithm="HS256")
+
+                        if 'host' in user_info_without_id['db_configuration'] and 'port' in user_info_without_id['db_configuration'] and 'type' in user_info_without_id['db_configuration']:
+                            # if user is logged-in, and configured experiments database previously:
+                            # initialize experiment database and start execution scheduler if they are not done before
+                            if db() is None:
+                                setup_experiment_database(str(user_info_without_id['db_configuration']['type']), str(user_info_without_id['db_configuration']['host']), str(user_info_without_id['db_configuration']['port']))
+                            if get_execution_scheduler_timer() is None:
+                                initialize_execution_scheduler(10)
+
+                        # return the usual jwt token
                         return {"token": encoded_jwt}, 200
                     else:
                         return {"message": "Provided credentials are not correct"}, 403

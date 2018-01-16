@@ -60,7 +60,7 @@ export class LandingpageComponent {
       ctrl.userService.login(loginRequest).subscribe(
         (userServiceResponse) => {
           if (userServiceResponse === true) {
-            ctrl.router.navigate(['/control/configuration']);
+            ctrl.router.navigate(['/control/experiments']);
             ctrl.notify.success("Success", "You are signed-in successfully.");
           }
         }

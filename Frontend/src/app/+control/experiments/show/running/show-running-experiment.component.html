@@ -245,11 +245,15 @@
         <div class="panel panel-default chartJs">
           <div class="panel-heading">
             <div class="card-title">
-              <div class="col-md-6">
+              <div class="col-md-5">
                 <div class="title pull-left">Stages of Experiment</div>
               </div>
 
-              <div class="col-md-4">
+              <div class="col-md-3">
+                <div class="title pull-left">Incoming Data Type</div>
+              </div>
+
+              <div class="col-md-2">
                 <div class="title pull-left">Scale of Results</div>
               </div>
 
@@ -261,7 +265,7 @@
           </div>
           <div class="panel-body" style="padding-top: 20px">
             <div class="row">
-              <div class="col-md-6">
+              <div class="col-md-5">
                 <div>
                   <select class="form-control" required [(ngModel)]="selected_stage" (change)="stage_changed()">
                     <option *ngFor="let i of available_stages; let first_stage = first;" [ngValue]="i">
@@ -278,7 +282,18 @@
                   </select>
                 </div>
               </div>
-              <div class="col-md-4">
+
+              <div class="col-md-3">
+                <div class="card-title">
+                  <select class="form-control" (change)="incoming_data_type_changed($event.target.value)">
+                    <option *ngFor="let i of targetSystem.incomingDataTypes" [ngValue]="i.name" [disabled]="is_data_type_disabled(i)">
+                      {{i.name}}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-md-2">
                 <div class="card-title">
                   <select class="form-control" required (change)="scale_changed($event.target.value)">
                     <option [selected]="true">Normal</option>
@@ -286,6 +301,7 @@
                   </select>
                 </div>
               </div>
+
               <div class="col-md-2">
                 <div class="card-title">
                   <div class="btn-group btn-toggle">

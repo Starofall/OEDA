@@ -103,7 +103,6 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
             this.apiService.loadTargetById(experiment.targetSystemId).subscribe(targetSystem => {
               if (!isNullOrUndefined(targetSystem)) {
                 this.targetSystem = targetSystem;
-                this.incoming_data_type_name = targetSystem.incomingDataTypes[0]["name"].toString();
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
@@ -140,6 +139,16 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
     const ctrl = this;
 
     if (stage_object !== undefined && stage_object.length !== 0) {
+      // before drawing plots, it tries to set the initially-selected incoming data type name by looking at the payload
+      for (let j = 0; j < ctrl.targetSystem.incomingDataTypes.length; j++) {
+        const candidate_incoming_data_type_name = this.targetSystem.incomingDataTypes[j]["name"].toString();
+        // TODO: refactor using is_data_type_disabled fcn
+        if (JSON.parse(this.all_data[0].toString()).values[0]["payload"].hasOwnProperty(candidate_incoming_data_type_name)) {
+          this.incoming_data_type_name = candidate_incoming_data_type_name;
+          break;
+        }
+      }
+
       // draw graphs for all_data
       if (ctrl.selected_stage.number === -1) {
         let processedData = ctrl.entityService.process_all_stage_data(stage_object, "timestamp", "value", ctrl.scale, ctrl.incoming_data_type_name, true);
@@ -255,6 +264,39 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
         this.draw_all_plots(this.all_data);
       }
     );
+  }
+
+  /** called when incoming data type of the target system is changed */
+  incoming_data_type_changed(i) {
+    console.log("i in incoming_data_type_changed", i);
+    if (!this.is_data_type_disabled(i)) {
+      // set incoming_data_type name, so that subsequent polls would draw different plots for different data types
+      this.incoming_data_type_name = i;
+      this.draw_all_plots(this.all_data);
+    }
+  }
+
+  /** returns true if payload object of data structure contains selected incoming data type
+   TODO: assumption here: different data types are provided at the same time within the same payload by CrowdNav
+   so, it's reasonable to only look for the first entity (stage) in the controller's data structure to determine
+   if we should disable selection of data type or not.
+   */
+  is_data_type_disabled(incoming_data_type): boolean {
+    let first_stage = this.all_data[0];
+    if (first_stage !== undefined) {
+      first_stage = JSON.parse(first_stage.toString());
+      if (first_stage.hasOwnProperty("values")) {
+        const first_tuple = first_stage.values;
+        const first_payload = first_tuple[0]["payload"];
+        console.log("first_payload", first_payload);
+        if (first_payload.hasOwnProperty(incoming_data_type.name)) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+    }
+    return true;
   }
 
 }
