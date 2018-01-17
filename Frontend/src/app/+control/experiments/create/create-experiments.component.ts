@@ -209,18 +209,18 @@ export class CreateExperimentsComponent implements OnInit {
         this.experiment.executionStrategy.optimizer_random_starts = Number(this.experiment.executionStrategy.optimizer_random_starts);
         console.log(this.experiment);
       }
-      // this.api.saveExperiment(this.experiment).subscribe(
-      //   (success) => {
-      //     this.notify.success("Success", "Experiment saved");
-      //     // this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
-      //     //   console.log("navigated to newly created experiment running page");
-      //     // });
-      //     this.temp_storage.setNewValue(this.experiment);
-      //     this.router.navigate(["control/experiments"])
-      //   }, (error) => {
-      //     this.notify.success("Error", error.toString());
-      //   }
-      // )
+      this.api.saveExperiment(this.experiment).subscribe(
+        (success) => {
+          this.notify.success("Success", "Experiment saved");
+          // this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
+          //   console.log("navigated to newly created experiment running page");
+          // });
+          this.temp_storage.setNewValue(this.experiment);
+          this.router.navigate(["control/experiments"])
+        }, (error) => {
+          this.notify.success("Error", error.toString());
+        }
+      )
     }
   }
 

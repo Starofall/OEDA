@@ -20,6 +20,10 @@ def start_random_strategy(wf):
         variables += [key]
         range_tuples += [(knobs[key][0], knobs[key][1])]
 
+    info("> RandomStrategy   | wf.totalExperiments" + str(wf.totalExperiments), Fore.CYAN)
+    info("> RandomStrategy   | knobs" + str(knobs), Fore.CYAN)
+    info("> RandomStrategy   | range_tuples" + str(range_tuples), Fore.CYAN)
+
     # we give the minimization function a callback to execute
     # it uses the return value (it tries to minimize it) to select new knobs to test
     # TODO: use mlrMBO or https://github.com/fmfn/BayesianOptimization

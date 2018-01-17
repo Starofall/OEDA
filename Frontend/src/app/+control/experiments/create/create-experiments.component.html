@@ -338,7 +338,7 @@
                 <labeled-input name="Name" [model]="input" key="name" [colSize]="4" disabled="true"></labeled-input>
                 <labeled-input inputType="number" name="Min" [model]="input" key="min" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
                 <labeled-input inputType="number" name="Max" [model]="input" key="max" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
-                <labeled-input inputType="number" name="Step Size" [model]="input" key="step" [colSize]="2" (modelChanged)="stepSizeChanged($event)"></labeled-input>
+                <labeled-input *ngIf="experiment.executionStrategy.type == 'step_explorer'" inputType="number" name="Step Size" [model]="input" key="step" [colSize]="2" (modelChanged)="stepSizeChanged($event)"></labeled-input>
                 <div class="col-md-3 pull-left">
                   <div (click)="removeChangeableVariable(i, input)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i>Remove</div>
                 </div>

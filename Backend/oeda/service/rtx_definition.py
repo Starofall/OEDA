@@ -28,6 +28,9 @@ class RTXDefinition:
         self.primary_data_provider = primary_data_provider
         self.change_provider = oeda_target["changeProvider"]
         execution_strategy = oeda_experiment["executionStrategy"]
+
+        # TODO: knob_value[2] is only provided in step_explorer strategy?
+        # if execution_strategy["type"] == 'step_explorer':
         new_knobs = {}
         for knob_key, knob_value in oeda_experiment["executionStrategy"]["knobs"].iteritems():
             new_knobs[knob_key] = ([knob_value[0], knob_value[1]], knob_value[2])
@@ -38,7 +41,7 @@ class RTXDefinition:
         self.evaluator = RTXDefinition.evaluator
         self.setup_stage = RTXDefinition.setup_stage
         self.folder = None
-        knob_values = get_experiment_list(execution_strategy["type"], new_knobs)
+        knob_values = get_experiment_list(execution_strategy["type"], execution_strategy["knobs"])
         knob_keys = get_knob_keys(execution_strategy["type"], execution_strategy["knobs"])
         all_knobs = []
         for i in range(len(knob_values)):
