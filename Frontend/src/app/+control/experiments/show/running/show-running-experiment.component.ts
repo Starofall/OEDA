@@ -131,7 +131,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
               if (!isNullOrUndefined(targetSystem)) {
                 this.targetSystem = targetSystem;
                 this.targetSystem.id = this.experiment.targetSystemId;
-                console.log("targetSYstem types", this.targetSystem.incomingDataTypes);
                 // retrieve stages
                 this.apiService.loadAvailableStagesWithExperimentId(this.experiment_id).subscribe(stages => {
                   if (!isNullOrUndefined(stages)) {
@@ -274,7 +273,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
             // TODO: refactor using is_data_type_disabled fcn
             if (new_entity.values[0]["payload"].hasOwnProperty(candidate_incoming_data_type_name)) {
               this.incoming_data_type_name = candidate_incoming_data_type_name;
-              console.log("candidate", candidate_incoming_data_type_name);
               break;
             }
           }
@@ -399,7 +397,6 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
 
   /** called when incoming data type of the target system is changed */
   incoming_data_type_changed(i) {
-    console.log("i in incoming_data_type_changed", i);
     if (!this.is_data_type_disabled(i)) {
       // set incoming_data_type name, so that subsequent polls would draw different plots for different data types
       this.incoming_data_type_name = i;

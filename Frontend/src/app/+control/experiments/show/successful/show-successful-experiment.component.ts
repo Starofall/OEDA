@@ -268,7 +268,6 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
 
   /** called when incoming data type of the target system is changed */
   incoming_data_type_changed(i) {
-    console.log("i in incoming_data_type_changed", i);
     if (!this.is_data_type_disabled(i)) {
       // set incoming_data_type name, so that subsequent polls would draw different plots for different data types
       this.incoming_data_type_name = i;
@@ -288,7 +287,6 @@ export class ShowSuccessfulExperimentComponent implements OnInit {
       if (first_stage.hasOwnProperty("values")) {
         const first_tuple = first_stage.values;
         const first_payload = first_tuple[0]["payload"];
-        console.log("first_payload", first_payload);
         if (first_payload.hasOwnProperty(incoming_data_type.name)) {
           return false;
         } else {

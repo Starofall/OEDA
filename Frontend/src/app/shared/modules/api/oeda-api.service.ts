@@ -125,7 +125,10 @@ export interface ExecutionStrategy {
   ignore_first_n_results: number,
   sample_size: number,
   knobs: any,
-  stages_count: number
+  stages_count: number,
+  optimizer_random_starts: number,
+  optimizer_iterations: number,
+  optimizer_method: any
 }
 
 export interface OedaCallbackEntity {

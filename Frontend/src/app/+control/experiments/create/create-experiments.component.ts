@@ -203,18 +203,24 @@ export class CreateExperimentsComponent implements OnInit {
       this.experiment.executionStrategy.sample_size = Number(this.experiment.executionStrategy.sample_size);
       // save experiment stage to executionStrategy, so that it can be used in determining nr of remaining stages and estimated time
       this.experiment.executionStrategy.stages_count = Number(this.stages_count);
-      this.api.saveExperiment(this.experiment).subscribe(
-        (success) => {
-          this.notify.success("Success", "Experiment saved");
-          // this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
-          //   console.log("navigated to newly created experiment running page");
-          // });
-          this.temp_storage.setNewValue(this.experiment);
-          this.router.navigate(["control/experiments"])
-        }, (error) => {
-          this.notify.success("Error", error.toString());
-        }
-      )
+
+      if (this.experiment.executionStrategy.type === "random") {
+        this.experiment.executionStrategy.optimizer_iterations = Number(this.experiment.executionStrategy.optimizer_iterations);
+        this.experiment.executionStrategy.optimizer_random_starts = Number(this.experiment.executionStrategy.optimizer_random_starts);
+        console.log(this.experiment);
+      }
+      // this.api.saveExperiment(this.experiment).subscribe(
+      //   (success) => {
+      //     this.notify.success("Success", "Experiment saved");
+      //     // this.router.navigate(["control/experiments/show/" + this.experiment.id + "/running"]).then(() => {
+      //     //   console.log("navigated to newly created experiment running page");
+      //     // });
+      //     this.temp_storage.setNewValue(this.experiment);
+      //     this.router.navigate(["control/experiments"])
+      //   }, (error) => {
+      //     this.notify.success("Error", error.toString());
+      //   }
+      // )
     }
   }
 
@@ -240,7 +246,22 @@ export class CreateExperimentsComponent implements OnInit {
         break;
       }
     }
-    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7;
+
+    let cond8 = false;
+    if (this.experiment.executionStrategy.type === "self_optimizer") {
+      if (this.experiment.executionStrategy.optimizer_method === null || this.experiment.executionStrategy.optimizer_method.length === 0) {
+        cond8 = true;
+      }
+    }
+
+    let cond9 = false;
+    if (this.experiment.executionStrategy.type === "random") {
+      if (this.experiment.executionStrategy.optimizer_iterations === null || this.experiment.executionStrategy.optimizer_random_starts === null) {
+        cond9 = true;
+      }
+    }
+
+    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7 || cond8 || cond9;
   }
 
   createExperiment(): Experiment {
@@ -274,12 +295,14 @@ export class CreateExperimentsComponent implements OnInit {
 
   createExecutionStrategy(): ExecutionStrategy {
     return {
-      type: "step_explorer",
-      // type: "" --- change to this if we dont want a default value
+      type: "",
       ignore_first_n_results: 100,
       sample_size: 100,
       knobs: [],
-      stages_count: 0
+      stages_count: 0,
+      optimizer_method: "",
+      optimizer_iterations: 10,
+      optimizer_random_starts: 5
     }
   }
 

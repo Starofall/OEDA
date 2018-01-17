@@ -239,14 +239,30 @@
           <labeled-input-select name="Type" [model]="experiment.executionStrategy" key="type" [colSize]="12"
                                 [options]="[
                                     {key:'step_explorer',label:'Step Strategy'},
-                                    {key:'forever_strategy',label:'Forever Strategy'},
-                                    {key:'self_optimizer_strategy',label:'Self Optimizer Strategy'},
+                                    {key:'random',label:'Random Strategy'},
+                                    {key:'forever',label:'Forever Strategy'},
+                                    {key:'self_optimizer',label:'Self Optimizer Strategy'},
                                     {key:'sequential_strategy',label:'Sequential Strategy'},
-                                    {key:'uncorrelated_self_optimizer_strategy',label:'Uncorrelated Self Optimizer Strategy'}]">
+                                    {key:'uncorrelated_self_optimizer',label:'Uncorrelated Self Optimizer Strategy'}]">
           </labeled-input-select>
 
           <labeled-input inputType="number" name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
           <labeled-input inputType="number" name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
+          <div *ngIf="experiment.executionStrategy.type == 'random'">
+            <labeled-input inputType="number" name="Optimizer Iterations" [model]="experiment.executionStrategy" key="optimizer_iterations" [colSize]="12"></labeled-input>
+            <labeled-input inputType="number" name="Optimizer Random Starts" [model]="experiment.executionStrategy" key="optimizer_random_starts" [colSize]="12"></labeled-input>
+          </div>
+          <div *ngIf="experiment.executionStrategy.type == 'self_optimizer'">
+            <labeled-input inputType="text" name="Optimizer Method" [model]="experiment.executionStrategy" key="optimizer_method" [colSize]="12"></labeled-input>
+          </div>
+          <div *ngIf="experiment.executionStrategy.type == 'step_explorer' && stages_count !== null">
+            <div class="col-md-12">
+              <div class="sub-title">Total Number of Stages</div>
+              <div>
+                <input class="form-control" type="number" [disabled]="true" [value]=stages_count>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -313,24 +329,20 @@
                 <i class="fa fa-remove"></i> Remove All
               </div>
             </div>
-            <div class="title pull-right" style="padding-right: 5%" *ngIf="stages_count !== null">Total Number of
-              Stages: {{stages_count}}</div>
           </div>
         </div>
         <div class="panel-body" style="padding-top: 20px">
           <div class="row" *ngFor="let input of experiment.changeableVariable; let i = index">
             <div class="row">
               <div class="row" style="padding-left: 5%">
-                <labeled-input name="Name" [model]="input" key="name" [colSize]="3" disabled="true"></labeled-input>
+                <labeled-input name="Name" [model]="input" key="name" [colSize]="4" disabled="true"></labeled-input>
                 <labeled-input inputType="number" name="Min" [model]="input" key="min" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
                 <labeled-input inputType="number" name="Max" [model]="input" key="max" [colSize]="2" (modelChanged)="minMaxModelsChanged($event)"></labeled-input>
                 <labeled-input inputType="number" name="Step Size" [model]="input" key="step" [colSize]="2" (modelChanged)="stepSizeChanged($event)"></labeled-input>
-                <div class="col-md-3 pull-right" style="padding-right: 5%">
-                  <div (click)="removeChangeableVariable(i, input)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i> Remove</div>
+                <div class="col-md-3 pull-left">
+                  <div (click)="removeChangeableVariable(i, input)" class="btn btn-xs btn-primary"><i class="fa fa-remove"></i>Remove</div>
                 </div>
               </div>
-
-
               <hr class="col-md-12">
             </div>
           </div>

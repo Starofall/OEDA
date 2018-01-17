@@ -2,6 +2,8 @@ from oeda.rtxlib.executionstrategy.ForeverStrategy import start_forever_strategy
 from oeda.rtxlib.executionstrategy.StepStrategy import start_step_strategy
 from oeda.rtxlib.executionstrategy.SelfOptimizerStrategy import start_self_optimizer_strategy
 from oeda.rtxlib.executionstrategy.SequencialStrategy import start_sequential_strategy
+from oeda.rtxlib.executionstrategy.RandomStrategy import start_random_strategy
+
 
 from oeda.log import *
 
@@ -30,6 +32,9 @@ def run_execution_strategy(wf):
 
     elif wf.execution_strategy["type"] == "forever":
         start_forever_strategy(wf)
+
+    elif wf.execution_strategy["type"] == "random":
+        start_random_strategy(wf)
 
     # finished
     info(">")
