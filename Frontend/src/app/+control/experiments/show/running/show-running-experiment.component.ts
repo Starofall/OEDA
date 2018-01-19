@@ -255,6 +255,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.notify.error("Error", "Cannot retrieve data from DB, please try again");
       return;
     }
+    console.log("response process_response", response);
     if (ctrl.first_render_of_page) {
       // we can retrieve one or more stages at first render
       for (let index in response) {
@@ -349,6 +350,7 @@ export class ShowRunningExperimentComponent implements OnInit, OnDestroy {
       ctrl.processedData = ctrl.all_data[ctrl.selected_stage.number - 1];
       ctrl.processedData = ctrl.entityService.process_single_stage_data(ctrl.processedData,"timestamp", "value", ctrl.scale, ctrl.incoming_data_type_name);
     }
+
     // https://stackoverflow.com/questions/597588/how-do-you-clone-an-array-of-objects-in-javascript
     const clonedData = JSON.parse(JSON.stringify(ctrl.processedData));
     ctrl.initial_threshold_for_scatter_plot = ctrl.plotService.calculate_threshold_for_given_percentile(clonedData, 95, 'value');

@@ -10,6 +10,7 @@ def start_step_strategy(wf):
 
     # we look at the ranges and the steps the user has specified in the knobs
     knobs = wf.execution_strategy["knobs"]
+    debug("knobs in start_step_strategy" + str(knobs), Fore.GREEN)
     # we create a list of variable names and a list of lists of values:
     # [[par1_val1, par1_val2, par1_val3], [par2_val1, par2_val2, par2_val3], [...],...]
     variables = []
@@ -47,10 +48,11 @@ def recreate_knob_from_step_explorer_values(variables, configuration):
 def step_execution(wf, configuration, variables):
     """ runs a single step_execution experiment """
     knob_object = recreate_knob_from_step_explorer_values(variables, configuration)
+    debug("knob_object in step_execution" + str(knob_object), Fore.GREEN)
     # create a new experiment to run in execution
     exp = dict()
     exp["ignore_first_n_results"] = wf.execution_strategy["ignore_first_n_results"]
     exp["sample_size"] = wf.execution_strategy["sample_size"]
     exp["knobs"] = knob_object
-    wf.setup_stage(wf)
+    wf.setup_stage(wf, exp["knobs"])
     return experimentFunction(wf, exp)

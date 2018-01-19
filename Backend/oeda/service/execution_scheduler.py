@@ -106,6 +106,9 @@ def rtx_execution(experiment, target_system, oeda_stop_request):
         set_target_system_status(experiment["targetSystemId"], "READY")
 
     except Exception as e:
+        tb = traceback.format_exc()
+        print tb
+        error("Experiment FAILED - reason: " + str(tb))
         error("Experiment FAILED - " + experiment["id"] + " - " + str(e))
         set_experiment_status(experiment["id"], "ERROR")
         set_target_system_status(experiment["targetSystemId"], "READY")

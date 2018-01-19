@@ -3,7 +3,7 @@ import {NotificationsService} from "angular2-notifications";
 import {ActivatedRoute, Router} from "@angular/router";
 import {LayoutService} from "../../../shared/modules/helper/layout.service";
 import {OEDAApiService, Experiment, Target, ExecutionStrategy} from "../../../shared/modules/api/oeda-api.service";
-import * as _ from "lodash";
+import * as _ from "lodash.clonedeep";
 import {UUID} from "angular2-uuid";
 import {isNullOrUndefined, isNumber} from "util";
 import {TempStorageService} from "../../../shared/modules/helper/temp-storage-service";
@@ -34,7 +34,7 @@ export class CreateExperimentsComponent implements OnInit {
     // create an empty experiment and execution strategy
     this.executionStrategy = this.createExecutionStrategy();
     this.experiment = this.createExperiment();
-    this.originalExperiment = _.cloneDeep(this.experiment);
+    this.originalExperiment = _(this.experiment);
     this.stages_count = null;
   }
 
@@ -45,13 +45,7 @@ export class CreateExperimentsComponent implements OnInit {
       (data) => {
         if (!isNullOrUndefined(data)) {
           for (let k = 0; k < data.length; k++) {
-
             if (data[k]["status"] === "READY") {
-              // pre-calculate step size
-              for (let j = 0; j < data[k]["changeableVariable"].length; j++) {
-                data[k]["changeableVariable"][j]["step"] =
-                  (data[k]["changeableVariable"][j]["max"] - data[k]["changeableVariable"][j]["min"]) / 10;
-              }
               ctrl.availableTargetSystems.push(data[k]);
             }
           }
@@ -111,7 +105,8 @@ export class CreateExperimentsComponent implements OnInit {
       if (ctrl.experiment.changeableVariable.some(item => item.name === variable.name) ) {
         ctrl.notify.error("Error", "This variable is already added");
       } else {
-        ctrl.experiment.changeableVariable.push(_.cloneDeep(variable));
+        ctrl.experiment.changeableVariable.push(_(variable));
+        this.preCalculateStepSize();
         this.calculateTotalNrOfStages();
       }
     }
@@ -122,9 +117,10 @@ export class CreateExperimentsComponent implements OnInit {
     for (let i = 0; i < ctrl.targetSystem.changeableVariable.length; i++) {
       if (ctrl.experiment.changeableVariable.filter(item => item.name === ctrl.targetSystem.changeableVariable[i].name).length === 0) {
         /* vendor does not contain the element we're looking for */
-        ctrl.experiment.changeableVariable.push(_.cloneDeep(ctrl.targetSystem.changeableVariable[i]));
+        ctrl.experiment.changeableVariable.push(_(ctrl.targetSystem.changeableVariable[i]));
       }
     }
+    this.preCalculateStepSize();
     this.calculateTotalNrOfStages();
   }
 
@@ -144,27 +140,54 @@ export class CreateExperimentsComponent implements OnInit {
     }
   }
 
-  calculateTotalNrOfStages() {
-    this.stages_count = null;
-    const stage_counts = [];
-    for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
-      if (this.experiment.changeableVariable[j]["step"] <= 0) {
-        this.stages_count = null;
-        break;
-      } else if (this.experiment.changeableVariable[j]["step"] > this.experiment.changeableVariable[j]["max"] - this.experiment.changeableVariable[j]["min"]) {
-        this.stages_count = null;
-        break;
-      } else {
-        const stage_count = Math.floor((this.experiment.changeableVariable[j]["max"]
-          - this.experiment.changeableVariable[j]["min"]) /
-          this.experiment.changeableVariable[j]["step"]) + 1;
-        stage_counts.push(stage_count);
+  // if user selects step strategy at any moment of experiment creation, it
+  executionStrategyModelChanged(execution_strategy_key) {
+    this.experiment.executionStrategy.type = execution_strategy_key;
+    if (execution_strategy_key === 'step_explorer') {
+      this.preCalculateStepSize();
+      this.calculateTotalNrOfStages();
+    }
+  }
+
+  // pre-determines step size of all added variables if selected execution strategy is step_explorer
+  preCalculateStepSize() {
+    if (this.experiment.executionStrategy.type === 'step_explorer') {
+      for (let j = 0; j < this.experiment["changeableVariable"].length; j++) {
+        if (!this.experiment["changeableVariable"][j]["step"]) {
+          this.experiment["changeableVariable"][j]["step"] =
+            (this.experiment["changeableVariable"][j]["max"] - this.experiment["changeableVariable"][j]["min"]) / 10;
+        }
       }
     }
-    if (stage_counts.length !== 0) {
-      const sum = stage_counts.reduce(function(a, b) {return a * b; } );
-      this.stages_count = sum;
+  }
+
+  // returns number of stages using min, max, step size if the selected strategy is step_explorer
+  calculateTotalNrOfStages() {
+    this.stages_count = null;
+    if (this.experiment.executionStrategy.type === 'step_explorer') {
+      const stage_counts = [];
+      for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
+        if (this.experiment.changeableVariable[j]["step"] <= 0) {
+          this.stages_count = null;
+          break;
+        } else {
+          if (this.experiment.changeableVariable[j]["step"] > this.experiment.changeableVariable[j]["max"] - this.experiment.changeableVariable[j]["min"]) {
+            stage_counts.push(1);
+          } else {
+            const stage_count = Math.floor((this.experiment.changeableVariable[j]["max"]
+              - this.experiment.changeableVariable[j]["min"]) /
+              this.experiment.changeableVariable[j]["step"]) + 1;
+            stage_counts.push(stage_count);
+          }
+
+        }
+      }
+      if (stage_counts.length !== 0) {
+        const sum = stage_counts.reduce(function(a, b) {return a * b; } );
+        this.stages_count = sum;
+      }
     }
+
   }
 
   removeChangeableVariable(index) {
@@ -194,7 +217,9 @@ export class CreateExperimentsComponent implements OnInit {
         knob.push(this.experiment.changeableVariable[j].name);
         knob.push(Number(this.experiment.changeableVariable[j].min));
         knob.push(Number(this.experiment.changeableVariable[j].max));
-        knob.push(Number(this.experiment.changeableVariable[j].step));
+        if (this.experiment.executionStrategy.type === "step_explorer") {
+          knob.push(Number(this.experiment.changeableVariable[j].step));
+        }
         all_knobs.push(knob);
       }
       this.experiment.executionStrategy.knobs = all_knobs;
@@ -235,33 +260,34 @@ export class CreateExperimentsComponent implements OnInit {
     const cond5 = this.experiment.name === null;
     const cond6 = this.experiment.name.length === 0;
 
-    let cond7: boolean;
-    for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
-      if (this.experiment.changeableVariable[j]["step"] <= 0) {
-        cond7 = true;
-        break;
-      }
-      if (this.experiment.changeableVariable[j]["step"] > this.experiment.changeableVariable[j]["max"] - this.experiment.changeableVariable[j]["min"] ) {
-        cond7 = true;
-        break;
-      }
-    }
-
-    let cond8 = false;
-    if (this.experiment.executionStrategy.type === "self_optimizer") {
-      if (this.experiment.executionStrategy.optimizer_method === null || this.experiment.executionStrategy.optimizer_method.length === 0) {
-        cond8 = true;
-      }
-    }
-
+    let cond7 = false;
+    let cond8 =  false;
     let cond9 = false;
-    if (this.experiment.executionStrategy.type === "random") {
-      if (this.experiment.executionStrategy.optimizer_iterations === null || this.experiment.executionStrategy.optimizer_random_starts === null) {
-        cond9 = true;
+    let cond10 = false;
+    if (this.experiment.executionStrategy.type.length === 0) {
+      cond7 = true;
+    } else {
+      if (this.experiment.executionStrategy.type === "step_explorer") {
+        for (let j = 0; j < this.experiment.changeableVariable.length; j++) {
+          if (this.experiment.changeableVariable[j]["step"] <= 0) {
+            cond8 = true;
+            break;
+          }
+        }
+      }
+      if (this.experiment.executionStrategy.type === "random") {
+        if (this.experiment.executionStrategy.optimizer_iterations === null || this.experiment.executionStrategy.optimizer_random_starts === null) {
+          cond9 = true;
+        }
+      }
+      if (this.experiment.executionStrategy.type === "self_optimizer") {
+        if (this.experiment.executionStrategy.optimizer_method === null || this.experiment.executionStrategy.optimizer_method.length === 0) {
+          cond10 = true;
+        }
       }
     }
 
-    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7 || cond8 || cond9;
+    return cond1 || cond2 || cond3 || cond4 || cond5 || cond6 || cond7 || cond8 || cond9 || cond10;
   }
 
   createExperiment(): Experiment {
@@ -296,8 +322,8 @@ export class CreateExperimentsComponent implements OnInit {
   createExecutionStrategy(): ExecutionStrategy {
     return {
       type: "",
-      ignore_first_n_results: 100,
-      sample_size: 100,
+      ignore_first_n_results: 10,
+      sample_size: 40,
       knobs: [],
       stages_count: 0,
       optimizer_method: "",

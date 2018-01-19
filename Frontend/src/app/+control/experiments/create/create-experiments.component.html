@@ -227,53 +227,8 @@
       </div>
     </div>
 
-    <!-- Execution Strategy -->
-    <div class="col-sm-6 col-xs-12" style="padding-right: 0">
-      <div class="panel panel-default chartJs">
-        <div class="panel-heading">
-          <div class="card-title">
-            <div class="title pull-left">Execution Strategy</div>
-          </div>
-        </div>
-        <div class="panel-body" style="padding-top: 20px">
-          <labeled-input-select name="Type" [model]="experiment.executionStrategy" key="type" [colSize]="12"
-                                [options]="[
-                                    {key:'step_explorer',label:'Step Strategy'},
-                                    {key:'random',label:'Random Strategy'},
-                                    {key:'forever',label:'Forever Strategy'},
-                                    {key:'self_optimizer',label:'Self Optimizer Strategy'},
-                                    {key:'sequential_strategy',label:'Sequential Strategy'},
-                                    {key:'uncorrelated_self_optimizer',label:'Uncorrelated Self Optimizer Strategy'}]">
-          </labeled-input-select>
-
-          <labeled-input inputType="number" name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
-          <labeled-input inputType="number" name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
-          <div *ngIf="experiment.executionStrategy.type == 'random'">
-            <labeled-input inputType="number" name="Optimizer Iterations" [model]="experiment.executionStrategy" key="optimizer_iterations" [colSize]="12"></labeled-input>
-            <labeled-input inputType="number" name="Optimizer Random Starts" [model]="experiment.executionStrategy" key="optimizer_random_starts" [colSize]="12"></labeled-input>
-          </div>
-          <div *ngIf="experiment.executionStrategy.type == 'self_optimizer'">
-            <labeled-input inputType="text" name="Optimizer Method" [model]="experiment.executionStrategy" key="optimizer_method" [colSize]="12"></labeled-input>
-          </div>
-          <div *ngIf="experiment.executionStrategy.type == 'step_explorer' && stages_count !== null">
-            <div class="col-md-12">
-              <div class="sub-title">Total Number of Stages</div>
-              <div>
-                <input class="form-control" type="number" [disabled]="true" [value]=stages_count>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-  </div>
-
-  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== ''" >
-
     <!--Changeable Variables -->
-    <div class="col-sm-6 col-xs-12" style="padding-left: 0">
+    <div class="col-sm-6 col-xs-12" style="padding-right: 0">
       <div class="panel panel-default chartJs">
         <div class="panel-heading">
           <div class="card-title">
@@ -291,7 +246,7 @@
               <th style="width: 5%">Max</th>
               <th style="width: 4%">
                 <div class="btn btn-xs btn-orange" (click)="addAllChangeableVariables()"
-                                                           *ngIf="targetSystem.changeableVariable.length > 1 && targetSystem.changeableVariable.length != experiment.changeableVariable.length">
+                     *ngIf="targetSystem.changeableVariable.length > 1 && targetSystem.changeableVariable.length != experiment.changeableVariable.length">
                   <i class="fa fa-plus push-5-r"></i> Add All
                 </div>
               </th>
@@ -316,6 +271,51 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="col-sm-12 col-xs-12" *ngIf="targetSystem.name !== '' && experiment.changeableVariable.length > 0" >
+
+    <!-- Execution Strategy is allowed to be selected after adding some variables to experiment -->
+    <div class="col-sm-6 col-xs-12" style="padding-left: 0">
+      <div class="panel panel-default chartJs">
+        <div class="panel-heading">
+          <div class="card-title">
+            <div class="title pull-left">Execution Strategy</div>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 20px">
+          <labeled-input-select name="Type" [model]="experiment.executionStrategy" key="type" [colSize]="12"
+                                [options]="[
+                                    {key:'step_explorer',label:'Step Strategy'},
+                                    {key:'random',label:'Random Strategy'},
+                                    {key:'forever',label:'Forever Strategy'},
+                                    {key:'self_optimizer',label:'Self Optimizer Strategy'},
+                                    {key:'sequential_strategy',label:'Sequential Strategy'},
+                                    {key:'uncorrelated_self_optimizer',label:'Uncorrelated Self Optimizer Strategy'}]"
+                                (modelChanged)="executionStrategyModelChanged($event)">
+          </labeled-input-select>
+
+          <labeled-input inputType="number" name="Ignore First N Results" [model]="experiment.executionStrategy" key="ignore_first_n_results" [colSize]="12"></labeled-input>
+          <labeled-input inputType="number" name="Sample Size" [model]="experiment.executionStrategy" key="sample_size" [colSize]="12"></labeled-input>
+          <div *ngIf="experiment.executionStrategy.type == 'random'">
+            <labeled-input inputType="number" name="Optimizer Iterations" [model]="experiment.executionStrategy" key="optimizer_iterations" [colSize]="12"></labeled-input>
+            <labeled-input inputType="number" name="Optimizer Random Starts" [model]="experiment.executionStrategy" key="optimizer_random_starts" [colSize]="12"></labeled-input>
+          </div>
+          <div *ngIf="experiment.executionStrategy.type == 'self_optimizer'">
+            <labeled-input inputType="text" name="Optimizer Method" [model]="experiment.executionStrategy" key="optimizer_method" [colSize]="12"></labeled-input>
+          </div>
+          <div *ngIf="experiment.executionStrategy.type == 'step_explorer' && stages_count !== null">
+            <div class="col-md-12">
+              <div class="sub-title">Total Number of Stages</div>
+              <div>
+                <input class="form-control" type="number" [disabled]="true" [value]=stages_count>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- Variables added by User -->
     <div class="col-sm-6 col-xs-12" style="padding-right: 0">

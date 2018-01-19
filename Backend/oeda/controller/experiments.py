@@ -17,7 +17,10 @@ class ExperimentController(Resource):
         content = request.get_json()
         new_knobs = {}
         for knob in content["executionStrategy"]["knobs"]:
-            new_knobs[knob[0]] = [knob[1], knob[2], knob[3]]
+            if content["executionStrategy"]["type"] == 'step_explorer':
+                new_knobs[knob[0]] = [knob[1], knob[2], knob[3]]
+            else:
+                new_knobs[knob[0]] = [knob[1], knob[2]]
 
         content["executionStrategy"]["knobs"] = new_knobs
         db().save_experiment(experiment_id, content)

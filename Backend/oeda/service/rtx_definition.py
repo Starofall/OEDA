@@ -1,5 +1,5 @@
 from oeda.databases import db
-
+from oeda.log import *
 
 class RTXDefinition:
 
@@ -30,28 +30,24 @@ class RTXDefinition:
         execution_strategy = oeda_experiment["executionStrategy"]
 
         # TODO: knob_value[2] is only provided in step_explorer strategy?
-        # if execution_strategy["type"] == 'step_explorer':
-        new_knobs = {}
-        for knob_key, knob_value in oeda_experiment["executionStrategy"]["knobs"].iteritems():
-            new_knobs[knob_key] = ([knob_value[0], knob_value[1]], knob_value[2])
+        if execution_strategy["type"] == 'step_explorer':
+            new_knobs = {}
+            for knob_key, knob_value in oeda_experiment["executionStrategy"]["knobs"].iteritems():
+                new_knobs[knob_key] = ([knob_value[0], knob_value[1]], knob_value[2])
+            debug("new knobs in RTXDefinition object" + str(new_knobs), Fore.GREEN)
+            execution_strategy["knobs"] = new_knobs
 
-        execution_strategy["knobs"] = new_knobs
         self.execution_strategy = execution_strategy
         self.state_initializer = RTXDefinition.state_initializer
         self.evaluator = RTXDefinition.evaluator
-        self.setup_stage = RTXDefinition.setup_stage
         self.folder = None
-        knob_values = get_experiment_list(execution_strategy["type"], execution_strategy["knobs"])
-        knob_keys = get_knob_keys(execution_strategy["type"], execution_strategy["knobs"])
-        all_knobs = []
-        for i in range(len(knob_values)):
-            knobs = {}
-            index = 0
-            for k in knob_keys:
-                knobs[k] = knob_values[i][index]
-                index += 1
-            all_knobs.append(knobs)
-        self.all_knobs = all_knobs
+        debug("execution_strategy.knobs in RTXDefinition object" + str(execution_strategy["knobs"]), Fore.GREEN)
+        self.setup_stage = RTXDefinition.setup_stage
+
+        if execution_strategy["type"] == "step_explorer" or execution_strategy["type"] == "sequential":
+            knob_values = get_experiment_list(execution_strategy["type"], execution_strategy["knobs"])
+            knob_keys = get_knob_keys(execution_strategy["type"], execution_strategy["knobs"])
+            self.all_knobs = get_all_knobs(knob_keys, knob_values)
 
     def run_oeda_callback(self, dictionary):
         dictionary['stage_counter'] = self.stage_counter
@@ -71,8 +67,9 @@ class RTXDefinition:
         return state
 
     @staticmethod
-    def setup_stage(wf):
-        db().save_stage(wf.stage_counter, wf.all_knobs[wf.stage_counter-1], wf.id)
+    def setup_stage(wf, stage_knob):
+        # db().save_stage(wf.stage_counter, wf.all_knobs[wf.stage_counter-1], wf.id)
+        db().save_stage(wf.stage_counter, stage_knob, wf.id)
 
     @staticmethod
     def evaluator(result_state, wf):
@@ -106,6 +103,9 @@ def get_experiment_list(strategy_type, knobs):
             parameters_values += [parameter_values]
         return reduce(lambda list1, list2: [x + y for x in list1 for y in list2], parameters_values)
 
+    if strategy_type == "random":
+        return [config.values() for config in knobs]
+
 
 def get_knob_keys(strategy_type, knobs):
 
@@ -115,3 +115,18 @@ def get_knob_keys(strategy_type, knobs):
 
     if strategy_type == "step_explorer":
         return knobs.keys()
+
+    if strategy_type == "random":
+        return knobs[0].keys()
+
+
+def get_all_knobs(knob_keys, knob_values):
+    all_knobs = []
+    for i in range(len(knob_values)):
+        knobs = {}
+        index = 0
+        for k in knob_keys:
+            knobs[k] = knob_values[i][index]
+            index += 1
+        all_knobs.append(knobs)
+    return all_knobs

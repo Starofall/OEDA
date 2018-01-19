@@ -85,7 +85,7 @@ def experimentFunction(wf, exp):
                     new_data = cp["instance"].returnDataListNonBlocking()
                     for nd in new_data:
                         try:
-                            exp["state"] = cp["data_reducer"](exp["state"], nd,wf)
+                            exp["state"] = cp["data_reducer"](exp["state"], nd, wf)
                         except StopIteration as e:
                             raise  # just
                         except RuntimeError as e:
@@ -97,7 +97,7 @@ def experimentFunction(wf, exp):
         # this iteration should stop asap
         error("This stage got stopped as requested by the StopIteration exception:" + str(e))
     try:
-        result = wf.evaluator(exp["state"],wf)
+        result = wf.evaluator(exp["state"], wf)
     except:
         result = 0
         error("evaluator failed")
