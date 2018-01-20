@@ -1,4 +1,5 @@
 from oeda.log import *
+import traceback
 
 def _defaultChangeProvider(variables,wf):
     """ by default we just forward the message to the change provider """
@@ -75,8 +76,9 @@ def experimentFunction(wf, exp):
                 except RuntimeError as e:
                     raise  # just fwd
                 except Exception as e:
-                    error("Exception:", str(e))
-                    error("could not reducing data set: " + str(new_data))
+                    tb = traceback.format_exc()
+                    error("Exception:", str(tb))
+                    error("Could not reduce data set: " + str(new_data))
                 i += 1
                 process("CollectSamples | ", i, sample_size)
             # now we use returnDataListNonBlocking on all secondary data providers
@@ -90,17 +92,20 @@ def experimentFunction(wf, exp):
                             raise  # just
                         except RuntimeError as e:
                             raise  # just fwd
-                        except:
-                            error("could not reducing data set: " + str(nd))
+                        except Exception as e:
+                            tb = traceback.format_exc()
+                            error("Exception:", str(tb))
+                            error("Could not reduce data set: " + str(nd))
         print("")
     except StopIteration as e:
         # this iteration should stop asap
         error("This stage got stopped as requested by the StopIteration exception:" + str(e))
     try:
         result = wf.evaluator(exp["state"], wf)
-    except:
+    except Exception as e:
+        tb = traceback.format_exc()
         result = 0
-        error("evaluator failed")
+        error("Evaluator failed", str(tb))
     # we store the counter of this experiment in the workflow
     if hasattr(wf, "experimentCounter"):
         wf.experimentCounter += 1

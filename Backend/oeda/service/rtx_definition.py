@@ -14,6 +14,7 @@ class RTXDefinition:
     id = None
     stage_counter = None
     all_knobs = None
+    remaining_time_and_stages = None
 
     def __init__(self, oeda_experiment, oeda_target, oeda_callback, oeda_stop_request):
         self._oeda_experiment = oeda_experiment
@@ -28,6 +29,7 @@ class RTXDefinition:
         self.primary_data_provider = primary_data_provider
         self.change_provider = oeda_target["changeProvider"]
         execution_strategy = oeda_experiment["executionStrategy"]
+        self.remaining_time_and_stages = dict() # contains remaining time and stage for an experiment
 
         # TODO: knob_value[2] is only provided in step_explorer strategy?
         if execution_strategy["type"] == 'step_explorer':
@@ -56,6 +58,7 @@ class RTXDefinition:
     @staticmethod
     def primary_data_reducer(state, new_data, wf):
         db().save_data_point(new_data, state["data_points"], wf.id, wf.stage_counter)
+        state["overhead"] = (state["overhead"] * state["data_points"] + new_data["overhead"]) / (state["data_points"] + 1)
         state["data_points"] += 1
         if wf._oeda_stop_request.isSet():
             raise RuntimeError("Experiment interrupted from OEDA while gathering data.")
@@ -63,6 +66,7 @@ class RTXDefinition:
 
     @staticmethod
     def state_initializer(state, wf):
+        state["overhead"] = 0
         state["data_points"] = 0
         return state
 
@@ -74,7 +78,7 @@ class RTXDefinition:
     @staticmethod
     def evaluator(result_state, wf):
         wf.stage_counter += 1
-        return 0
+        return result_state["overhead"]
 
 
 def get_experiment_list(strategy_type, knobs):

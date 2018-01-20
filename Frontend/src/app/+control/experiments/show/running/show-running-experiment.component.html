@@ -194,14 +194,14 @@
                 <th style="width: 5%">Name</th>
                 <th style="width: 5%">Min</th>
                 <th style="width: 5%">Max</th>
-                <th style="width: 5%">Step Size</th>
+                <th *ngIf="experiment.executionStrategy.type == 'step_explorer'" style="width: 5%">Step Size</th>
                 </thead>
                 <tbody>
                 <tr *ngFor="let input of experiment.changeableVariable" style="padding-top: 1%">
                   <td style="padding-top: 1%">{{input.name}}</td>
                   <td>{{input.min}}</td>
                   <td>{{input.max}}</td>
-                  <td>{{input.step}}</td>
+                  <td *ngIf="experiment.executionStrategy.type == 'step_explorer'">{{input.step}}</td>
                 </tr>
                 </tbody>
               </table>
@@ -226,11 +226,17 @@
                 <th style="width: 5%">Type</th>
                 <th style="width: 5%">Ignore First N Results</th>
                 <th style="width: 5%">Sample Size</th>
+                <th style="width: 5%" *ngIf="experiment.executionStrategy.type == 'random'">Optimizer Iterations</th>
+                <th style="width: 5%" *ngIf="experiment.executionStrategy.type == 'random'">Optimizer Random Starts</th>
+                <th style="width: 5%" *ngIf="experiment.executionStrategy.type == 'self_optimizer'">Optimizer Method</th>
                 </thead>
                 <tbody>
                 <td style="padding-top: 1%">{{experiment.executionStrategy.type}}</td>
                 <td>{{experiment.executionStrategy.ignore_first_n_results}}</td>
                 <td>{{experiment.executionStrategy.sample_size}}</td>
+                <td *ngIf="experiment.executionStrategy.type == 'random'">{{experiment.executionStrategy.optimizer_iterations}}</td>
+                <td *ngIf="experiment.executionStrategy.type == 'random'">{{experiment.executionStrategy.optimizer_random_starts}}</td>
+                <td *ngIf="experiment.executionStrategy.type == 'self_optimizer'">{{experiment.executionStrategy.optimizer_method}}</td>
                 </tbody>
               </table>
             </div>

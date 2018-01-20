@@ -40,9 +40,6 @@ def start_random_strategy(wf):
     info("> RandomStrategy   | knobs" + str(knobs), Fore.CYAN)
     info("> RandomStrategy   | range_tuples" + str(range_tuples), Fore.CYAN)
 
-    # we run the list of experiments with specific dict that contains remaining time and stage for experiment
-    wf.remaining_time_and_stages = dict()
-
     # we give the minimization function a callback to execute
     # it uses the return value (it tries to minimize it) to select new knobs to test
     # TODO: use mlrMBO or https://github.com/fmfn/BayesianOptimization
