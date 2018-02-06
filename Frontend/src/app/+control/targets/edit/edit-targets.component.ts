@@ -30,6 +30,7 @@ export class EditTargetsComponent implements OnInit {
   selectedConfiguration: any;
   configsAvailable = false;
 
+  /* tslint:disable */
   ngOnInit(): void {
     const ctrl = this;
     this.layout.setHeader("Target System", "");
@@ -50,9 +51,11 @@ export class EditTargetsComponent implements OnInit {
         this.target = this.createTarget();
         this.originalTarget = _.cloneDeep(this.target);
 
-        // retrieve config json object via the api provided at localhost:5005/config/crowdnav
+        // retrieve config json object via the api provided at localhost:5000/api/config/crowdnav
         this.api.getConfigFromAPI("/crowdnav").subscribe((config) => {
+          console.log("config", config);
             if (!isNullOrUndefined(config)) {
+
               // open the modal in frontend
               this.availableConfigurations.push(config);
               // this.traverse_json_object(config);
@@ -68,8 +71,8 @@ export class EditTargetsComponent implements OnInit {
   }
 
   assureObjectContract() {
-    if (this.target.primaryDataProvider == null) {
-      this.target.primaryDataProvider = {type: ""}
+    if (this.target.dataProviders == null) {
+      this.target.dataProviders = []
     }
     if (this.target.changeProvider == null) {
       this.target.changeProvider = {type: ""}
@@ -85,9 +88,9 @@ export class EditTargetsComponent implements OnInit {
   createTarget(): Target {
     return {
       "id": UUID.UUID(),
-      "primaryDataProvider": {
-        "type": "",
-      },
+      "dataProviders": [],
+      "primaryDataProvider": {},
+      "secondaryDataProviders": [],
       "changeProvider": {
         "type": "",
       },
@@ -116,17 +119,50 @@ export class EditTargetsComponent implements OnInit {
     this.target.changeableVariable.splice(index, 1)
   }
 
-  addIncomingDataType(incomingDataType) {
-    if (incomingDataType == null)
-      this.target.incomingDataTypes.push({}); // for usual case, without any configuration files
+  addDataProvider(dataProvider) {
+    if (dataProvider == null)
+      // for usual case, without using any configuration files
+      this.target.dataProviders.push({
+        "is_primary": false
+      });
     else {
-      // user should not be able to add already-added variable coming from config
-      if (this.target.incomingDataTypes.filter(variable => variable.name === incomingDataType.name).length === 0) {
-        this.target.incomingDataTypes.push(incomingDataType);
+      // user should not be able to add already-added data providers
+      if (this.target.dataProviders.filter(variable => variable.name === dataProvider.name).length === 0) {
+        // before push, mark data provider as "not primary". User will have to select it later.
+        dataProvider["is_primary"] = false;
+        this.target.dataProviders.push(dataProvider);
+        // also push variables of pushed data provider to incoming data types
+        for (let i = 0; i < dataProvider.incomingDataTypes.length; i++) {
+          this.target.incomingDataTypes.push(dataProvider.incomingDataTypes[i]);
+          // mark name and description of pushed variables as disabled, but Scale is not disabled (TODO?)
+          let pushedDataType =  this.target.incomingDataTypes[this.target.incomingDataTypes.length - 1];
+          pushedDataType["disabled"] = true;
+        }
       } else {
-        this.notify.error("", "Incoming data type is already added");
+        this.notify.error("", "Data provider is already added");
       }
     }
+  }
+
+  removeDataProvider(index) {
+    // also remove associated incoming data types (i.e. the added ones via configuration)
+    let dataProvider = this.target.dataProviders[index];
+    if (dataProvider.hasOwnProperty("incomingDataTypes"))  {
+      for (let i = 0; i < dataProvider.incomingDataTypes.length; i++) {
+        console.log("to be filtered", dataProvider.incomingDataTypes[i]);
+        this.target.incomingDataTypes = this.target.incomingDataTypes.filter(dataType => dataType.name !== dataProvider.incomingDataTypes[i].name);
+      }
+    }
+
+    this.target.dataProviders.splice(index, 1);
+
+  }
+
+  // TODO: discuss the necessity of this function / feature with Ilias?
+  addIncomingDataType() {
+    this.target.incomingDataTypes.push({
+      "disabled": false
+    });
   }
 
   removeIncoming(index) {
@@ -137,6 +173,40 @@ export class EditTargetsComponent implements OnInit {
     return JSON.stringify(this.target) !== JSON.stringify(this.originalTarget)
   }
 
+  checkValidityOfTargetSystemDefinition() {
+
+    // check if names of user-added changeable variables are not same with the ones coming from configuration
+    if (this.checkDuplicateInObject('name', this.target.changeableVariable)) {
+      return this.notify.error("", "Changeable variables contain duplicate elements");
+    }
+    // check if names of user-added incoming data types are not same with the ones coming from configuration
+    if (this.checkDuplicateInObject('name', this.target.incomingDataTypes)) {
+      return this.notify.error("", "Incoming data types contain duplicate elements");
+    }
+    // check if names of data providers are not same with the ones coming from configuration
+    if (this.checkDuplicateInObject('name', this.target.dataProviders)) {
+      return this.notify.error("", "Data providers contain duplicate elements");
+    }
+  }
+
+  // refresh primaryDataProvider & secondaryDataProviders modals, o/w there will be a bug related with sizes of respective arrays
+  // it also checks if a primary data provider is selected or not
+  refreshDataProvidersAndCheckValidity() {
+    this.target.secondaryDataProviders = [];
+    this.target.primaryDataProvider = {};
+    let primary_exists = false;
+    // now, mark the data provider selected by user as "primaryDataProvider", and push others to secondaryDataProviders
+    for (let i = 0; i < this.target.dataProviders.length; i++) {
+      let dataProvider = this.target.dataProviders[i];
+      if (dataProvider["is_primary"] === true) {
+        primary_exists = true;
+        this.target.primaryDataProvider = dataProvider;
+      } else {
+        this.target.secondaryDataProviders.push(dataProvider);
+      }
+    }
+    return primary_exists;
+  }
 
   saveChanges() {
     const ctrl = this;
@@ -144,70 +214,96 @@ export class EditTargetsComponent implements OnInit {
 
       ctrl.target.name = ctrl.target.name.trim();
       if (ctrl.router.url.indexOf("/create") !== -1) {
-
-        // check if user-added variable(s) are not same with the ones coming from configuration
-        if (!this.checkDuplicateInObject('name', this.target.changeableVariable)
-            && !this.checkDuplicateInObject('name', this.target.incomingDataTypes) ) {
-          ctrl.api.saveTarget(this.target).subscribe(
-            (new_target) => {
-              this.temp_storage.setNewValue(new_target);
-              ctrl.notify.success("Success", "Target system is saved");
-              ctrl.router.navigate(["control/targets"]);
-            }
-          )
-        } else {
-          this.notify.error("", "Incoming variables contain duplicate elements");
+        // check for validity of target system
+        this.checkValidityOfTargetSystemDefinition();
+        let primary_data_provider_exists = this.refreshDataProvidersAndCheckValidity();
+        if (!primary_data_provider_exists) {
+          return ctrl.notify.error("", "Provide at least one primary data provider");
         }
 
+        // and perform save operation
+        ctrl.api.saveTarget(ctrl.target).subscribe(
+          (new_target) => {
+            ctrl.temp_storage.setNewValue(new_target);
+            ctrl.notify.success("Success", "Target system is saved");
+            ctrl.router.navigate(["control/targets"]);
+          }
+        )
       } else {
-        // this is a edit, so create new uuid
+        // perform necessary checks for validity of target system
+        this.checkValidityOfTargetSystemDefinition();
+        let primary_exists = this.refreshDataProvidersAndCheckValidity();
+        if (!primary_exists) {
+          return ctrl.notify.error("", "Provide at least one primary data provider");
+        }
+        // everything is OK, create new uuid for edit operation
         ctrl.target.id = UUID.UUID();
-        // ctrl.target.name = ctrl.target.name + " Copy";
+
         ctrl.api.saveTarget(this.target).subscribe(
           (new_target) => {
-            this.temp_storage.setNewValue(new_target);
+            ctrl.temp_storage.setNewValue(new_target);
             ctrl.notify.success("Success", "Target system is saved");
             ctrl.router.navigate(["control/targets"]);
           }
         );
       }
-
-
     }
   }
 
-  hasErrors(): boolean {
 
-    if (this.target.primaryDataProvider.type === "kafka_consumer") {
-      if (this.target.primaryDataProvider.serializer == null
-        || this.target.primaryDataProvider.kafka_uri == null
-        || this.target.primaryDataProvider.kafka_uri.length === 0
-        || this.target.primaryDataProvider.topic == null
-        || this.target.primaryDataProvider.topic.length === 0) {
-        return true;
+  hasErrors(): boolean {
+    let nr_of_selected_primary_data_providers = 0;
+
+
+    if (this.target.dataProviders.length === 0) {
+      return true;
+    }
+
+    for (let i = 0; i < this.target.dataProviders.length; i++) {
+      let dataProvider = this.target.dataProviders[i];
+
+      // indicate error if user has selected more than one primary_data_provider
+      if (dataProvider.hasOwnProperty("is_primary")) {
+        if (dataProvider["is_primary"] === true) {
+          nr_of_selected_primary_data_providers += 1;
+        }
+        if (nr_of_selected_primary_data_providers > 1) {
+          return true;
+        }
       }
-    } else if (this.target.primaryDataProvider.type === "mqtt_listener") {
-      if (this.target.primaryDataProvider.serializer == null
-        || this.target.primaryDataProvider.host == null
-        || this.target.primaryDataProvider.host.length === 0
-        || this.target.primaryDataProvider.port == null
-        || this.target.primaryDataProvider.port < 1
-        || this.target.primaryDataProvider.port > 65535
-        || this.target.primaryDataProvider.topic.length === 0
-        || this.target.primaryDataProvider.topic == null
+
+      // check for attributes of data providers
+      if (dataProvider.type === "kafka_consumer") {
+        if (dataProvider.serializer == null
+          || dataProvider.kafka_uri == null
+          || dataProvider.kafka_uri.length === 0
+          || dataProvider.topic == null
+          || dataProvider.topic.length === 0) {
+          return true;
+        }
+      } else if (dataProvider.type === "mqtt_listener") {
+        if (dataProvider.serializer == null
+          || dataProvider.host == null
+          || dataProvider.host.length === 0
+          || dataProvider.port == null
+          || dataProvider.port < 1
+          || dataProvider.port > 65535
+          || dataProvider.topic.length === 0
+          || dataProvider.topic == null
+          ) {
+          return true;
+        }
+      } else if (dataProvider.type === "http_request") {
+        if (dataProvider.serializer == null
+          || dataProvider.url == null
+          || dataProvider.url.length === 0
         ) {
-        return true;
-      }
-    } else if (this.target.primaryDataProvider.type === "http_request") {
-      if (this.target.primaryDataProvider.serializer == null
-        || this.target.primaryDataProvider.url == null
-        || this.target.primaryDataProvider.url.length === 0
-      ) {
-        return true;
+          return true;
+        }
       }
     }
 
-
+    // check for attributes of change provider
     if (this.target.changeProvider.type === "kafka_producer") {
       if (this.target.changeProvider.serializer == null
         || this.target.changeProvider.kafka_uri == null
@@ -237,6 +333,7 @@ export class EditTargetsComponent implements OnInit {
       }
     }
 
+    // check for attributes of incoming data types
     for (let i = 0; i < this.target.incomingDataTypes.length; i++) {
       if (this.target.incomingDataTypes[i].name == null
           || this.target.incomingDataTypes[i].length === 0
@@ -246,6 +343,7 @@ export class EditTargetsComponent implements OnInit {
         return true;
     }
 
+    // check for attributes of changeable variables
     for (let i = 0; i < this.target.changeableVariable.length; i++) {
       if (this.target.changeableVariable[i].name == null
         || this.target.changeableVariable[i].length === 0
@@ -257,9 +355,7 @@ export class EditTargetsComponent implements OnInit {
         return true;
     }
 
-
     return (this.target.name == null || this.target.name === "") ||
-      (this.target.primaryDataProvider.type == null || this.target.primaryDataProvider.type === "") ||
       (this.target.changeProvider.type == null || this.target.changeProvider.type === "") ||
       (this.target.changeProvider.type == null || this.target.changeProvider.type === "") ||
       (this.target.changeProvider.type == null || this.target.changeProvider.type === "") ||
@@ -294,22 +390,13 @@ export class EditTargetsComponent implements OnInit {
     this.target['name'] = this.selectedConfiguration['name'];
     this.target['description'] = this.selectedConfiguration['description'];
 
-    // TODO: discuss how to discriminate between http/kafka/mqtt with Ilias
+    // kafkaHost attribute is retrieved from api
     if (this.selectedConfiguration.hasOwnProperty("kafkaHost")) {
-      this.target.primaryDataProvider['type'] = 'kafka_consumer';
-      this.target.primaryDataProvider['kafka_uri'] = this.selectedConfiguration['kafkaHost'];
-      this.target.primaryDataProvider['topic'] = this.selectedConfiguration['kafkaTopicTrips'];
-      this.target.primaryDataProvider['serializer'] = 'JSON';
-
       this.target.changeProvider['kafka_uri'] = this.selectedConfiguration['kafkaHost'];
       this.target.changeProvider['type'] = 'kafka_producer';
       this.target.changeProvider['topic'] = this.selectedConfiguration['kafkaCommandsTopic'];
       this.target.changeProvider['serializer'] = 'JSON';
     }
-      // primaryDataProvider: any,
-      // changeProvider: any,
-      // incomingDataTypes: any,
-      // changeableVariable: any
   }
 
   // http://www.competa.com/blog/lets-find-duplicate-property-values-in-an-array-of-objects-in-javascript/

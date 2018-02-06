@@ -10,11 +10,13 @@ class RTXDefinition:
     _oeda_callback = None
     _oeda_stop_request = None
     primary_data_provider = None
+    secondary_data_providers = None
     change_provider = None
     id = None
     stage_counter = None
     all_knobs = None
     remaining_time_and_stages = None
+    incoming_data_types = None
 
     def __init__(self, oeda_experiment, oeda_target, oeda_callback, oeda_stop_request):
         self._oeda_experiment = oeda_experiment
@@ -24,14 +26,22 @@ class RTXDefinition:
         self.name = oeda_experiment["name"]
         self.id = oeda_experiment["id"]
         self.stage_counter = 1
+        self.remaining_time_and_stages = dict() # contains remaining time and stage for an experiment
+        self.change_provider = oeda_target["changeProvider"]
+        self.incoming_data_types = oeda_target["incomingDataTypes"] # contains all of the data types provided by both config & user
+
+        # set-up primary data provider
         primary_data_provider = oeda_target["primaryDataProvider"]
         primary_data_provider["data_reducer"] = RTXDefinition.primary_data_reducer
         self.primary_data_provider = primary_data_provider
-        self.change_provider = oeda_target["changeProvider"]
-        execution_strategy = oeda_experiment["executionStrategy"]
-        self.remaining_time_and_stages = dict() # contains remaining time and stage for an experiment
+
+        self.secondary_data_providers = []
+        for dp in oeda_target["secondaryDataProviders"]:
+            dp["data_reducer"] = RTXDefinition.secondary_data_reducer
+            self.secondary_data_providers.append(dp)
 
         # TODO: knob_value[2] is only provided in step_explorer strategy?
+        execution_strategy = oeda_experiment["executionStrategy"]
         if execution_strategy["type"] == 'step_explorer':
             new_knobs = {}
             for knob_key, knob_value in oeda_experiment["executionStrategy"]["knobs"].iteritems():
@@ -55,19 +65,49 @@ class RTXDefinition:
         dictionary['stage_counter'] = self.stage_counter
         self._oeda_callback(dictionary, self.id)
 
+    # TODO: integrate other metrics using a parameter, instead of default average metric
     @staticmethod
     def primary_data_reducer(state, new_data, wf):
-        db().save_data_point(new_data, state["data_points"], wf.id, wf.stage_counter)
-        state["overhead"] = (state["overhead"] * state["data_points"] + new_data["overhead"]) / (state["data_points"] + 1)
+        cnt = state["data_points"]
+        db().save_data_point(new_data, cnt, wf.id, wf.stage_counter)
+        state["overhead"] = (state["overhead"] * cnt + new_data["overhead"]) / (cnt + 1)
         state["data_points"] += 1
+
+        # for data_type in incomingDataTypes:
+        #     data_type_name = data_type["name"]
+        #     data_type_count = data_type_name + "_cnt"
+        #     cnt = state[data_type_count]
+        #     db().save_data_point(new_data, cnt, wf.id, wf.stage_counter)
+        #     state[data_type_name] = (state[data_type_name] * cnt + new_data[data_type_name]) / (cnt + 1)
+        #     state[data_type_count] += 1
         if wf._oeda_stop_request.isSet():
             raise RuntimeError("Experiment interrupted from OEDA while gathering data.")
         return state
 
     @staticmethod
+    def secondary_data_reducer(state, new_data, wf, incomingDataTypes):
+        return state
+    # def secondary_data_reducer(state, new_data, wf, incomingDataTypes):
+    #     for data_type in incomingDataTypes:
+    #         data_type_name = data_type["name"]
+    #         data_type_count = data_type_name + "_cnt"
+    #         cnt = state[data_type_count]
+    #         db().save_data_point(new_data, cnt, wf.id, wf.stage_counter)
+    #         state[data_type_name] = (state[data_type_name] * cnt + new_data[data_type_name]) / (cnt + 1)
+    #         state[data_type_count] += 1
+    #     if wf._oeda_stop_request.isSet():
+    #         raise RuntimeError("Experiment interrupted from OEDA while gathering data.")
+    #     return state
+
+    @staticmethod
     def state_initializer(state, wf):
         state["overhead"] = 0
         state["data_points"] = 0
+
+        # initialize all incoming data types, not only the hard-coded ones; as well as their counts
+        # for data_type in wf.incoming_data_types:
+        #     state[data_type["name"]] = 0
+        #     state[data_type["name"] + "_cnt"] = 0
         return state
 
     @staticmethod

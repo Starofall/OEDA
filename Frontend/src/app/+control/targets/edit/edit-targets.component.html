@@ -19,7 +19,7 @@
               class="fa fa-send"></i> {{saveButtonLabel}}
             </div>
             <div *ngIf="hasChanges() && hasErrors()" class="btn btn-sm btn-danger"><i
-              class="fa fa-close"></i> Data Error
+              class="fa fa-close"></i>Data Error
             </div>
           </div>
         </div>
@@ -37,44 +37,55 @@
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
         <div class="card-title">
-          <div class="title pull-left">Primary Data Provider</div>
+          <div class="title pull-left">Data Providers</div>
+          <div class="pull-right">
+            <div (click)="addDataProvider()" class="btn btn-xs btn-orange"><i class="fa fa-plus push-5-r"></i> Add</div>
+          </div>
         </div>
       </div>
       <div class="panel-body" style="padding-top: 20px">
-        <div class="row">
-          <labeled-input-select name="Type" [model]="target.primaryDataProvider" key="type" [colSize]="12"
+        <div class="row" *ngFor="let dataProvider of target.dataProviders; let i = index">
+          <labeled-input name="Name" [model]="dataProvider" key="name" [colSize]="5"></labeled-input>
+          <div class="col-md-1 pull-right" style="margin-top: 56px;color: #ef705d">
+            <a (click)="removeDataProvider(i)">
+              <i class="fa fa-remove"></i>
+            </a>
+          </div>
+          <labeled-input-select name="Type" [model]="dataProvider" key="type" [colSize]="6"
                                 [options]="[{key:'http_request',label:'HTTP Request'},
                                 {key:'mqtt_listener',label:'MQTT Listener'},
                                 {key:'kafka_consumer',label:'Kafka Consumer'}]"></labeled-input-select>
-        </div>
+          <labeled-input name="Description" [model]="dataProvider" key="description" [colSize]="12"></labeled-input>
 
-        <div class="row" *ngIf="target.primaryDataProvider.type == 'http_request'">
-          <labeled-input name="URL" [model]="target.primaryDataProvider" key="url" [colSize]="6"></labeled-input>
-          <labeled-input-select name="Serializer" [model]="target.primaryDataProvider" key="serializer" [colSize]="6"
-                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
-        </div>
+          <div *ngIf="dataProvider.type == 'http_request'">
+            <labeled-input name="URL" [model]="dataProvider" key="url" [colSize]="6"></labeled-input>
+            <labeled-input-select name="Serializer" [model]="dataProvider" key="serializer" [colSize]="6"
+                                  [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+          </div>
 
-        <div class="row" *ngIf="target.primaryDataProvider.type == 'mqtt_listener'">
-          <labeled-input name="Host" [model]="target.primaryDataProvider" key="host"></labeled-input>
-          <labeled-input name="Port" [model]="target.primaryDataProvider" key="port" inputType="number"
-                         [minNumber]="1" [maxNumber]="65535"></labeled-input>
-          <labeled-input name="Topic" [model]="target.primaryDataProvider" key="topic"></labeled-input>
-          <labeled-input-select name="Serializer" [model]="target.primaryDataProvider" key="serializer" [colSize]="6"
-                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
-        </div>
+          <div *ngIf="dataProvider.type == 'mqtt_listener'">
+            <labeled-input name="Host" [model]="dataProvider" key="host"></labeled-input>
+            <labeled-input name="Port" [model]="dataProvider" key="port" inputType="number"
+                           [minNumber]="1" [maxNumber]="65535"></labeled-input>
+            <labeled-input name="Topic" [model]="dataProvider" key="topic"></labeled-input>
+            <labeled-input-select name="Serializer" [model]="dataProvider" key="serializer" [colSize]="6"
+                                  [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+          </div>
 
-        <div class="row" *ngIf="target.primaryDataProvider.type == 'kafka_consumer'">
-          <labeled-input name="Kafka URI" [model]="target.primaryDataProvider" key="kafka_uri"
-                         [colSize]="12"></labeled-input>
-          <labeled-input name="Topic" [model]="target.primaryDataProvider" key="topic"></labeled-input>
-          <labeled-input-select name="Serializer" [model]="target.primaryDataProvider" key="serializer" [colSize]="6"
-                                [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+          <div *ngIf="dataProvider.type == 'kafka_consumer'">
+            <labeled-input name="Topic" [model]="dataProvider" key="topic"></labeled-input>
+            <labeled-input-select name="Serializer" [model]="dataProvider" key="serializer" [colSize]="12"
+                                  [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
+            <labeled-input name="Kafka URI" [model]="dataProvider" key="kafka_uri"
+                           [colSize]="10"></labeled-input>
+          </div>
+
+          <labeled-input name="Primary Data Provider?" [model]="dataProvider" key="is_primary" [colSize]="12" inputType="checkbox"></labeled-input>
+          <hr class="col-md-12">
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="col-sm-6 col-xs-12">
     <div class="panel panel-default chartJs">
       <div class="panel-heading">
         <div class="card-title">
@@ -110,13 +121,9 @@
           <labeled-input-select name="Serializer" [model]="target.changeProvider" key="serializer" [colSize]="6"
                                 [options]="[{key:'JSON',label:'JSON'}]"></labeled-input-select>
         </div>
-
-
-        <!-- add selection for all input and output variables here -->
-
-
       </div>
     </div>
+
   </div>
 
   <div class="col-sm-6 col-xs-12">
@@ -125,25 +132,25 @@
         <div class="card-title">
           <div class="title pull-left">Incoming Data Types</div>
           <div class="pull-right">
-            <div (click)="addIncomingDataType()" class="btn btn-xs btn-orange"><i class="fa fa-plus push-5-r"></i> Add
-            </div>
+            <div (click)="addIncomingDataType()" class="btn btn-xs btn-orange"><i class="fa fa-plus push-5-r"></i> Add</div>
           </div>
 
         </div>
       </div>
       <div class="panel-body" style="padding-top: 20px">
         <div class="row" *ngFor="let input of target.incomingDataTypes; let i = index">
-          <labeled-input name="Name" [model]="input" key="name" [colSize]="6"></labeled-input>
+          <labeled-input name="Name" [model]="input" key="name" [colSize]="6" disabled="{{input.disabled}}"></labeled-input>
           <div class="col-md-1 pull-right" style="margin-top: 56px;color: #ef705d">
             <a (click)="removeIncoming(i)">
               <i class="fa fa-remove"></i>
             </a>
           </div>
-          <labeled-input name="Description" [model]="input" key="description" [colSize]="12"></labeled-input>
+          <labeled-input name="Description" [model]="input" key="description" [colSize]="12" disabled="{{input.disabled}}"></labeled-input>
           <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
                                 [options]="[{key:'Ordinal',label:'Ordinal'},
                                 {key:'Metric',label:'Metric'},
-                                {key:'Nominal',label:'Nominal'}]"></labeled-input-select>
+                                {key:'Nominal',label:'Nominal'},
+                                {key:'Ratio',label:'Ratio'}]"></labeled-input-select>
           <hr class="col-md-12">
         </div>
       </div>
@@ -176,7 +183,8 @@
           <labeled-input-select name="Scale" [model]="input" key="scale" [colSize]="5"
                                 [options]="[{key:'Ordinal',label:'Ordinal'},
                                 {key:'Metric',label:'Metric'},
-                                {key:'Nominal',label:'Nominal'}]">
+                                {key:'Nominal',label:'Nominal'},
+                                {key:'Ratio', label:'Ratio'}]">
           </labeled-input-select>
           <hr class="col-md-12">
         </div>
@@ -201,18 +209,40 @@
               <option disabled>Select a configuration</option>
               <option *ngFor="let i of availableConfigurations;" [ngValue]="i">{{ i.name }}</option>
             </select>
-
-            <div *ngIf="selectedConfiguration !== undefined">
-              <div class="table-responsive">
+              <div class="table-responsive" *ngIf="selectedConfiguration !== undefined">
                 <table style="margin-top: 5px" class="table table-striped">
                   <thead>
                   <tr>
-                    <th scope="col">Changeable Variable Name</th>
+                    <th scope="col">Data Provider</th>
                     <th scope="col">Description</th>
                     <th scope="col"></th>
                   </tr>
                   </thead>
                   <tbody class="bigTable">
+                  <tr *ngFor="let dataProvider of selectedConfiguration.dataProviders; let i = index;">
+                    <td>{{dataProvider.name}}</td>
+                    <td>{{dataProvider.description}}</td>
+                    <!--<td> <label><input type="checkbox" value="{{i}}"></label></td>-->
+                    <td>
+                      <div class="btn btn-xs btn-orange" (click)="addDataProvider(dataProvider)">
+                        <i class="fa fa-plus push-5-r"></i> Add
+                      </div>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div *ngIf="selectedConfiguration !== undefined">
+                <div class="table-responsive">
+                  <table style="margin-top: 5px" class="table table-striped">
+                    <thead>
+                    <tr>
+                      <th scope="col">Changeable Variable Name</th>
+                      <th scope="col">Description</th>
+                      <th scope="col"></th>
+                    </tr>
+                    </thead>
+                    <tbody class="bigTable">
                     <tr *ngFor="let knob of selectedConfiguration.knobs; let i = index;">
                       <td>{{knob.name}}</td>
                       <td>{{knob.description}}</td>
@@ -223,35 +253,9 @@
                         </div>
                       </td>
                     </tr>
-                  </tbody>
-                </table>
-              </div>
-
-
-
-              <div class="table-responsive">
-                <table style="margin-top: 5px" class="table table-striped">
-                  <thead>
-                  <tr>
-                    <th scope="col">Incoming Data Type</th>
-                    <th scope="col">Description</th>
-                    <th scope="col"></th>
-                  </tr>
-                  </thead>
-                  <tbody class="bigTable">
-                  <tr *ngFor="let output of selectedConfiguration.outputs; let i = index;">
-                    <td>{{output.name}}</td>
-                    <td>{{output.description}}</td>
-                    <!--<td> <label><input type="checkbox" value="{{i}}"></label></td>-->
-                    <td>
-                      <div class="btn btn-xs btn-orange" (click)="addIncomingDataType(output)">
-                        <i class="fa fa-plus push-5-r"></i> Add
-                      </div>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
+                    </tbody>
+                  </table>
+                </div>
             </div>
           </div>
           <div class="modal-footer">

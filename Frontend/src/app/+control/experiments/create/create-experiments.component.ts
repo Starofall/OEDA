@@ -305,9 +305,11 @@ export class CreateExperimentsComponent implements OnInit {
   createTargetSystem(): Target {
     return {
       "id": "",
+      "dataProviders": [],
       "primaryDataProvider": {
-        "type": "",
+        "type": ""
       },
+      "secondaryDataProviders": [],
       "changeProvider": {
         "type": "",
       },

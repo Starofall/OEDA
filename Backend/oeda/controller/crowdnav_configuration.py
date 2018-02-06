@@ -11,17 +11,17 @@ class CrowdNavConfigController(Resource):
     def get():
         try:
             knobs = json.loads(open('oeda/crowdnav_config/knobs.json').read())
-            outputs = json.loads(open('oeda/crowdnav_config/outputs.json').read())
+            dataProviders = json.loads(open('oeda/crowdnav_config/dataProviders.json').read())
             data = {
                 "name": "CrowdNav",
                 "description": "Simulation based on SUMO",
                 "kafkaTopicRouting": Config.kafkaTopicRouting,
-                "kafkaHost": Config.kafkaHost,
                 "kafkaTopicTrips": Config.kafkaTopicTrips,
                 "kafkaTopicPerformance": Config.kafkaTopicPerformance,
-                "kafkaCommandsTopic": Config.kafkaCommandsTopic,
-                "knobs": knobs,
-                "outputs": outputs
+                "kafkaHost": Config.kafkaHost,
+                "kafkaCommandsTopic": Config.kafkaCommandsTopic, # for now, kafkaHost and kafkaCommandsTopic are only fetched & used for populating change provider entity in OEDA
+                "knobs": knobs, # used to populate changeableVariables in OEDA
+                "dataProviders": dataProviders # used to populate dataProviders in OEDA
             }
             resp = jsonify(data)
             resp.status_code = 200

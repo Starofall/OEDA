@@ -93,12 +93,12 @@ def rtx_execution(experiment, target_system, oeda_stop_request):
         set_experiment_status(experiment["id"], "RUNNING")
         set_target_system_status(experiment["targetSystemId"], "WORKING")
         # convert OEDA to RTX experiment
-        rtx_definition = RTXDefinition(experiment, target_system, oeda_callback, oeda_stop_request)
+        workflow = RTXDefinition(experiment, target_system, oeda_callback, oeda_stop_request)
         # here we now start the experiment on a different thread (in the thread pool)
-        execute_workflow(rtx_definition)
+        execute_workflow(workflow)
         set_experiment_status(experiment["id"], "SUCCESS")
         set_target_system_status(experiment["targetSystemId"], "READY")
-        # TODO here the analytics part should start and also do updateExperiment(experimentId,analysisResults)
+        # TODO here the analytics part should start and also do updateExperiment(experimentId, analysisResults)
 
     except RuntimeError as e:
         debug("Experiment INTERRUPTED - " + experiment["id"] + " - " + str(e))

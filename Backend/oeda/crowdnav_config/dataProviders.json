@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Trips",
+    "description": "Provides overhead, complaint, and minimalCosts variables of trips",
+    "type": "kafka_consumer",
+    "kafka_uri": "kafka:9092",
+    "topic": "crowd-nav-trips",
+    "serializer": "JSON",
+    "incomingDataTypes": [
+      {
+        "name": "overhead",
+        "description": "overhead of the trips",
+        "scale": "Metric"
+      }, {
+        "name": "complaint",
+        "description": "complaint indicator if overhead of a trip is greater than zero in a uniformly distributed manner",
+        "scale": "Metric"
+      }, {
+        "name": "minimalCosts",
+        "description": "optimal costs of the trips",
+        "scale": "Metric"
+      }
+    ]
+  }, {
+    "name": "Performance",
+    "description": "Provides tick duration",
+    "type": "kafka_consumer",
+    "kafka_uri": "kafka:9092",
+    "topic": "crowd-nav-performance",
+    "serializer": "JSON",
+    "incomingDataTypes": [
+      {
+        "name": "lastTickDuration",
+        "description": "last tick duration processed by the system before generating a new car",
+        "scale": "Metric"
+      }
+    ]
+  }, {
+    "name": "Routing",
+    "description": "Provides how long it takes for routing a car",
+    "type": "kafka_consumer",
+    "kafka_uri": "kafka:9092",
+    "topic": "crowd-nav-routing",
+    "serializer": "JSON",
+    "incomingDataTypes": [
+      {
+        "name": "routingDuration",
+        "description": "time for routing a car",
+        "scale": "Metric"
+      }
+    ]
+  }
+]
+

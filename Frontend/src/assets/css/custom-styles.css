@@ -61,9 +61,7 @@ p {
     line-height:25px;
     padding-top:20px;
 }
-.navbar-side {
-    z-index: 0;
-}
+
 .panel{
 border-radius:0px;
 }
@@ -80,7 +78,7 @@ position: fixed;
   z-index: 1;
   position: fixed;
   width: 210px;
-  top: 80px;
+  top: 90px;
 }
 #page-wrapper {
   position: relative;

@@ -67,7 +67,7 @@ export class UserService {
       .getOrElse(() => new Date())
   }
 
-  /** tries to log in the user and stores the token in sessionStorage */
+  /** tries to log in the user and stores the token in localStorage (another option is to store it in sessionStorage) */
   login(request: LoginRequest): Observable<boolean> {
     this.log.debug("UserService - starting LoginRequest");
     return this.http.post(environment.backendURL + "/auth/login", request)
@@ -91,12 +91,12 @@ export class UserService {
   /** stores the token*/
   setAuthToken(token: string): void {
     this.log.debug("UserService - storing token");
-    sessionStorage.setItem('oeda_token', token)
+    localStorage.setItem('oeda_token', token)
   }
 
-  /** returns the token stored in sessionStorage*/
+  /** returns the token stored in localStorage */
   getAuthTokenRaw(): Option<string> {
-    const token = sessionStorage.getItem('oeda_token');
+    const token = localStorage.getItem('oeda_token');
     if (token == null || token.split('.').length !== 3) {
       return None
     } else {
@@ -108,8 +108,8 @@ export class UserService {
   logout(): void {
     console.log("UserService - removing token");
     this.log.debug("UserService - removing token");
-    sessionStorage.removeItem('oeda_token');
-    console.log(sessionStorage.getItem('oeda_token'));
+    localStorage.removeItem('oeda_token');
+    console.log(localStorage.getItem('oeda_token'));
     this.router.navigate(['/'])
   }
 

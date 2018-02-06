@@ -114,7 +114,9 @@ export interface Target {
   name: string,
   status: string,
   description: string,
+  dataProviders: any, // generic one
   primaryDataProvider: any,
+  secondaryDataProviders: any,
   changeProvider: any,
   incomingDataTypes: any,
   changeableVariable: any

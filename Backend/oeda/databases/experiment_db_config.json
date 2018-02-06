@@ -68,6 +68,9 @@
             "serializer":    { "type": "keyword" }
           }
         },
+        "secondary_data_providers": {
+          "type": "nested"
+        },
         "change_provider": {
           "type": "nested",
           "properties": {
